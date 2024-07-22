@@ -80,12 +80,12 @@ impl Sensor {
             let mut detection = self.get_detection(original_position);
             if detection.distance < 1.0 {
                 // Regression, hit a solid wall
-                let tile_above_position = original_position - self.direction.get_target_direction();
+                let snapped_position = self.base().get_position();
+                let tile_above_position = snapped_position - self.direction.get_target_direction();
                 self.base_mut().set_position(tile_above_position);
                 self.base_mut().force_raycast_update();
-                if self.base().is_colliding() {
-                    detection = self.get_detection(original_position);
-                }
+
+                detection = self.get_detection(original_position);
             }
             Some(detection)
         } else {
