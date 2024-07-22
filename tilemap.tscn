@@ -5051,4 +5051,5 @@ layer_0/tile_data = PackedInt32Array(65537, 2, 8, 131073, 2, 9, 196609, 2, 10, 2
 position = Vector2(266, 93)
 
 [node name="Sensor" parent="." instance=ExtResource("3_wb0ne")]
-position = Vector2(1034, 130)
+update_in_editor = false
+position = Vector2(1031, 124)

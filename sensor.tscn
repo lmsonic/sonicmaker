@@ -1,7 +1,6 @@
 [gd_scene format=3 uid="uid://cwfcb4naaj1h1"]
 
-[node name="Sensor" type="Sensor" node_paths=PackedStringArray("label")]
-label = NodePath("")
+[node name="Sensor" type="Sensor"]
 target_position = Vector2(0, 16)
 hit_from_inside = true
 collide_with_areas = true
