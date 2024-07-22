@@ -1,5 +1,6 @@
 use godot::{
-    engine::{CollisionShape2D, RectangleShape2D},
+    classes::ICharacterBody2D,
+    engine::{CharacterBody2D, CollisionShape2D, Engine, RectangleShape2D},
     prelude::*,
 };
 
@@ -45,6 +46,19 @@ struct Character {
     jump_force: f32,
     #[export]
     collision_shape: Option<Gd<CollisionShape2D>>,
+    #[base]
+    base: Base<CharacterBody2D>,
+}
+
+#[godot_api]
+impl ICharacterBody2D for Character {
+    fn physics_process(&mut self, delta: f64) {
+        if Engine::singleton().is_editor_hint() {
+            return;
+        }
+        self.base_mut().set_velocity(Vector2::new(0.0, 980.0));
+        self.base_mut().move_and_slide();
+    }
 }
 
 #[godot_api]
