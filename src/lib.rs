@@ -1,4 +1,5 @@
-pub mod character;
+mod character;
+mod sensor;
 
 use godot::prelude::*;
 

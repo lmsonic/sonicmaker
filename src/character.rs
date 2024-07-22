@@ -46,7 +46,7 @@ struct Character {
     jump_force: f32,
     #[export]
     collision_shape: Option<Gd<CollisionShape2D>>,
-    #[base]
+
     base: Base<CharacterBody2D>,
 }
 
