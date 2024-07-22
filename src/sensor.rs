@@ -51,11 +51,30 @@ impl DetectionResult {
 }
 #[godot_api]
 impl IRayCast2D for Sensor {
-    fn physics_process(&mut self, delta: f64) {}
+    fn physics_process(&mut self, delta: f64) {
+        self.update_debug_label();
+    }
 }
 
 #[godot_api]
 impl Sensor {
+    fn update_debug_label(&mut self) {
+        if self.label.is_none() {
+            return;
+        }
+        let text: GString = match self.detect_solid() {
+            Some(result) => format!(
+                "{:.0} \n{:.0}°",
+                result.distance,
+                result.normal.angle().to_degrees()
+            )
+            .into(),
+
+            None => "out of range".into(),
+        };
+        let label = self.label.as_deref_mut().unwrap();
+        label.set_text(text);
+    }
     #[func]
     fn set_direction(&mut self, value: Direction) {
         self.direction = value;
