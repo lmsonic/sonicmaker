@@ -5,7 +5,6 @@ size = Vector2(19, 39)
 
 [node name="Character" type="Character" node_paths=PackedStringArray("collision_shape")]
 character = "Knuckles"
-state = "Standing"
 jump_force = 6.0
 collision_shape = NodePath("CollisionShape2D")
 
