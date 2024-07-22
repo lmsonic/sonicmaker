@@ -1,5 +1,5 @@
 use godot::{
-    engine::{Engine, IRayCast2D, RayCast2D},
+    engine::{Engine, Font, IRayCast2D, Label, RayCast2D, ThemeDb},
     prelude::*,
 };
 
@@ -33,6 +33,8 @@ struct Sensor {
     #[export]
     #[var(get, set = set_direction)]
     direction: Direction,
+    #[export]
+    label: Option<Gd<Label>>,
     base: Base<RayCast2D>,
 }
 
@@ -49,15 +51,7 @@ impl DetectionResult {
 }
 #[godot_api]
 impl IRayCast2D for Sensor {
-    fn physics_process(&mut self, delta: f64) {
-        if Engine::singleton().is_editor_hint() {
-            // return;
-        }
-        match self.detect_solid() {
-            Some(result) => godot_print!("distance: {}", result.distance),
-            None => godot_print!("out of sensor range"),
-        }
-    }
+    fn physics_process(&mut self, delta: f64) {}
 }
 
 #[godot_api]
