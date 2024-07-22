@@ -1,5 +1,5 @@
 use godot::{
-    engine::{Engine, Font, IRayCast2D, Label, RayCast2D, ThemeDb},
+    engine::{Engine, Font, IRayCast2D, Label, RayCast2D, Theme, ThemeDb},
     prelude::*,
 };
 
@@ -34,7 +34,10 @@ struct Sensor {
     #[var(get, set = set_direction)]
     direction: Direction,
     #[export]
-    label: Option<Gd<Label>>,
+    update_in_editor: bool,
+    #[export]
+    show_debug_label: bool,
+    last_result: Option<DetectionResult>,
     base: Base<RayCast2D>,
 }
 
@@ -52,16 +55,21 @@ impl DetectionResult {
 #[godot_api]
 impl IRayCast2D for Sensor {
     fn physics_process(&mut self, delta: f64) {
-        self.update_debug_label();
+        if self.update_in_editor && Engine::singleton().is_editor_hint() {
+            self.last_result = self.detect_solid();
+            self.base_mut().queue_redraw();
+        }
+    }
+    fn draw(&mut self) {
+        if self.show_debug_label {
+            self.update_debug_label();
+        }
     }
 }
 
 #[godot_api]
 impl Sensor {
     fn update_debug_label(&mut self) {
-        if self.label.is_none() {
-            return;
-        }
         let text: GString = match self.detect_solid() {
             Some(result) => format!(
                 "{:.0} \n{:.0}°",
@@ -70,10 +78,15 @@ impl Sensor {
             )
             .into(),
 
-            None => "out of range".into(),
+            None => "".into(),
         };
-        let label = self.label.as_deref_mut().unwrap();
-        label.set_text(text);
+        if let Some(font) = ThemeDb::singleton()
+            .get_project_theme()
+            .and_then(|theme| theme.get_default_font())
+        {
+            self.base_mut()
+                .draw_string(font, Vector2::new(0.0, 0.0), text);
+        }
     }
     #[func]
     fn set_direction(&mut self, value: Direction) {
