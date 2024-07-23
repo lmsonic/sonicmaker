@@ -23,7 +23,7 @@ enum State {
 
 #[derive(GodotClass)]
 #[class(tool,init, base=CharacterBody2D)]
-struct Character {
+pub struct Character {
     #[export]
     #[var(get, set = set_character)]
     character: Kind,
@@ -56,8 +56,8 @@ impl ICharacterBody2D for Character {
         if Engine::singleton().is_editor_hint() {
             return;
         }
-        self.base_mut().set_velocity(Vector2::new(0.0, 980.0));
-        self.base_mut().move_and_slide();
+        // self.base_mut().set_velocity(Vector2::new(0.0, 980.0));
+        // self.base_mut().move_and_slide();
     }
 }
 
