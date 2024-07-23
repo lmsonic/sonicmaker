@@ -1,9 +1,7 @@
 [gd_scene load_steps=20 format=3 uid="uid://cwy1rw6rmm00c"]
 
 [ext_resource type="Texture2D" uid="uid://dpigsx74d37wt" path="res://sonic/sonic.png" id="1_ddxe8"]
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_2bnno"]
-size = Vector2(19, 39)
+[ext_resource type="PackedScene" uid="uid://cwfcb4naaj1h1" path="res://sensor.tscn" id="2_mvnfj"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_biw3g"]
 atlas = ExtResource("1_ddxe8")
@@ -71,6 +69,11 @@ region = Rect2(220, 46, 44, 46)
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_fg2lh"]
 animations = [{
+"frames": [],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}, {
 "frames": [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_biw3g")
@@ -140,19 +143,40 @@ animations = [{
 "speed": 10.0
 }]
 
-[node name="Character" type="Character" node_paths=PackedStringArray("collision_shape") groups=["player"]]
-character = "Knuckles"
-jump_force = 6.0
-collision_shape = NodePath("CollisionShape2D")
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2(0, -19.5)
-shape = SubResource("RectangleShape2D_2bnno")
+[node name="Character" type="Character" node_paths=PackedStringArray("sensor_a", "sensor_b", "sensor_c", "sensor_d") groups=["player"]]
+sensor_a = NodePath("SensorPivot/SensorA")
+sensor_b = NodePath("SensorPivot/SensorB")
+sensor_c = NodePath("SensorPivot/SensorC")
+sensor_d = NodePath("SensorPivot/SensorD")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 texture_filter = 1
-position = Vector2(0, -23)
+position = Vector2(0, -4)
 sprite_frames = SubResource("SpriteFrames_fg2lh")
-animation = &"rolling"
-frame = 1
-frame_progress = 0.281795
+animation = &"idle"
+
+[node name="SensorPivot" type="RemoteTransform2D" parent="."]
+remote_path = NodePath("..")
+use_global_coordinates = false
+update_rotation = false
+update_scale = false
+
+[node name="SensorA" parent="SensorPivot" instance=ExtResource("2_mvnfj")]
+update_in_editor = true
+show_debug_label = true
+position = Vector2(-9, 19)
+
+[node name="SensorB" parent="SensorPivot" instance=ExtResource("2_mvnfj")]
+position = Vector2(9, 19)
+
+[node name="SensorC" parent="SensorPivot" instance=ExtResource("2_mvnfj")]
+direction = "Up"
+update_in_editor = true
+show_debug_label = true
+position = Vector2(-9, -19)
+target_position = Vector2(0, -16)
+
+[node name="SensorD" parent="SensorPivot" instance=ExtResource("2_mvnfj")]
+direction = "Up"
+position = Vector2(9, -19)
+target_position = Vector2(0, -16)
