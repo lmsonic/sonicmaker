@@ -1,11 +1,16 @@
+use std::f32::consts::PI;
+
 use godot::{
-    engine::{Engine, Font, IRayCast2D, Label, RayCast2D, Theme, ThemeDb},
+    engine::{Engine, IRayCast2D, RayCast2D, ThemeDb},
     prelude::*,
 };
+use real_consts::{FRAC_2_PI, FRAC_PI_2};
+
+use crate::vec3_ext::Vector2Ext;
 
 #[derive(GodotConvert, Var, Export, Default, Debug, PartialEq, Eq, Clone, Copy)]
 #[godot(via = GString)]
-enum Direction {
+pub enum Direction {
     Up,
     #[default]
     Down,
@@ -29,7 +34,7 @@ impl Direction {
 }
 #[derive(GodotClass)]
 #[class(tool,init, base=RayCast2D)]
-struct Sensor {
+pub struct Sensor {
     #[export]
     #[var(get, set = set_direction)]
     direction: Direction,
@@ -42,9 +47,31 @@ struct Sensor {
 }
 
 #[derive(Debug, Clone, Copy)]
-struct DetectionResult {
-    distance: f32,
-    normal: Vector2,
+pub struct DetectionResult {
+    pub distance: f32,
+    pub normal: Vector2,
+}
+
+impl GodotConvert for DetectionResult {
+    type Via = Dictionary;
+}
+impl ToGodot for DetectionResult {
+    fn to_godot(&self) -> Self::Via {
+        dict! {"distance":self.distance,"normal":self.normal}
+    }
+}
+impl FromGodot for DetectionResult {
+    fn try_from_godot(dict: Self::Via) -> Result<Self, ConvertError> {
+        let distance = dict
+            .get("distance")
+            .ok_or(ConvertError::default())?
+            .try_to()?;
+        let normal = dict
+            .get("normal")
+            .ok_or(ConvertError::default())?
+            .try_to()?;
+        Ok(Self { distance, normal })
+    }
 }
 
 impl DetectionResult {
@@ -54,12 +81,6 @@ impl DetectionResult {
 }
 #[godot_api]
 impl IRayCast2D for Sensor {
-    fn physics_process(&mut self, delta: f64) {
-        if self.update_in_editor && Engine::singleton().is_editor_hint() {
-            self.last_result = self.detect_solid();
-            self.base_mut().queue_redraw();
-        }
-    }
     fn draw(&mut self) {
         if self.show_debug_label {
             self.update_debug_label();
@@ -69,14 +90,28 @@ impl IRayCast2D for Sensor {
 
 #[godot_api]
 impl Sensor {
+    #[func]
+    pub fn set_direction(&mut self, value: Direction) {
+        self.direction = value;
+        self.reset_target_position();
+    }
+
+    #[func]
+    pub fn detect_solid(&mut self) -> Variant {
+        match self._detect_solid() {
+            Some(result) => Variant::from(result),
+            None => Variant::nil(),
+        }
+    }
+}
+
+impl Sensor {
     fn update_debug_label(&mut self) {
-        let text: GString = match self.detect_solid() {
-            Some(result) => format!(
-                "{:.0} \n{:.0}°",
-                result.distance,
-                result.normal.angle().to_degrees()
-            )
-            .into(),
+        let text: GString = match self.last_result {
+            Some(result) => {
+                let angle = result.normal.angle_0_360();
+                format!("{:.0} \n{:.0}°", result.distance, angle.to_degrees()).into()
+            }
 
             None => "".into(),
         };
@@ -88,13 +123,7 @@ impl Sensor {
                 .draw_string(font, Vector2::new(0.0, 0.0), text);
         }
     }
-    #[func]
-    fn set_direction(&mut self, value: Direction) {
-        self.direction = value;
-        self.reset_target_position();
-    }
-
-    fn detect_solid(&mut self) -> Option<DetectionResult> {
+    fn _detect_solid(&mut self) -> Option<DetectionResult> {
         // Reset positions
         let original_position = self.base().get_global_position();
         let original_target = self.base().get_target_position();
@@ -128,9 +157,9 @@ impl Sensor {
         };
         self.base_mut().set_target_position(original_target);
         self.base_mut().set_global_position(original_position);
+        self.last_result = result;
         result
     }
-
     fn get_detection(&self, original_position: Vector2) -> DetectionResult {
         let collision_point = self.base().get_collision_point();
         let distance = self.get_distance(original_position, collision_point);

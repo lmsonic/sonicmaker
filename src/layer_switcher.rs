@@ -1,5 +1,7 @@
+use std::borrow::BorrowMut;
+
 use godot::{
-    engine::{Area2D, CollisionShape2D, IArea2D, RectangleShape2D, SegmentShape2D, ThemeDb},
+    engine::{CollisionShape2D, SegmentShape2D, ThemeDb},
     prelude::*,
 };
 
@@ -21,7 +23,7 @@ enum SwitcherTypeChange {
     Both,
 }
 #[derive(GodotClass)]
-#[class(tool,init, base=Area2D)]
+#[class(tool,init, base=Node2D)]
 struct LayerSwitcher {
     #[export(range = (0.0, 100.0,1.0,or_greater))]
     #[var(get,set = set_length)]
@@ -33,7 +35,7 @@ struct LayerSwitcher {
     direction: Direction,
     #[export]
     collision_shape: Option<Gd<CollisionShape2D>>,
-    base: Base<Area2D>,
+    base: Base<Node2D>,
     #[export]
     grounded_only: bool,
     #[export]
@@ -53,7 +55,7 @@ struct LayerSwitcher {
     current_side_of_player: bool,
 }
 #[godot_api]
-impl IArea2D for LayerSwitcher {
+impl INode2D for LayerSwitcher {
     fn physics_process(&mut self, delta: f64) {
         if let Some(mut player) = self.get_player() {
             let is_player_on_positive_side = self.is_player_on_positive_side(&player);
@@ -157,6 +159,7 @@ impl LayerSwitcher {
                 player.set_z_index(z_index);
             }
         }
+        player.bind_mut().update_sensors();
     }
     fn update_segment(&mut self, mut segment: Gd<SegmentShape2D>) {
         match self.direction {
