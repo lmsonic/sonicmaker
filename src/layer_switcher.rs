@@ -44,23 +44,23 @@ struct LayerSwitcher {
     #[export(flags_3d_physics)]
     negative_side_layer: u32,
     #[export]
-    negative_side_z_index: u32,
+    negative_side_z_index: i32,
     #[export(flags_3d_physics)]
     positive_side_layer: u32,
     #[export]
-    positive_side_z_index: u32,
+    positive_side_z_index: i32,
     #[export]
     current_side_of_player: bool,
 }
 #[godot_api]
 impl IArea2D for LayerSwitcher {
     fn physics_process(&mut self, delta: f64) {
-        if let Some(player) = self.get_player() {
+        if let Some(mut player) = self.get_player() {
             let is_player_on_positive_side = self.is_player_on_positive_side(&player);
             if self.check_player_entered(&player)
                 && self.current_side_of_player != is_player_on_positive_side
             {
-                self.switch(player);
+                self.switch(&mut player, is_player_on_positive_side);
             }
             self.current_side_of_player = is_player_on_positive_side;
         };
@@ -138,8 +138,25 @@ impl LayerSwitcher {
             Direction::Vertical => player_position.x >= position.x,
         }
     }
-    fn switch(&mut self, player: Gd<Character>) {
-        godot_print!("switching");
+    fn switch(&mut self, player: &mut Gd<Character>, current_player_side: bool) {
+        let layer = if current_player_side {
+            self.positive_side_layer
+        } else {
+            self.negative_side_layer
+        };
+        let z_index = if current_player_side {
+            self.positive_side_z_index
+        } else {
+            self.negative_side_z_index
+        };
+        match self.change_type {
+            SwitcherTypeChange::PhysicsLayer => player.set_collision_layer(layer),
+            SwitcherTypeChange::ZIndex => player.set_z_index(z_index),
+            SwitcherTypeChange::Both => {
+                player.set_collision_layer(layer);
+                player.set_z_index(z_index);
+            }
+        }
     }
     fn update_segment(&mut self, mut segment: Gd<SegmentShape2D>) {
         match self.direction {
