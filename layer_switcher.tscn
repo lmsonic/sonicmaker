@@ -1,9 +1,13 @@
 [gd_scene load_steps=2 format=3 uid="uid://bmf6tr4scfbsw"]
 
-[sub_resource type="WorldBoundaryShape2D" id="WorldBoundaryShape2D_0jo2e"]
-normal = Vector2(1, 0)
+[sub_resource type="SegmentShape2D" id="SegmentShape2D_h84bd"]
+a = Vector2(0, -100)
+b = Vector2(0, 100)
 
-[node name="LayerSwitcher" type="Area2D"]
+[node name="LayerSwitcher" type="LayerSwitcher" node_paths=PackedStringArray("collision_shape")]
+length = 100.0
+collision_shape = NodePath("CollisionShape2D")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-shape = SubResource("WorldBoundaryShape2D_0jo2e")
+shape = SubResource("SegmentShape2D_h84bd")
+debug_color = Color(0, 0.6, 0.152941, 0.419608)
