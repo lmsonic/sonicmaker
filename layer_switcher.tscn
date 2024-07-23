@@ -2,11 +2,10 @@
 
 [sub_resource type="SegmentShape2D" id="SegmentShape2D_lppt0"]
 resource_local_to_scene = true
-a = Vector2(0, -45)
-b = Vector2(0, 45)
+a = Vector2(0, -50)
+b = Vector2(0, 50)
 
 [node name="LayerSwitcher" type="LayerSwitcher" node_paths=PackedStringArray("collision_shape")]
-length = 100.0
 collision_shape = NodePath("CollisionShape2D")
 negative_side_layer = 1
 positive_side_layer = 2
