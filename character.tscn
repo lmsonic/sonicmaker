@@ -11,3 +11,9 @@ collision_shape = NodePath("CollisionShape2D")
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position = Vector2(0, -19.5)
 shape = SubResource("RectangleShape2D_2bnno")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+offset_left = -9.0
+offset_top = -38.0
+offset_right = 9.0
+color = Color(0.8, 0.105882, 1, 1)

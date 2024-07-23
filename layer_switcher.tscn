@@ -7,6 +7,8 @@ b = Vector2(0, 100)
 [node name="LayerSwitcher" type="LayerSwitcher" node_paths=PackedStringArray("collision_shape")]
 length = 100.0
 collision_shape = NodePath("CollisionShape2D")
+negative_side_layer = 1
+positive_side_layer = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("SegmentShape2D_h84bd")
