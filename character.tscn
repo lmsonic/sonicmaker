@@ -1,4 +1,4 @@
-[gd_scene load_steps=20 format=3 uid="uid://cwy1rw6rmm00c"]
+[gd_scene load_steps=22 format=3 uid="uid://cwy1rw6rmm00c"]
 
 [ext_resource type="Texture2D" uid="uid://dpigsx74d37wt" path="res://sonic/sonic.png" id="1_ddxe8"]
 [ext_resource type="PackedScene" uid="uid://cwfcb4naaj1h1" path="res://sensor.tscn" id="2_mvnfj"]
@@ -143,19 +143,27 @@ animations = [{
 "speed": 10.0
 }]
 
-[node name="Character" type="Character" node_paths=PackedStringArray("sensors", "sensor_a", "sensor_b", "sensor_c", "sensor_d") groups=["player"]]
-sensors = NodePath("Sensors")
-sensor_a = NodePath("Sensors/SensorA")
-sensor_b = NodePath("Sensors/SensorB")
-sensor_c = NodePath("Sensors/SensorC")
-sensor_d = NodePath("Sensors/SensorD")
-mode = "Floor"
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_g03oc"]
+size = Vector2(19, 39)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_j2lx3"]
+size = Vector2(15, 36)
+
+[node name="Character" type="Character" node_paths=PackedStringArray("sprites", "sensor_shape", "hitbox_shape", "sensor_floor_left", "sensor_floor_right", "sensor_ceiling_left", "sensor_ceiling_right") groups=["player"]]
+sprites = NodePath("AnimatedSprite2D")
+sensor_shape = NodePath("CollisionShape2D")
+hitbox_shape = NodePath("Hitbox/CollisionShape2D")
+sensor_floor_left = NodePath("Sensors/SensorFloorLeft")
+sensor_floor_right = NodePath("Sensors/SensorFloorRight")
+sensor_ceiling_left = NodePath("Sensors/SensorCeilingLeft")
+sensor_ceiling_right = NodePath("Sensors/SensorCeilingRight")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 texture_filter = 1
 position = Vector2(0, -4)
 sprite_frames = SubResource("SpriteFrames_fg2lh")
 animation = &"idle"
+frame_progress = 1.0
 metadata/_edit_lock_ = true
 
 [node name="RemoteTransform2D" type="RemoteTransform2D" parent="."]
@@ -166,18 +174,28 @@ update_scale = false
 [node name="Sensors" type="Node2D" parent="."]
 top_level = true
 
-[node name="SensorA" parent="Sensors" instance=ExtResource("2_mvnfj")]
+[node name="SensorFloorLeft" parent="Sensors" instance=ExtResource("2_mvnfj")]
 position = Vector2(-9, 19)
 
-[node name="SensorB" parent="Sensors" instance=ExtResource("2_mvnfj")]
+[node name="SensorFloorRight" parent="Sensors" instance=ExtResource("2_mvnfj")]
 position = Vector2(9, 19)
 
-[node name="SensorC" parent="Sensors" instance=ExtResource("2_mvnfj")]
+[node name="SensorCeilingLeft" parent="Sensors" instance=ExtResource("2_mvnfj")]
 direction = "Up"
 position = Vector2(-9, -19)
 target_position = Vector2(0, -16)
 
-[node name="SensorD" parent="Sensors" instance=ExtResource("2_mvnfj")]
+[node name="SensorCeilingRight" parent="Sensors" instance=ExtResource("2_mvnfj")]
 direction = "Up"
 position = Vector2(9, -19)
 target_position = Vector2(0, -16)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_g03oc")
+debug_color = Color(0.62819, 0.530627, 0, 0.42)
+
+[node name="Hitbox" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hitbox"]
+shape = SubResource("RectangleShape2D_j2lx3")
+debug_color = Color(0.84355, 0.00105406, 0.915062, 0.42)
