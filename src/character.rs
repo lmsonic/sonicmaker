@@ -50,9 +50,9 @@ impl Mode {
     fn angle(&self) -> f32 {
         match self {
             Mode::Floor => 0.0,
-            Mode::RightWall => -FRAC_PI_2,
-            Mode::Ceiling => PI,
             Mode::LeftWall => FRAC_PI_2,
+            Mode::Ceiling => PI,
+            Mode::RightWall => PI + FRAC_PI_2,
         }
     }
     fn down_direction(&self) -> Direction {
@@ -63,6 +63,7 @@ impl Mode {
             Mode::LeftWall => Direction::Left,
         }
     }
+
     fn up_direction(&self) -> Direction {
         match self {
             Mode::Floor => Direction::Up,
@@ -143,11 +144,10 @@ pub struct Character {
     sensor_ceiling_right: Option<Gd<Sensor>>,
     #[export]
     is_grounded: bool,
-    #[export]
+    #[export(range = (0.0, 360.0, 0.001, radians_as_degrees))]
+    #[var(get,set= set_ground_angle)]
     last_ground_angle: f32,
-    #[export]
-    #[var(get,set= set_mode)]
-    mode: Mode,
+
     #[export]
     enable_in_editor: bool,
     base: Base<CharacterBody2D>,
@@ -161,13 +161,11 @@ impl ICharacterBody2D for Character {
         }
         if let Some(result) = self.ground_check() {
             if self.collides_with_floor(result) {
-                self.last_ground_angle = result.normal.plane_angle();
                 if self.is_grounded {
                     self.snap_to_floor(result.distance);
-                    let ground_angle = result.normal.plane_angle();
-                    self.base_mut().set_rotation(ground_angle);
-                    self.set_mode(Mode::from_ground_angle(ground_angle))
                 }
+                let ground_angle = result.normal.plane_angle();
+                self.set_ground_angle(ground_angle);
                 self.is_grounded = true;
             } else {
                 self.is_grounded = false;
@@ -182,8 +180,9 @@ impl ICharacterBody2D for Character {
 #[godot_api]
 impl Character {
     #[func]
-    fn set_mode(&mut self, value: Mode) {
-        self.mode = value;
+    fn set_ground_angle(&mut self, value: f32) {
+        self.last_ground_angle = value;
+        self.base_mut().set_rotation(value);
         self.update_sensors();
         self.update_shapes();
     }
@@ -196,11 +195,9 @@ impl Character {
 
     #[func]
     fn set_height_radius(&mut self, value: f32) {
-        let delta = value - self.height_radius;
         self.height_radius = value;
         self.update_sensors();
         self.update_shapes();
-        self.adjust_y_position(delta);
     }
 
     #[func]
@@ -252,11 +249,16 @@ impl Character {
         let half_width = self.width_radius;
         let half_height = self.height_radius;
         let mask = self.base().get_collision_layer();
+        let mode = self.current_mode();
 
-        let down_direction = self.mode.down_direction();
-        let up_direction = self.mode.up_direction();
-
-        let angle = self.mode.angle();
+        let mut down_direction = mode.down_direction();
+        let mut up_direction = mode.up_direction();
+        let mut angle = mode.angle();
+        if mode.is_sideways() {
+            // I have no idea, Glam and Godot have different ideas of rotation?
+            angle = -angle;
+            std::mem::swap(&mut down_direction, &mut up_direction);
+        }
         let bottom_left = Vector2::new(-half_width, half_height).rotated(angle);
         let bottom_right = Vector2::new(half_width, half_height).rotated(angle);
         let top_left = Vector2::new(-half_width, -half_height).rotated(angle);
@@ -286,14 +288,15 @@ impl Character {
 }
 
 impl Character {
-    pub fn adjust_y_position(&mut self, delta: f32) {
-        let mut position = self.base().get_position();
-        position.y -= delta;
-        self.base_mut().set_position(position);
+    fn current_mode(&self) -> Mode {
+        Mode::from_ground_angle(self.last_ground_angle)
     }
-    pub fn update_shapes(&mut self) {
-        let width = self.width_radius * 2.0 + 1.0;
-        let height = self.height_radius * 2.0 + 1.0;
+
+    fn update_shapes(&mut self) {
+        let width = self.width_radius * 2.0;
+        let height = self.height_radius * 2.0;
+        let mode = self.current_mode();
+
         if let Some(mut shape) = self
             .sensor_shape
             .as_deref_mut()
@@ -301,7 +304,7 @@ impl Character {
             .and_then(|shape| shape.try_cast::<RectangleShape2D>().ok())
         {
             let mut size = Vector2::new(width, height);
-            if self.mode.is_sideways() {
+            if mode.is_sideways() {
                 size = Vector2::new(size.y, size.x);
             }
             shape.set_size(size);
@@ -313,7 +316,7 @@ impl Character {
             .and_then(|shape| shape.try_cast::<RectangleShape2D>().ok())
         {
             let mut size = Vector2::new(15.0, height - 3.0);
-            if self.mode.is_sideways() {
+            if mode.is_sideways() {
                 size = Vector2::new(size.y, size.x);
             }
             hitbox.set_size(size);
@@ -364,7 +367,7 @@ impl Character {
         };
         results
             .into_iter()
-            .min_by(|a, b| a.distance.total_cmp(&b.distance))
+            .min_by(|a, b| a.distance.abs().total_cmp(&b.distance.abs()))
     }
     fn ceiling_check(&mut self) -> Option<DetectionResult> {
         let mut results = vec![];
@@ -388,6 +391,6 @@ impl Character {
         };
         results
             .into_iter()
-            .max_by(|a, b| a.distance.total_cmp(&b.distance))
+            .min_by(|a, b| a.distance.abs().total_cmp(&b.distance.abs()))
     }
 }
