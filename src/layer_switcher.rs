@@ -1,5 +1,3 @@
-use std::borrow::BorrowMut;
-
 use godot::{
     engine::{CollisionShape2D, Engine, SegmentShape2D, ThemeDb},
     prelude::*,
@@ -53,11 +51,13 @@ struct LayerSwitcher {
     positive_side_z_index: i32,
     #[export]
     current_side_of_player: bool,
+    #[export]
+    enable_in_editor: bool,
 }
 #[godot_api]
 impl INode2D for LayerSwitcher {
-    fn physics_process(&mut self, delta: f64) {
-        if Engine::singleton().is_editor_hint() {
+    fn physics_process(&mut self, _delta: f64) {
+        if Engine::singleton().is_editor_hint() && !self.enable_in_editor {
             return;
         }
         if let Some(mut player) = self.get_player() {
@@ -71,6 +71,9 @@ impl INode2D for LayerSwitcher {
         };
     }
     fn draw(&mut self) {
+        if Engine::singleton().is_editor_hint() && !self.enable_in_editor {
+            return;
+        }
         if let Some(font) = ThemeDb::singleton()
             .get_project_theme()
             .and_then(|theme| theme.get_default_font())
@@ -115,10 +118,9 @@ impl LayerSwitcher {
 
 impl LayerSwitcher {
     fn get_player(&self) -> Option<Gd<Character>> {
-        let player_group = StringName::from(c"player");
         self.base()
             .get_tree()?
-            .get_first_node_in_group(player_group)?
+            .get_first_node_in_group(c"player".into())?
             .try_cast::<Character>()
             .ok()
     }

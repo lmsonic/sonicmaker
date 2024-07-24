@@ -1,10 +1,7 @@
-use std::f32::consts::PI;
-
 use godot::{
     engine::{Engine, IRayCast2D, RayCast2D, ThemeDb},
     prelude::*,
 };
-use real_consts::{FRAC_2_PI, FRAC_PI_2};
 
 use crate::vec3_ext::Vector2Ext;
 
@@ -39,7 +36,7 @@ pub struct Sensor {
     #[var(get, set = set_direction)]
     direction: Direction,
     #[export]
-    update_in_editor: bool,
+    enable_in_editor: bool,
     #[export]
     show_debug_label: bool,
     last_result: Option<DetectionResult>,
@@ -81,7 +78,16 @@ impl DetectionResult {
 }
 #[godot_api]
 impl IRayCast2D for Sensor {
+    fn physics_process(&mut self, _delta: f64) {
+        if Engine::singleton().is_editor_hint() && !self.enable_in_editor {
+            return;
+        }
+        self.last_result = self._detect_solid();
+    }
     fn draw(&mut self) {
+        if Engine::singleton().is_editor_hint() && !self.enable_in_editor {
+            return;
+        }
         if self.show_debug_label {
             self.update_debug_label();
         }
