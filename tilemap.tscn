@@ -13,7 +13,7 @@ layer_0/tile_data = PackedInt32Array(393216, 0, 6, 458752, 0, 7, 524288, 0, 8, 5
 
 [node name="Character" parent="." instance=ExtResource("1_dsfe8")]
 last_ground_normal = Vector2(-0.707107, -0.707107)
-position = Vector2(1809, 89)
+position = Vector2(1793, 85)
 
 [node name="Camera2D" type="Camera2D" parent="Character"]
 metadata/_edit_lock_ = true

@@ -149,6 +149,7 @@ sensor_a = NodePath("Sensors/SensorA")
 sensor_b = NodePath("Sensors/SensorB")
 sensor_c = NodePath("Sensors/SensorC")
 sensor_d = NodePath("Sensors/SensorD")
+mode = "Floor"
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 texture_filter = 1
