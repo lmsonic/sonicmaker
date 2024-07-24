@@ -109,7 +109,7 @@ impl Sensor {
     fn update_debug_label(&mut self) {
         let text: GString = match self.last_result {
             Some(result) => {
-                let angle = result.normal.angle_0_360();
+                let angle = result.normal.plane_angle();
                 format!("{:.0} \n{:.0}°", result.distance, angle.to_degrees()).into()
             }
 

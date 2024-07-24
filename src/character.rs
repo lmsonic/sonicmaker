@@ -55,7 +55,7 @@ impl Mode {
         }
     }
     fn from_normal(normal: Vector2) -> Mode {
-        Mode::from_ground_angle(normal.angle_0_360())
+        Mode::from_ground_angle(normal.plane_angle())
     }
 
     fn is_sideways(&self) -> bool {
@@ -101,6 +101,9 @@ pub struct Character {
     is_grounded: bool,
     #[export]
     last_ground_normal: Vector2,
+    #[export]
+    #[var(get,set= set_mode)]
+    mode: Mode,
 }
 
 #[godot_api]
@@ -115,19 +118,11 @@ impl ICharacterBody2D for Character {
                 self.last_ground_normal = result.normal;
                 if self.is_grounded {
                     self.snap_to_floor(result.distance);
+                    let ground_angle = result.normal.plane_angle();
+                    self.base_mut().set_rotation(ground_angle);
+                    self.set_mode(Mode::from_ground_angle(ground_angle))
                 }
                 self.is_grounded = true;
-                let ground_angle = self.last_ground_normal.angle_0_360();
-                self.base_mut().set_rotation(ground_angle);
-                if let Some(sensors) = &mut self.sensors {
-                    let mode = Mode::from_ground_angle(ground_angle);
-                    match mode {
-                        Mode::Floor => sensors.set_rotation(0.0),
-                        Mode::RightWall => sensors.set_rotation(FRAC_PI_2),
-                        Mode::Ceiling => sensors.set_rotation(PI),
-                        Mode::LeftWall => sensors.set_rotation(-FRAC_PI_2),
-                    }
-                }
             } else {
                 self.is_grounded = false;
             }
@@ -141,9 +136,13 @@ impl ICharacterBody2D for Character {
 #[godot_api]
 impl Character {
     #[func]
+    fn set_mode(&mut self, value: Mode) {
+        self.mode = value;
+        self.update_sensors();
+    }
+    #[func]
     fn set_width_radius(&mut self, value: f32) {
         self.width = value;
-
         self.update_sensors();
     }
 
@@ -223,7 +222,7 @@ impl Character {
         let mode = Mode::from_normal(self.last_ground_normal);
         let mut position = self.base().get_global_position();
         if mode.is_sideways() {
-            position.x -= distance;
+            position.x += distance
         } else {
             position.y += distance;
         }
