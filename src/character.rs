@@ -143,6 +143,7 @@ pub struct Character {
     #[export]
     sensor_ceiling_right: Option<Gd<Sensor>>,
     #[export]
+    #[var(get,set= set_grounded)]
     is_grounded: bool,
     #[export(range = (0.0, 360.0, 0.001, radians_as_degrees))]
     #[var(get,set= set_ground_angle)]
@@ -160,18 +161,24 @@ impl ICharacterBody2D for Character {
             return;
         }
         if let Some(result) = self.ground_check() {
-            if self.collides_with_floor(result) {
-                if self.is_grounded {
+            if self.is_grounded {
+                // Grounded
+                if self.should_snap_to_floor(result) {
                     self.snap_to_floor(result.distance);
+                    let ground_angle = result.normal.plane_angle();
+                    self.set_ground_angle(ground_angle);
+                } else {
+                    self.set_grounded(false);
                 }
-                let ground_angle = result.normal.plane_angle();
-                self.set_ground_angle(ground_angle);
-                self.is_grounded = true;
             } else {
-                self.is_grounded = false;
+                // Airborne
+                if self.is_landed(result) {
+                    self.snap_to_floor(result.distance);
+                    let ground_angle = result.normal.plane_angle();
+                    self.set_ground_angle(ground_angle);
+                    self.set_grounded(true);
+                }
             }
-        } else {
-            self.is_grounded = false;
         }
         self.ceiling_check();
     }
@@ -179,6 +186,13 @@ impl ICharacterBody2D for Character {
 
 #[godot_api]
 impl Character {
+    #[func]
+    fn set_grounded(&mut self, value: bool) {
+        self.is_grounded = value;
+
+        self.update_sensors();
+        self.update_shapes();
+    }
     #[func]
     fn set_ground_angle(&mut self, value: f32) {
         self.last_ground_angle = value;
@@ -289,7 +303,11 @@ impl Character {
 
 impl Character {
     fn current_mode(&self) -> Mode {
-        Mode::from_ground_angle(self.last_ground_angle)
+        if self.is_grounded {
+            Mode::from_ground_angle(self.last_ground_angle)
+        } else {
+            Mode::Floor
+        }
     }
 
     fn update_shapes(&mut self) {
@@ -323,7 +341,7 @@ impl Character {
         }
     }
     fn snap_to_floor(&mut self, distance: f32) {
-        let mode = Mode::from_ground_angle(self.last_ground_angle);
+        let mode = self.current_mode();
         let mut position = self.base().get_global_position();
         if mode.is_sideways() {
             position.x += distance
@@ -332,7 +350,7 @@ impl Character {
         }
         self.base_mut().set_global_position(position);
     }
-    fn collides_with_floor(&self, result: DetectionResult) -> bool {
+    fn should_snap_to_floor(&self, result: DetectionResult) -> bool {
         // Sonic 1
         result.distance > -14.0 && result.distance < 14.0
         // Sonic 2 and onwards
@@ -344,6 +362,9 @@ impl Character {
         // } else {
         //     distance <= (velocity.y.abs() + 4.0).min(14.0) && distance >= -14.0
         // }
+    }
+    fn is_landed(&self, result: DetectionResult) -> bool {
+        result.distance.abs() < 4.0
     }
     fn ground_check(&mut self) -> Option<DetectionResult> {
         let mut results = vec![];
