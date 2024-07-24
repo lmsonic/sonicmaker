@@ -1,7 +1,7 @@
 use std::borrow::BorrowMut;
 
 use godot::{
-    engine::{CollisionShape2D, SegmentShape2D, ThemeDb},
+    engine::{CollisionShape2D, Engine, SegmentShape2D, ThemeDb},
     prelude::*,
 };
 
@@ -57,6 +57,9 @@ struct LayerSwitcher {
 #[godot_api]
 impl INode2D for LayerSwitcher {
     fn physics_process(&mut self, delta: f64) {
+        if Engine::singleton().is_editor_hint() {
+            return;
+        }
         if let Some(mut player) = self.get_player() {
             let is_player_on_positive_side = self.is_player_on_positive_side(&player);
             if self.check_player_entered(&player)

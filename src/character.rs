@@ -1,5 +1,6 @@
 use godot::engine::{CharacterBody2D, Engine, ICharacterBody2D};
 use godot::prelude::*;
+use real_consts::{FRAC_PI_2, FRAC_PI_4, PI};
 
 use crate::sensor::{DetectionResult, Direction, Sensor};
 use crate::vec3_ext::Vector2Ext;
@@ -85,7 +86,8 @@ pub struct Character {
     #[export]
     #[init(default = 6.5)]
     jump_force: f32,
-
+    #[export]
+    sensors: Option<Gd<Node2D>>,
     #[export]
     sensor_a: Option<Gd<Sensor>>,
     #[export]
@@ -115,6 +117,17 @@ impl ICharacterBody2D for Character {
                     self.snap_to_floor(result.distance);
                 }
                 self.is_grounded = true;
+                let ground_angle = self.last_ground_normal.angle_0_360();
+                self.base_mut().set_rotation(ground_angle);
+                if let Some(sensors) = &mut self.sensors {
+                    let mode = Mode::from_ground_angle(ground_angle);
+                    match mode {
+                        Mode::Floor => sensors.set_rotation(0.0),
+                        Mode::RightWall => sensors.set_rotation(FRAC_PI_2),
+                        Mode::Ceiling => sensors.set_rotation(PI),
+                        Mode::LeftWall => sensors.set_rotation(-FRAC_PI_2),
+                    }
+                }
             } else {
                 self.is_grounded = false;
             }
@@ -210,7 +223,7 @@ impl Character {
         let mode = Mode::from_normal(self.last_ground_normal);
         let mut position = self.base().get_global_position();
         if mode.is_sideways() {
-            position.x += distance;
+            position.x -= distance;
         } else {
             position.y += distance;
         }
