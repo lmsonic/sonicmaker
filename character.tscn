@@ -143,40 +143,40 @@ animations = [{
 "speed": 10.0
 }]
 
-[node name="Character" type="Character" node_paths=PackedStringArray("sensor_a", "sensor_b", "sensor_c", "sensor_d") groups=["player"]]
-sensor_a = NodePath("SensorPivot/SensorA")
-sensor_b = NodePath("SensorPivot/SensorB")
-sensor_c = NodePath("SensorPivot/SensorC")
-sensor_d = NodePath("SensorPivot/SensorD")
+[node name="Character" type="Character" node_paths=PackedStringArray("sensors", "sensor_a", "sensor_b", "sensor_c", "sensor_d") groups=["player"]]
+sensors = NodePath("Sensors")
+sensor_a = NodePath("Sensors/SensorA")
+sensor_b = NodePath("Sensors/SensorB")
+sensor_c = NodePath("Sensors/SensorC")
+sensor_d = NodePath("Sensors/SensorD")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 texture_filter = 1
 position = Vector2(0, -4)
 sprite_frames = SubResource("SpriteFrames_fg2lh")
 animation = &"idle"
+metadata/_edit_lock_ = true
 
-[node name="SensorPivot" type="RemoteTransform2D" parent="."]
-remote_path = NodePath("..")
-use_global_coordinates = false
+[node name="RemoteTransform2D" type="RemoteTransform2D" parent="."]
+remote_path = NodePath("../Sensors")
 update_rotation = false
 update_scale = false
 
-[node name="SensorA" parent="SensorPivot" instance=ExtResource("2_mvnfj")]
-update_in_editor = true
-show_debug_label = true
+[node name="Sensors" type="Node2D" parent="."]
+top_level = true
+
+[node name="SensorA" parent="Sensors" instance=ExtResource("2_mvnfj")]
 position = Vector2(-9, 19)
 
-[node name="SensorB" parent="SensorPivot" instance=ExtResource("2_mvnfj")]
+[node name="SensorB" parent="Sensors" instance=ExtResource("2_mvnfj")]
 position = Vector2(9, 19)
 
-[node name="SensorC" parent="SensorPivot" instance=ExtResource("2_mvnfj")]
+[node name="SensorC" parent="Sensors" instance=ExtResource("2_mvnfj")]
 direction = "Up"
-update_in_editor = true
-show_debug_label = true
 position = Vector2(-9, -19)
 target_position = Vector2(0, -16)
 
-[node name="SensorD" parent="SensorPivot" instance=ExtResource("2_mvnfj")]
+[node name="SensorD" parent="Sensors" instance=ExtResource("2_mvnfj")]
 direction = "Up"
 position = Vector2(9, -19)
 target_position = Vector2(0, -16)
