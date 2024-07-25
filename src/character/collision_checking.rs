@@ -290,7 +290,6 @@ impl Character {
                 results.push(r);
             }
         }
-        godot_print!("{results:?}");
         results
     }
     pub(super) fn can_jump(&mut self) -> bool {
