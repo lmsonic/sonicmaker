@@ -151,7 +151,6 @@ size = Vector2(15, 35)
 
 [node name="Character" type="Character" node_paths=PackedStringArray("sprites", "sensor_shape", "hitbox_shape", "sensor_floor_left", "sensor_floor_right", "sensor_ceiling_left", "sensor_ceiling_right", "sensor_push_left", "sensor_push_right") groups=["player"]]
 sprites = NodePath("AnimatedSprite2D")
-push_radius = 10.0
 sensor_shape = NodePath("Sensors/SensorShape/CollisionShape2D")
 hitbox_shape = NodePath("Sensors/Hitbox/CollisionShape2D")
 sensor_floor_left = NodePath("Sensors/SensorFloorLeft")

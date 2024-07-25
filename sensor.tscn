@@ -3,4 +3,3 @@
 [node name="Sensor" type="Sensor"]
 target_position = Vector2(0, 16)
 hit_from_inside = true
-collide_with_areas = true
