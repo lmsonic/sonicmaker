@@ -221,7 +221,7 @@ impl Character {
         let mode = self.current_mode();
         let mut position = self.global_position();
         if mode.is_sideways() {
-            position.x += distance
+            position.x += distance;
         } else {
             position.y += distance;
         }
@@ -242,9 +242,8 @@ impl Character {
         // }
     }
     pub(super) fn is_landed(&mut self, result: DetectionResult) -> bool {
-        return true;
-        if result.distance > 0.0 {
-            return false;
+        if result.distance.abs() < 14.0 {
+            return true;
         }
         let velocity = self.velocity();
         let direction = MotionDirection::from_velocity(velocity);
@@ -272,6 +271,7 @@ impl Character {
     }
     pub(super) fn ground_sensor_results(&mut self) -> Vec<DetectionResult> {
         let mut results = vec![];
+
         if let Some(sensor_floor_left) = &mut self.sensor_floor_left {
             if let Ok(r) = sensor_floor_left
                 .bind_mut()
@@ -290,7 +290,7 @@ impl Character {
                 results.push(r);
             }
         }
-
+        godot_print!("{results:?}");
         results
     }
     pub(super) fn can_jump(&mut self) -> bool {

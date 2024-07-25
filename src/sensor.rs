@@ -33,7 +33,7 @@ impl Direction {
     }
 }
 #[derive(GodotClass)]
-#[class(tool,init, base=RayCast2D)]
+#[class(init, base=RayCast2D)]
 pub struct Sensor {
     #[export]
     #[var(get, set = set_direction)]
@@ -165,6 +165,7 @@ impl Sensor {
             let mut detection = self.get_detection(original_position);
             if detection.distance <= 0.0 {
                 // Regression, hit a solid wall
+
                 let snapped_position = self.base().get_global_position();
 
                 let tile_above_position = snapped_position - self.direction.get_target_direction();
@@ -177,6 +178,7 @@ impl Sensor {
         } else {
             // Extension
             // Checking extending to tile below
+
             let new_position = original_target * 2.0;
             self.base_mut().set_target_position(new_position);
             self.base_mut().force_raycast_update();
@@ -189,6 +191,7 @@ impl Sensor {
         self.base_mut().set_target_position(original_target);
         self.base_mut().set_global_position(original_position);
         self.last_result = result;
+
         result
     }
     fn get_detection(&self, original_position: Vector2) -> DetectionResult {
@@ -231,12 +234,14 @@ impl Sensor {
 
     fn snap_position(&mut self) {
         let mut position = self.base().get_global_position();
+        godot_print!("prev{position}");
         match self.direction {
             Direction::Up => position.y += TILE_SIZE - (position.y % TILE_SIZE),
             Direction::Down => position.y -= position.y % TILE_SIZE,
             Direction::Left => position.x += TILE_SIZE - (position.x % TILE_SIZE),
             Direction::Right => position.x -= position.x % TILE_SIZE,
         }
+        godot_print!("snap{position}");
 
         self.base_mut().set_global_position(position);
     }

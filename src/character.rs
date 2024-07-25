@@ -133,6 +133,7 @@ impl ICharacterBody2D for Character {
             // Floor checking
             if let Some(result) = self.ground_check() {
                 if self.should_snap_to_floor(result) {
+                    godot_print!("should snap");
                     self.snap_to_floor(result.distance);
                     let ground_angle = result.normal.plane_angle();
                     let rotation_angle = result.normal.angle() + FRAC_PI_2;
