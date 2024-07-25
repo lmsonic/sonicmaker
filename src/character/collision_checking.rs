@@ -138,7 +138,7 @@ impl Mode {
     }
 }
 
-enum MotionDirection {
+pub enum MotionDirection {
     Right,
     Up,
     Left,
@@ -147,7 +147,7 @@ enum MotionDirection {
 
 impl MotionDirection {
     #[allow(clippy::just_underscores_and_digits)]
-    fn from_velocity_angle(angle: f32) -> Self {
+    pub(super) fn from_velocity_angle(angle: f32) -> Self {
         let _0 = f32::to_radians(0.0);
         let _46 = f32::to_radians(46.0);
         let _136 = f32::to_radians(136.0);
@@ -167,12 +167,22 @@ impl MotionDirection {
             Self::Down
         }
     }
+    pub(super) fn from_velocity(velocity: Vector2) -> Self {
+        Self::from_velocity_angle(velocity.angle_0_360())
+    }
 }
 
 impl Character {
     pub(super) fn current_mode(&self) -> Mode {
         if self.is_grounded {
             Mode::from_ground_angle(self.last_ground_angle)
+        } else {
+            Mode::Floor
+        }
+    }
+    pub(super) fn current_mode_walls(&self) -> Mode {
+        if self.is_grounded {
+            Mode::from_wall_angle(self.last_ground_angle)
         } else {
             Mode::Floor
         }
@@ -236,16 +246,19 @@ impl Character {
             return false;
         }
         let velocity = self.velocity();
-        let motion_angle = velocity.angle_0_360();
-        let direction = MotionDirection::from_velocity_angle(motion_angle);
+        let direction = MotionDirection::from_velocity(velocity);
         match direction {
             MotionDirection::Right | MotionDirection::Left => self
                 .ground_sensor_results()
                 .iter()
-                .any(|r| r.distance >= -velocity.y + 8.0),
+                .any(|r| r.distance >= -(velocity.y + 8.0)),
             MotionDirection::Down => velocity.y >= 0.0,
             MotionDirection::Up => false,
         }
+    }
+    pub(super) fn should_land_on_ceiling(&self) -> bool {
+        // TODO
+        false
     }
     #[allow(clippy::just_underscores_and_digits)]
     pub(super) fn should_activate_wall_sensors(&self) -> bool {

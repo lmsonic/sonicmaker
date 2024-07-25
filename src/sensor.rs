@@ -1,5 +1,5 @@
 use godot::{
-    engine::{Engine, IRayCast2D, RayCast2D, ThemeDb},
+    engine::{CollisionObject2D, CollisionShape2D, Engine, IRayCast2D, RayCast2D, ThemeDb},
     prelude::*,
 };
 
@@ -19,6 +19,9 @@ const TILE_SIZE: f32 = 16.0;
 impl Direction {
     fn is_horizontal(&self) -> bool {
         *self == Direction::Left || *self == Direction::Right
+    }
+    fn is_positive(&self) -> bool {
+        *self == Direction::Right || *self == Direction::Down
     }
     fn get_target_direction(&self) -> Vector2 {
         match *self {
@@ -43,10 +46,19 @@ pub struct Sensor {
     base: Base<RayCast2D>,
 }
 
+#[derive(GodotConvert, Var, Export, Default, Debug, PartialEq, Eq, Clone, Copy)]
+#[godot(via = GString)]
+pub enum Solidity {
+    #[default]
+    Fully,
+    Top,
+    SidesAndBottom,
+}
 #[derive(Debug, Clone, Copy)]
 pub struct DetectionResult {
     pub distance: f32,
     pub normal: Vector2,
+    pub solidity: Solidity,
 }
 
 impl GodotConvert for DetectionResult {
@@ -54,7 +66,7 @@ impl GodotConvert for DetectionResult {
 }
 impl ToGodot for DetectionResult {
     fn to_godot(&self) -> Self::Via {
-        dict! {"distance":self.distance,"normal":self.normal}
+        dict! {"distance":self.distance,"normal":self.normal,"solidity":self.solidity}
     }
 }
 impl FromGodot for DetectionResult {
@@ -67,13 +79,25 @@ impl FromGodot for DetectionResult {
             .get("normal")
             .ok_or(ConvertError::default())?
             .try_to()?;
-        Ok(Self { distance, normal })
+        let solidity = dict
+            .get("solidity")
+            .ok_or(ConvertError::default())?
+            .try_to()?;
+        Ok(Self {
+            distance,
+            normal,
+            solidity,
+        })
     }
 }
 
 impl DetectionResult {
-    fn new(distance: f32, normal: Vector2) -> Self {
-        Self { distance, normal }
+    fn new(distance: f32, normal: Vector2, solidity: Solidity) -> Self {
+        Self {
+            distance,
+            normal,
+            solidity,
+        }
     }
 }
 #[godot_api]
@@ -139,9 +163,10 @@ impl Sensor {
 
         let result = if self.base().is_colliding() {
             let mut detection = self.get_detection(original_position);
-            if detection.distance < 1.0 {
+            if detection.distance <= 0.0 {
                 // Regression, hit a solid wall
-                let snapped_position = self.base().get_position();
+                let snapped_position = self.base().get_global_position();
+
                 let tile_above_position = snapped_position - self.direction.get_target_direction();
                 self.base_mut().set_position(tile_above_position);
                 self.base_mut().force_raycast_update();
@@ -170,24 +195,48 @@ impl Sensor {
         let collision_point = self.base().get_collision_point();
         let distance = self.get_distance(original_position, collision_point);
         let normal = self.base().get_collision_normal();
-        DetectionResult::new(distance, normal)
+        let solidity = if let Some(shape) = self.get_collider_shape() {
+            if shape.is_one_way_collision_enabled() {
+                Solidity::Top
+            } else {
+                Solidity::Fully
+            }
+        } else {
+            Solidity::Fully
+        };
+        DetectionResult::new(distance, normal, solidity)
+    }
+    fn get_collider_shape(&self) -> Option<Gd<CollisionShape2D>> {
+        let target = self
+            .base()
+            .get_collider()?
+            .try_cast::<CollisionObject2D>()
+            .ok()?;
+        let shape_id = self.base().get_collider_shape();
+        let owner_id = target.shape_find_owner(shape_id);
+        target
+            .shape_owner_get_owner(owner_id)?
+            .try_cast::<CollisionShape2D>()
+            .ok()
     }
 
     fn get_distance(&self, position: Vector2, collision_point: Vector2) -> f32 {
-        if self.direction.is_horizontal() {
-            collision_point.x - position.x
-        } else {
-            collision_point.y - position.y
+        match self.direction {
+            Direction::Up => position.y - collision_point.y,
+            Direction::Down => collision_point.y - position.y,
+            Direction::Left => position.x - collision_point.x,
+            Direction::Right => collision_point.x - position.x,
         }
     }
 
     fn snap_position(&mut self) {
         let mut position = self.base().get_global_position();
-        if self.direction.is_horizontal() {
-            position.x = position.x - position.x % TILE_SIZE;
-        } else {
-            position.y = position.y - position.y % TILE_SIZE;
-        };
+        match self.direction {
+            Direction::Up => position.y += TILE_SIZE - (position.y % TILE_SIZE),
+            Direction::Down => position.y -= position.y % TILE_SIZE,
+            Direction::Left => position.x += TILE_SIZE - (position.x % TILE_SIZE),
+            Direction::Right => position.x -= position.x % TILE_SIZE,
+        }
 
         self.base_mut().set_global_position(position);
     }

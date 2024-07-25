@@ -1,10 +1,11 @@
 mod collision_checking;
 
-use collision_checking::Mode;
+use collision_checking::{Mode, MotionDirection};
 use godot::engine::{
     AnimatedSprite2D, CharacterBody2D, CollisionShape2D, Engine, ICharacterBody2D,
 };
 use godot::prelude::*;
+use real_consts::TAU;
 
 use crate::sensor::Sensor;
 use crate::vec3_ext::Vector2Ext;
@@ -99,6 +100,7 @@ impl ICharacterBody2D for Character {
         let input = Input::singleton();
         if self.is_grounded {
             // Grounded
+
             // Jump Check
             if input.is_action_just_pressed(c"jump".into()) && self.can_jump() {
                 let mut velocity = self.velocity();
@@ -110,7 +112,7 @@ impl ICharacterBody2D for Character {
             if self.should_activate_wall_sensors() {
                 if self.ground_speed > 0.0 {
                     if let Some(result) = self.right_sensor_check() {
-                        if result.distance.abs() <= 0.0 {
+                        if result.distance <= 0.0 {
                             self.ground_speed = 0.0;
                             let mut velocity = self.velocity();
                             let right = self.current_mode().right();
@@ -119,11 +121,11 @@ impl ICharacterBody2D for Character {
                         }
                     }
                 } else if let Some(result) = self.left_sensor_check() {
-                    if result.distance.abs() <= 0.0 {
+                    if result.distance <= 0.0 {
                         self.ground_speed = 0.0;
                         let mut velocity = self.velocity();
                         let left = self.current_mode().left();
-                        velocity += left;
+                        velocity += left * result.distance;
                         self.set_velocity(velocity);
                     }
                 }
@@ -142,19 +144,94 @@ impl ICharacterBody2D for Character {
             }
         } else {
             // Airborne
+            let velocity = self.velocity();
+            let motion_direction = MotionDirection::from_velocity(velocity);
 
-            // Floor check
-            if let Some(result) = self.ground_check() {
-                if self.is_landed(result) {
-                    self.snap_to_floor(result.distance);
-                    let ground_angle = result.normal.plane_angle();
-                    self.set_ground_angle(ground_angle);
-                    self.set_grounded(true);
+            // Wall check
+            match motion_direction {
+                MotionDirection::Up | MotionDirection::Down => {
+                    if let Some(result) = self.right_sensor_check() {
+                        if result.distance <= 0.0 {
+                            let mut position = self.position();
+                            position.x += result.distance;
+                            self.set_position(position);
+                            self.set_velocity(Vector2::new(0.0, velocity.y));
+                        }
+                    }
+                    if let Some(result) = self.left_sensor_check() {
+                        if result.distance <= 0.0 {
+                            let mut position = self.position();
+                            position.x += result.distance;
+                            self.set_position(position);
+                            self.set_velocity(Vector2::new(0.0, velocity.y));
+                        }
+                    }
+                }
+                MotionDirection::Right => {
+                    if let Some(result) = self.right_sensor_check() {
+                        if result.distance <= 0.0 {
+                            let mut position = self.position();
+                            position.x += result.distance;
+                            self.set_position(position);
+                            self.set_velocity(Vector2::new(0.0, velocity.y));
+                        }
+                    }
+                }
+                MotionDirection::Left => {
+                    if let Some(result) = self.left_sensor_check() {
+                        if result.distance <= 0.0 {
+                            let mut position = self.position();
+                            position.x += result.distance;
+                            self.set_position(position);
+                            self.set_velocity(Vector2::new(0.0, velocity.y));
+                        }
+                    }
                 }
             }
 
             // Ceiling check
-            self.ceiling_check();
+            match motion_direction {
+                MotionDirection::Right | MotionDirection::Left | MotionDirection::Up => {
+                    if let Some(result) = self.ceiling_check() {
+                        if result.distance <= 0.0 {
+                            // Ceiling collision
+                            let mut position = self.position();
+                            position.y -= result.distance;
+                            self.set_position(position);
+
+                            if self.should_land_on_ceiling() {
+                                let ground_angle = result.normal.plane_angle();
+                                self.set_ground_angle(ground_angle);
+                                self.set_grounded(true);
+
+                                // TODO: set speed based on ground angle
+                            } else {
+                                self.set_velocity(Vector2::new(velocity.x, 0.0))
+                            }
+                        }
+                    }
+                }
+                MotionDirection::Down => {}
+            }
+            // Floor check
+            match motion_direction {
+                MotionDirection::Right | MotionDirection::Left | MotionDirection::Down => {
+                    if let Some(result) = self.ground_check() {
+                        if self.is_landed(result) {
+                            // Floor collision
+                            let mut position = self.position();
+                            position.y += result.distance;
+                            self.set_position(position);
+                            let ground_angle = result.normal.plane_angle();
+                            self.set_ground_angle(ground_angle);
+                            self.set_grounded(true);
+
+                            // TODO: set speed based on ground angle
+                        }
+                    }
+                }
+                MotionDirection::Up => {}
+            }
         }
     }
 }
@@ -275,8 +352,14 @@ impl Character {
         {
             // Push Sensors
             let half_width = self.push_radius;
-            let mode = Mode::from_wall_angle(self.last_ground_angle);
-            let half_height = if mode == Mode::Floor { 8.0 } else { 0.0 };
+            let mode = self.current_mode_walls();
+            let half_height = if self.is_grounded
+                && (self.last_ground_angle == 0.0 || self.last_ground_angle == TAU)
+            {
+                8.0
+            } else {
+                0.0
+            };
             let mut right_direction = mode.right_direction();
             let mut left_direction = mode.left_direction();
             let mut angle = mode.angle();
