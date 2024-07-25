@@ -199,12 +199,12 @@ target_position = Vector2(0, -16)
 
 [node name="SensorPushRight" parent="Sensors" instance=ExtResource("2_mvnfj")]
 direction = "Right"
-position = Vector2(10, 8)
+position = Vector2(10, 0)
 target_position = Vector2(16, 0)
 
 [node name="SensorPushLeft" parent="Sensors" instance=ExtResource("2_mvnfj")]
 direction = "Left"
-position = Vector2(-10, 8)
+position = Vector2(-10, 0)
 target_position = Vector2(-16, 0)
 
 [node name="SensorShape" type="Area2D" parent="Sensors"]
