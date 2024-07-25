@@ -35,6 +35,22 @@ impl Mode {
             Mode::LeftWall => Direction::Left,
         }
     }
+    pub(super) fn right_direction(&self) -> Direction {
+        match self {
+            Mode::Floor => Direction::Right,
+            Mode::RightWall => Direction::Up,
+            Mode::Ceiling => Direction::Left,
+            Mode::LeftWall => Direction::Down,
+        }
+    }
+    pub(super) fn left_direction(&self) -> Direction {
+        match self {
+            Mode::Floor => Direction::Left,
+            Mode::RightWall => Direction::Down,
+            Mode::Ceiling => Direction::Right,
+            Mode::LeftWall => Direction::Up,
+        }
+    }
 
     pub(super) fn up_direction(&self) -> Direction {
         match self {
@@ -44,12 +60,36 @@ impl Mode {
             Mode::LeftWall => Direction::Right,
         }
     }
+    pub(super) fn down(&self) -> Vector2 {
+        match self {
+            Mode::Floor => Vector2::DOWN,
+            Mode::RightWall => Vector2::RIGHT,
+            Mode::Ceiling => Vector2::UP,
+            Mode::LeftWall => Vector2::LEFT,
+        }
+    }
+    pub(super) fn left(&self) -> Vector2 {
+        match self {
+            Mode::Floor => Vector2::RIGHT,
+            Mode::RightWall => Vector2::UP,
+            Mode::Ceiling => Vector2::LEFT,
+            Mode::LeftWall => Vector2::DOWN,
+        }
+    }
+    pub(super) fn right(&self) -> Vector2 {
+        match self {
+            Mode::Floor => Vector2::LEFT,
+            Mode::RightWall => Vector2::DOWN,
+            Mode::Ceiling => Vector2::RIGHT,
+            Mode::LeftWall => Vector2::UP,
+        }
+    }
 }
 
 impl Mode {
     #[allow(clippy::just_underscores_and_digits)]
     pub(super) fn from_ground_angle(angle: f32) -> Self {
-        let _0 = f32::to_radians(0.0);
+        let _0 = 0.0;
         let _46 = f32::to_radians(46.0);
         let _135 = f32::to_radians(135.0);
         let _226 = f32::to_radians(226.0);
@@ -98,6 +138,37 @@ impl Mode {
     }
 }
 
+enum MotionDirection {
+    Right,
+    Up,
+    Left,
+    Down,
+}
+
+impl MotionDirection {
+    #[allow(clippy::just_underscores_and_digits)]
+    fn from_velocity_angle(angle: f32) -> Self {
+        let _0 = f32::to_radians(0.0);
+        let _46 = f32::to_radians(46.0);
+        let _136 = f32::to_radians(136.0);
+        let _226 = f32::to_radians(226.0);
+        let _316 = f32::to_radians(316.0);
+        let _360 = f32::to_radians(360.0);
+        if (_0.._46).contains(&angle) || (_316.._360).contains(&angle) {
+            Self::Right
+        } else if (_46.._136).contains(&angle) {
+            Self::Up
+        } else if (_136.._226).contains(&angle) {
+            Self::Down
+        } else if (_226.._316).contains(&angle) {
+            Self::Left
+        } else {
+            godot_warn!("out of range 0-360 angle {angle}");
+            Self::Down
+        }
+    }
+}
+
 impl Character {
     pub(super) fn current_mode(&self) -> Mode {
         if self.is_grounded {
@@ -138,13 +209,13 @@ impl Character {
     }
     pub(super) fn snap_to_floor(&mut self, distance: f32) {
         let mode = self.current_mode();
-        let mut position = self.base().get_global_position();
+        let mut position = self.global_position();
         if mode.is_sideways() {
             position.x += distance
         } else {
             position.y += distance;
         }
-        self.base_mut().set_global_position(position);
+        self.set_global_position(position);
     }
     pub(super) fn should_snap_to_floor(&self, result: DetectionResult) -> bool {
         // Sonic 1
@@ -161,52 +232,29 @@ impl Character {
         // }
     }
     pub(super) fn is_landed(&mut self, result: DetectionResult) -> bool {
-        enum MotionDirection {
-            Right,
-            Up,
-            Left,
-            Down,
+        if result.distance > 0.0 {
+            return false;
         }
-
-        impl MotionDirection {
-            #[allow(clippy::just_underscores_and_digits)]
-            fn from_velocity_angle(angle: f32) -> Self {
-                let _0 = f32::to_radians(0.0);
-                let _46 = f32::to_radians(46.0);
-                let _136 = f32::to_radians(136.0);
-                let _226 = f32::to_radians(226.0);
-                let _316 = f32::to_radians(316.0);
-                let _360 = f32::to_radians(360.0);
-                if (_0.._46).contains(&angle) || (_316.._360).contains(&angle) {
-                    Self::Right
-                } else if (_46.._136).contains(&angle) {
-                    Self::Up
-                } else if (_136.._226).contains(&angle) {
-                    Self::Down
-                } else if (_226.._316).contains(&angle) {
-                    Self::Left
-                } else {
-                    godot_warn!("out of range 0-360 angle {angle}");
-                    Self::Down
-                }
-            }
+        let velocity = self.velocity();
+        let motion_angle = velocity.angle_0_360();
+        let direction = MotionDirection::from_velocity_angle(motion_angle);
+        match direction {
+            MotionDirection::Right | MotionDirection::Left => self
+                .ground_sensor_results()
+                .iter()
+                .any(|r| r.distance >= -velocity.y + 8.0),
+            MotionDirection::Down => velocity.y >= 0.0,
+            MotionDirection::Up => false,
         }
-        result.distance.abs() < 4.0
-        // TODO: use this once we have a controller
-        // if result.distance > 0.0 {
-        //     return false;
-        // }
-        // let velocity = self.base().get_velocity();
-        // let motion_angle = velocity.angle_0_360();
-        // let direction = MotionDirection::from_velocity_angle(motion_angle);
-        // match direction {
-        //     MotionDirection::Right | MotionDirection::Left => self
-        //         .ground_sensor_results()
-        //         .iter()
-        //         .any(|r| r.distance >= -velocity.y + 8.0),
-        //     MotionDirection::Down => velocity.y >= 0.0,
-        //     MotionDirection::Up => false,
-        // }
+    }
+    #[allow(clippy::just_underscores_and_digits)]
+    pub(super) fn should_activate_wall_sensors(&self) -> bool {
+        let _90 = f32::to_radians(90.0);
+        let _270 = f32::to_radians(270.0);
+        let _360 = f32::to_radians(360.0);
+        (0.0..=_90).contains(&self.last_ground_angle)
+            || (_270..=_360).contains(&self.last_ground_angle)
+            || self.last_ground_angle % _90 == 0.0
     }
     pub(super) fn ground_sensor_results(&mut self) -> Vec<DetectionResult> {
         let mut results = vec![];
@@ -230,15 +278,27 @@ impl Character {
         }
         results
     }
+    pub(super) fn can_jump(&mut self) -> bool {
+        if let Some(result) = self.ceiling_check() {
+            return result.distance > 6.0;
+        }
+        true
+    }
     pub(super) fn ground_check(&mut self) -> Option<DetectionResult> {
         self.ground_sensor_results()
             .into_iter()
             .min_by(|a, b| a.distance.abs().total_cmp(&b.distance.abs()))
     }
     pub(super) fn ceiling_check(&mut self) -> Option<DetectionResult> {
+        self.ceiling_sensor_results()
+            .into_iter()
+            .min_by(|a, b| a.distance.abs().total_cmp(&b.distance.abs()))
+    }
+
+    fn ceiling_sensor_results(&mut self) -> Vec<DetectionResult> {
         let mut results = vec![];
-        if let Some(sensor_c) = &mut self.sensor_ceiling_left {
-            if let Ok(r) = sensor_c
+        if let Some(sensor_ceiling_left) = &mut self.sensor_ceiling_left {
+            if let Ok(r) = sensor_ceiling_left
                 .bind_mut()
                 .detect_solid()
                 .try_to::<DetectionResult>()
@@ -246,8 +306,8 @@ impl Character {
                 results.push(r);
             }
         };
-        if let Some(sensor_d) = &mut self.sensor_ceiling_right {
-            if let Ok(r) = sensor_d
+        if let Some(sensor_ceiling_right) = &mut self.sensor_ceiling_right {
+            if let Ok(r) = sensor_ceiling_right
                 .bind_mut()
                 .detect_solid()
                 .try_to::<DetectionResult>()
@@ -256,7 +316,30 @@ impl Character {
             }
         };
         results
-            .into_iter()
-            .min_by(|a, b| a.distance.abs().total_cmp(&b.distance.abs()))
+    }
+
+    pub(super) fn left_sensor_check(&mut self) -> Option<DetectionResult> {
+        if let Some(sensor_floor_left) = &mut self.sensor_floor_left {
+            if let Ok(result) = sensor_floor_left
+                .bind_mut()
+                .detect_solid()
+                .try_to::<DetectionResult>()
+            {
+                return Some(result);
+            }
+        };
+        None
+    }
+    pub(super) fn right_sensor_check(&mut self) -> Option<DetectionResult> {
+        if let Some(sensor_floor_right) = &mut self.sensor_floor_right {
+            if let Ok(result) = sensor_floor_right
+                .bind_mut()
+                .detect_solid()
+                .try_to::<DetectionResult>()
+            {
+                return Some(result);
+            }
+        };
+        None
     }
 }
