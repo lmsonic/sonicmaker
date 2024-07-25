@@ -47,7 +47,7 @@ pub struct Sensor {
 }
 
 #[derive(GodotConvert, Var, Export, Default, Debug, PartialEq, Eq, Clone, Copy)]
-#[godot(via = GString)]
+#[godot(via = i32)]
 pub enum Solidity {
     #[default]
     Fully,
@@ -129,7 +129,7 @@ impl Sensor {
     #[func]
     pub fn detect_solid(&mut self) -> Variant {
         match self._detect_solid() {
-            Some(result) => Variant::from(result),
+            Some(result) => result.into_godot().to_variant(),
             None => Variant::nil(),
         }
     }
@@ -168,7 +168,7 @@ impl Sensor {
                 let snapped_position = self.base().get_global_position();
 
                 let tile_above_position = snapped_position - self.direction.get_target_direction();
-                self.base_mut().set_position(tile_above_position);
+                self.base_mut().set_global_position(tile_above_position);
                 self.base_mut().force_raycast_update();
 
                 detection = self.get_detection(original_position);

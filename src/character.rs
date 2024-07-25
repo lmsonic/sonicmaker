@@ -5,7 +5,7 @@ use godot::engine::{
     AnimatedSprite2D, CharacterBody2D, CollisionShape2D, Engine, ICharacterBody2D,
 };
 use godot::prelude::*;
-use real_consts::TAU;
+use real_consts::{FRAC_PI_2, TAU};
 
 use crate::sensor::Sensor;
 use crate::vec3_ext::Vector2Ext;
@@ -135,11 +135,15 @@ impl ICharacterBody2D for Character {
                 if self.should_snap_to_floor(result) {
                     self.snap_to_floor(result.distance);
                     let ground_angle = result.normal.plane_angle();
+                    let rotation_angle = result.normal.angle() + FRAC_PI_2;
+                    self.base_mut().set_rotation(rotation_angle);
                     self.set_ground_angle(ground_angle);
                 } else {
+                    godot_print!("grounded floor checking first_else");
                     self.set_grounded(false);
                 }
             } else {
+                godot_print!("grounded floor checking second_else");
                 self.set_grounded(false);
             }
         } else {
@@ -201,6 +205,8 @@ impl ICharacterBody2D for Character {
 
                             if self.should_land_on_ceiling() {
                                 let ground_angle = result.normal.plane_angle();
+                                let rotation_angle = result.normal.angle() + FRAC_PI_2;
+                                self.base_mut().set_rotation(rotation_angle);
                                 self.set_ground_angle(ground_angle);
                                 self.set_grounded(true);
 
@@ -219,10 +225,13 @@ impl ICharacterBody2D for Character {
                     if let Some(result) = self.ground_check() {
                         if self.is_landed(result) {
                             // Floor collision
+
                             let mut position = self.position();
                             position.y += result.distance;
                             self.set_position(position);
                             let ground_angle = result.normal.plane_angle();
+                            let rotation_angle = result.normal.angle() + FRAC_PI_2;
+                            self.base_mut().set_rotation(rotation_angle);
                             self.set_ground_angle(ground_angle);
                             self.set_grounded(true);
 
@@ -242,6 +251,7 @@ impl Character {
     fn set_grounded(&mut self, value: bool) {
         self.is_grounded = value;
         self.update_sensors();
+        godot_print!("grounded :{value}");
     }
     #[func]
     fn set_ground_angle(&mut self, value: f32) {

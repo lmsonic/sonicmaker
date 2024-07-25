@@ -242,6 +242,7 @@ impl Character {
         // }
     }
     pub(super) fn is_landed(&mut self, result: DetectionResult) -> bool {
+        return true;
         if result.distance > 0.0 {
             return false;
         }
@@ -271,8 +272,8 @@ impl Character {
     }
     pub(super) fn ground_sensor_results(&mut self) -> Vec<DetectionResult> {
         let mut results = vec![];
-        if let Some(sensor_a) = &mut self.sensor_floor_left {
-            if let Ok(r) = sensor_a
+        if let Some(sensor_floor_left) = &mut self.sensor_floor_left {
+            if let Ok(r) = sensor_floor_left
                 .bind_mut()
                 .detect_solid()
                 .try_to::<DetectionResult>()
@@ -280,8 +281,8 @@ impl Character {
                 results.push(r);
             }
         };
-        if let Some(sensor_b) = &mut self.sensor_floor_right {
-            if let Ok(r) = sensor_b
+        if let Some(sensor_floor_right) = &mut self.sensor_floor_right {
+            if let Ok(r) = sensor_floor_right
                 .bind_mut()
                 .detect_solid()
                 .try_to::<DetectionResult>()
@@ -289,6 +290,7 @@ impl Character {
                 results.push(r);
             }
         }
+
         results
     }
     pub(super) fn can_jump(&mut self) -> bool {
@@ -300,12 +302,12 @@ impl Character {
     pub(super) fn ground_check(&mut self) -> Option<DetectionResult> {
         self.ground_sensor_results()
             .into_iter()
-            .min_by(|a, b| a.distance.abs().total_cmp(&b.distance.abs()))
+            .min_by(|a, b| a.distance.total_cmp(&b.distance))
     }
     pub(super) fn ceiling_check(&mut self) -> Option<DetectionResult> {
         self.ceiling_sensor_results()
             .into_iter()
-            .min_by(|a, b| a.distance.abs().total_cmp(&b.distance.abs()))
+            .min_by(|a, b| a.distance.total_cmp(&b.distance))
     }
 
     fn ceiling_sensor_results(&mut self) -> Vec<DetectionResult> {
