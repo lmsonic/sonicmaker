@@ -187,11 +187,18 @@ impl Character {
         velocity += left * distance;
         self.set_velocity(velocity);
     }
-    pub(super) fn airborne_wall_collision(&mut self, distance: f32) {
+    pub(super) fn airborne_left_wall_collision(&mut self, distance: f32) {
         let velocity = self.velocity();
-        let mut position = self.position();
+        let mut position = self.global_position();
         position.x += distance;
-        self.set_position(position);
+        self.set_global_position(position);
+        self.set_velocity(Vector2::new(0.0, velocity.y));
+    }
+    pub(super) fn airborne_right_wall_collision(&mut self, distance: f32) {
+        let velocity = self.velocity();
+        let mut position = self.global_position();
+        position.x -= distance;
+        self.set_global_position(position);
         self.set_velocity(Vector2::new(0.0, velocity.y));
     }
 
@@ -251,21 +258,20 @@ impl Character {
     }
     pub(super) fn should_snap_to_floor(&self, result: DetectionResult) -> bool {
         // Sonic 1
-        result.distance > -14.0 && result.distance < 14.0
-        // TODO: use this accounting for speed
+        // result.distance > -14.0 && result.distance < 14.0
         // Sonic 2 and onwards
-        // let mode = Mode::from_normal(result.normal);
-        // let velocity = self.base().get_velocity();
-        // let distance = result.distance;
-        // if mode.is_sideways() {
-        //     distance <= (velocity.x.abs() + 4.0).min(14.0) && distance >= -14.0
-        // } else {
-        //     distance <= (velocity.y.abs() + 4.0).min(14.0) && distance >= -14.0
-        // }
+        let mode = Mode::from_normal(result.normal);
+        let velocity = self.base().get_velocity();
+        let distance = result.distance;
+        if mode.is_sideways() {
+            distance <= (velocity.x.abs() + 4.0).min(14.0) && distance >= -14.0
+        } else {
+            distance <= (velocity.y.abs() + 4.0).min(14.0) && distance >= -14.0
+        }
     }
     pub(super) fn is_landed(&mut self, result: DetectionResult) -> bool {
-        if result.distance.abs() < 14.0 {
-            return true;
+        if result.distance.abs() <= 14.0 || result.distance.abs() > 14.0 {
+            return false;
         }
         let velocity = self.velocity();
         let direction = MotionDirection::from_velocity(velocity);
