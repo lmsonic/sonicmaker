@@ -1,4 +1,4 @@
-use std::f32::consts::{FRAC_PI_2, PI};
+use std::f32::consts::{FRAC_PI_2, PI, TAU};
 
 use godot::builtin::Vector2;
 
@@ -10,14 +10,14 @@ impl Vector2Ext for Vector2 {
     fn plane_angle(&self) -> f32 {
         let mut angle = self.angle() + FRAC_PI_2;
         if angle < 0.0 {
-            angle += PI * 2.0;
+            angle += TAU;
         }
         angle
     }
     fn angle_0_360(&self) -> f32 {
         let mut angle = self.angle();
         if angle < 0.0 {
-            angle += PI * 2.0;
+            angle += TAU;
         }
         angle
     }

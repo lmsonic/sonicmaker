@@ -143,28 +143,18 @@ pub enum MotionDirection {
 }
 
 impl MotionDirection {
-    #[allow(clippy::just_underscores_and_digits)]
-    pub(super) fn from_velocity_angle(angle: f32) -> Self {
-        let _46 = f32::to_radians(46.0);
-        let _136 = f32::to_radians(136.0);
-        let _226 = f32::to_radians(226.0);
-        let _316 = f32::to_radians(316.0);
-        let _360 = f32::to_radians(360.0);
-        if (0.0.._46).contains(&angle) || (_316.._360).contains(&angle) {
-            Self::Right
-        } else if (_46.._136).contains(&angle) {
-            Self::Up
-        } else if (_136.._226).contains(&angle) {
-            Self::Down
-        } else if (_226.._316).contains(&angle) {
-            Self::Left
-        } else {
-            godot_warn!("out of range 0-360 angle {angle}");
-            Self::Down
-        }
-    }
     pub(super) fn from_velocity(velocity: Vector2) -> Self {
-        Self::from_velocity_angle(velocity.angle_0_360())
+        if velocity.x > velocity.y {
+            if velocity.x > 0.0 {
+                Self::Right
+            } else {
+                Self::Left
+            }
+        } else if velocity.y > 0.0 {
+            Self::Down
+        } else {
+            Self::Up
+        }
     }
 
     pub(super) fn is_horizontal(&self) -> bool {
@@ -174,6 +164,7 @@ impl MotionDirection {
 
 impl Character {
     pub(super) fn grounded_right_wall_collision(&mut self, distance: f32) {
+        godot_print!("Right wall collision");
         self.ground_speed = 0.0;
         let mut velocity = self.velocity();
         let right = self.current_mode().right();
@@ -181,6 +172,7 @@ impl Character {
         self.set_velocity(velocity);
     }
     pub(super) fn grounded_left_wall_collision(&mut self, distance: f32) {
+        godot_print!("Left wall collision");
         self.ground_speed = 0.0;
         let mut velocity = self.velocity();
         let left = self.current_mode().left();
@@ -188,6 +180,7 @@ impl Character {
         self.set_velocity(velocity);
     }
     pub(super) fn airborne_left_wall_collision(&mut self, distance: f32) {
+        godot_print!("Left wall collision");
         let velocity = self.velocity();
         let mut position = self.global_position();
         position.x += distance;
@@ -195,6 +188,7 @@ impl Character {
         self.set_velocity(Vector2::new(0.0, velocity.y));
     }
     pub(super) fn airborne_right_wall_collision(&mut self, distance: f32) {
+        godot_print!("Right wall collision");
         let velocity = self.velocity();
         let mut position = self.global_position();
         position.x -= distance;
@@ -270,7 +264,7 @@ impl Character {
         }
     }
     pub(super) fn is_landed(&mut self, result: DetectionResult) -> bool {
-        if result.distance.abs() <= 14.0 || result.distance.abs() > 14.0 {
+        if result.distance < -14.0 || result.distance > 14.0 {
             return false;
         }
         let velocity = self.velocity();

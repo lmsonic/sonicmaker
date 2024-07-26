@@ -106,7 +106,7 @@ pub struct Character {
     #[export(range = (0.0, 360.0, 0.001, radians_as_degrees))]
     #[var(get,set= set_ground_angle)]
     pub(crate) ground_angle: f32,
-    control_lock_timer: u32,
+    control_lock_timer: i32,
     #[export]
     enable_in_editor: bool,
     base: Base<CharacterBody2D>,
@@ -121,27 +121,31 @@ impl ICharacterBody2D for Character {
         let input = Input::singleton();
         if self.is_grounded {
             // Grounded
+            godot_print!("Grounded");
             // Slow down uphill and speeding up downhill
             if self.current_mode() != Mode::Ceiling {
                 let slope_factor = self.current_slope_factor();
                 // Forces moving when walking on steep slopes
                 if !self.state.is_standing() || slope_factor <= 0.05078125 {
+                    godot_print!("Applying slope factor");
                     self.ground_speed -= slope_factor * self.ground_angle.sin();
                 }
             }
             // Input
             let mut velocity = self.velocity();
 
-            if self.control_lock_timer > 0 {
+            if self.control_lock_timer <= 0 {
                 // Ground Acceleration
                 if input.is_action_pressed(c"left".into()) {
                     if self.ground_speed < 0.0 {
                         // Turn around
+                        godot_print!("Turn around");
                         self.ground_speed += self.deceleration;
                         if self.ground_speed > 0.0 {
                             self.ground_speed = 0.5;
                         }
                     } else if self.ground_speed > -self.top_speed {
+                        godot_print!("Accelerate left");
                         self.ground_speed -= self.acceleration;
                         self.ground_speed = self.ground_speed.max(self.top_speed);
                     }
@@ -149,11 +153,13 @@ impl ICharacterBody2D for Character {
                 if input.is_action_pressed(c"right".into()) {
                     if self.ground_speed > 0.0 {
                         // Turn around
+                        godot_print!("Turn around");
                         self.ground_speed -= self.deceleration;
                         if self.ground_speed < 0.0 {
                             self.ground_speed = -0.5;
                         }
                     } else if self.ground_speed < self.top_speed {
+                        godot_print!("Accelerate right");
                         self.ground_speed += self.acceleration;
                         self.ground_speed = self.ground_speed.min(self.top_speed);
                     }
@@ -164,11 +170,13 @@ impl ICharacterBody2D for Character {
             // Friction
             if !input.is_action_pressed(c"left".into()) || !input.is_action_pressed(c"right".into())
             {
+                godot_print!("Apply friction");
                 self.ground_speed -=
                     self.ground_speed.abs().min(self.friction) * self.ground_speed.signum();
             }
             // Jump Check
             if input.is_action_just_pressed(c"jump".into()) && self.can_jump() {
+                godot_print!("Jump");
                 velocity += Vector2::UP * self.jump_force;
             }
 
@@ -187,11 +195,13 @@ impl ICharacterBody2D for Character {
                 }
             }
             // Adjust velocity based on slope
+            godot_print!("Slope velocity adjustment");
             velocity.x = self.ground_speed * self.ground_angle.cos();
             velocity.y = self.ground_speed * -self.ground_angle.sin();
             self.set_velocity(velocity);
 
             // Update position
+            godot_print!("Update position");
             let mut position = self.global_position();
             position += velocity;
             self.set_global_position(position);
@@ -199,23 +209,28 @@ impl ICharacterBody2D for Character {
             // Floor checking
             if let Some(result) = self.ground_check() {
                 if self.should_snap_to_floor(result) {
+                    godot_print!("Snap to floor");
                     self.snap_to_floor(result.distance);
                     self.set_ground_angle(result.normal.plane_angle())
                 } else {
+                    godot_print!("Detach from floor");
                     self.set_grounded(false);
                 }
             } else {
+                godot_print!("Detach from floor");
                 self.set_grounded(false);
             }
-            if self.control_lock_timer == 0 {
+            if self.control_lock_timer <= 0 {
                 // Slipping check
                 if self.velocity().x.abs() < 2.5 && self.is_slipping() {
                     self.control_lock_timer = 30;
                     // Fall check
                     if self.is_falling() {
                         // Detach
+                        godot_print!("Fall");
                         self.set_grounded(false);
                     } else {
+                        godot_print!("Slip");
                         // Slipe / slide down
                         self.ground_speed += if self.ground_angle < PI { -0.5 } else { 0.5 }
                     }
@@ -225,42 +240,49 @@ impl ICharacterBody2D for Character {
             }
         } else {
             // Airborne
+            godot_print!("Airborne");
             let mut velocity = self.velocity();
 
             // Air Acceleration
             if input.is_action_pressed(c"left".into()) {
+                godot_print!("Accelerate left");
                 velocity.x -= self.air_acceleration;
             }
             if input.is_action_pressed(c"right".into()) {
+                godot_print!("Accelerate right");
                 velocity.x += self.air_acceleration;
             }
             velocity.x = velocity.x.clamp(-self.top_speed, self.top_speed);
 
             // Air Drag
             if velocity.y < 0.0 && velocity.y > -4.0 {
+                godot_print!("Apply drag");
                 velocity.x -= (velocity.x / 0.125) / 256.0;
             }
 
             // Move player
+            godot_print!("Update position");
             let mut position = self.global_position();
             position += velocity;
             self.set_global_position(position);
 
             // Gravity
+            godot_print!("Apply gravity");
             velocity.y += self.gravity;
             // Top y speed
             velocity.y = velocity.y.min(16.0);
 
-            // // Rotate ground angle to 0
-            // let mut angle = self.ground_angle;
-            // let delta = f32::to_radians(2.8125);
-            // if angle > 180.0 {
-            //     angle += delta;
-            // } else {
-            //     angle -= delta;
-            // }
-            // angle %= TAU;
-            // self.set_ground_angle(angle);
+            // Rotate ground angle to 0
+            let mut rotation = self.base().get_rotation();
+            let delta = f32::to_radians(2.8125);
+            if rotation > 0.0 {
+                rotation -= delta;
+                rotation = rotation.max(0.0);
+            } else if rotation < 0.0 {
+                rotation += delta;
+                rotation = rotation.min(0.0);
+            }
+            self.base_mut().set_rotation(rotation);
 
             // Air collision checks
             let motion_direction = MotionDirection::from_velocity(velocity);
@@ -303,7 +325,7 @@ impl ICharacterBody2D for Character {
                             // Ceiling collision
                             godot_print!("ceiling collision");
                             let mut position = self.global_position();
-                            position.y += result.distance;
+                            position.y -= result.distance;
                             self.set_global_position(position);
 
                             if self.should_land_on_ceiling() {
@@ -323,10 +345,10 @@ impl ICharacterBody2D for Character {
                 MotionDirection::Right | MotionDirection::Left | MotionDirection::Down => {
                     if let Some(result) = self.ground_check() {
                         if self.is_landed(result) {
-                            // Floor collision
                             godot_print!("floor collision");
+                            // Floor collision
                             let mut position = self.global_position();
-                            position.y -= result.distance;
+                            position.y += result.distance;
                             self.set_global_position(position);
 
                             self.set_ground_angle(result.normal.plane_angle());
@@ -348,12 +370,14 @@ impl Character {
     #[func]
     fn set_grounded(&mut self, value: bool) {
         self.is_grounded = value;
-        godot_print!("grounded{value}");
         self.update_sensors();
     }
     #[func]
-    fn set_ground_angle(&mut self, value: f32) {
+    fn set_ground_angle(&mut self, mut value: f32) {
         self.ground_angle = value;
+        if value > PI {
+            value -= TAU;
+        }
         self.base_mut().set_rotation(value);
         self.update_sensors();
     }
