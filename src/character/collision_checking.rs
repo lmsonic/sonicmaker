@@ -8,8 +8,7 @@ use crate::{
     vec3_ext::Vector2Ext,
 };
 
-#[derive(GodotConvert, Var, Export, Default, Debug, PartialEq, Eq, Clone, Copy)]
-#[godot(via = GString)]
+#[derive(Default, Debug, PartialEq, Eq, Clone, Copy)]
 pub(super) enum Mode {
     #[default]
     Floor,
@@ -89,13 +88,12 @@ impl Mode {
 impl Mode {
     #[allow(clippy::just_underscores_and_digits)]
     pub(super) fn from_ground_angle(angle: f32) -> Self {
-        let _0 = 0.0;
         let _46 = f32::to_radians(46.0);
         let _135 = f32::to_radians(135.0);
         let _226 = f32::to_radians(226.0);
         let _315 = f32::to_radians(315.0);
         let _360 = f32::to_radians(360.0);
-        if (_0.._46).contains(&angle) || (_315..=_360).contains(&angle) {
+        if (0.0.._46).contains(&angle) || (_315..=_360).contains(&angle) {
             Self::Floor
         } else if (_46.._135).contains(&angle) {
             Self::RightWall
@@ -110,13 +108,12 @@ impl Mode {
     }
     #[allow(clippy::just_underscores_and_digits)]
     pub(super) fn from_wall_angle(angle: f32) -> Self {
-        let _0 = f32::to_radians(0.0);
         let _45 = f32::to_radians(45.0);
         let _136 = f32::to_radians(136.0);
         let _225 = f32::to_radians(225.0);
         let _316 = f32::to_radians(316.0);
         let _360 = f32::to_radians(360.0);
-        if (_0.._45).contains(&angle) || (_316..=_360).contains(&angle) {
+        if (0.0.._45).contains(&angle) || (_316..=_360).contains(&angle) {
             Self::Floor
         } else if (_45.._136).contains(&angle) {
             Self::RightWall
@@ -137,7 +134,7 @@ impl Mode {
         *self == Self::RightWall || *self == Self::LeftWall
     }
 }
-
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum MotionDirection {
     Right,
     Up,
@@ -148,13 +145,12 @@ pub enum MotionDirection {
 impl MotionDirection {
     #[allow(clippy::just_underscores_and_digits)]
     pub(super) fn from_velocity_angle(angle: f32) -> Self {
-        let _0 = f32::to_radians(0.0);
         let _46 = f32::to_radians(46.0);
         let _136 = f32::to_radians(136.0);
         let _226 = f32::to_radians(226.0);
         let _316 = f32::to_radians(316.0);
         let _360 = f32::to_radians(360.0);
-        if (_0.._46).contains(&angle) || (_316.._360).contains(&angle) {
+        if (0.0.._46).contains(&angle) || (_316.._360).contains(&angle) {
             Self::Right
         } else if (_46.._136).contains(&angle) {
             Self::Up
@@ -170,19 +166,45 @@ impl MotionDirection {
     pub(super) fn from_velocity(velocity: Vector2) -> Self {
         Self::from_velocity_angle(velocity.angle_0_360())
     }
+
+    pub(super) fn is_horizontal(&self) -> bool {
+        *self == Self::Right || *self == Self::Left
+    }
 }
 
 impl Character {
+    pub(super) fn grounded_right_wall_collision(&mut self, distance: f32) {
+        self.ground_speed = 0.0;
+        let mut velocity = self.velocity();
+        let right = self.current_mode().right();
+        velocity += right * distance;
+        self.set_velocity(velocity);
+    }
+    pub(super) fn grounded_left_wall_collision(&mut self, distance: f32) {
+        self.ground_speed = 0.0;
+        let mut velocity = self.velocity();
+        let left = self.current_mode().left();
+        velocity += left * distance;
+        self.set_velocity(velocity);
+    }
+    pub(super) fn airborne_wall_collision(&mut self, distance: f32) {
+        let velocity = self.velocity();
+        let mut position = self.position();
+        position.x += distance;
+        self.set_position(position);
+        self.set_velocity(Vector2::new(0.0, velocity.y));
+    }
+
     pub(super) fn current_mode(&self) -> Mode {
         if self.is_grounded {
-            Mode::from_ground_angle(self.last_ground_angle)
+            Mode::from_ground_angle(self.ground_angle)
         } else {
             Mode::Floor
         }
     }
     pub(super) fn current_mode_walls(&self) -> Mode {
         if self.is_grounded {
-            Mode::from_wall_angle(self.last_ground_angle)
+            Mode::from_wall_angle(self.ground_angle)
         } else {
             Mode::Floor
         }
@@ -256,18 +278,22 @@ impl Character {
             MotionDirection::Up => false,
         }
     }
+    #[allow(clippy::just_underscores_and_digits)]
     pub(super) fn should_land_on_ceiling(&self) -> bool {
-        // TODO
-        false
+        let _91 = f32::to_radians(91.0);
+        let _225 = f32::to_radians(225.0);
+        let velocity = self.velocity();
+        let motion_direction = MotionDirection::from_velocity(velocity);
+        (_91..=_225).contains(&self.ground_angle) && motion_direction == MotionDirection::Up
     }
     #[allow(clippy::just_underscores_and_digits)]
     pub(super) fn should_activate_wall_sensors(&self) -> bool {
         let _90 = f32::to_radians(90.0);
         let _270 = f32::to_radians(270.0);
         let _360 = f32::to_radians(360.0);
-        (0.0..=_90).contains(&self.last_ground_angle)
-            || (_270..=_360).contains(&self.last_ground_angle)
-            || self.last_ground_angle % _90 == 0.0
+        (0.0..=_90).contains(&self.ground_angle)
+            || (_270..=_360).contains(&self.ground_angle)
+            || self.ground_angle % _90 == 0.0
     }
     pub(super) fn ground_sensor_results(&mut self) -> Vec<DetectionResult> {
         let mut results = vec![];
