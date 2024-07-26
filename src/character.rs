@@ -5,7 +5,7 @@ use godot::engine::{
     AnimatedSprite2D, CharacterBody2D, CollisionShape2D, Engine, ICharacterBody2D,
 };
 use godot::prelude::*;
-use real_consts::{FRAC_PI_2, PI, TAU};
+use real_consts::{PI, TAU};
 
 use crate::sensor::Sensor;
 use crate::vec3_ext::Vector2Ext;
@@ -64,6 +64,8 @@ pub struct Character {
     #[export]
     #[init(default = 6.5)]
     jump_force: f32,
+    #[init(default = 0.09375)]
+    air_acceleration: f32,
     #[init(default = 0.046875)]
     acceleration: f32,
     #[init(default = 0.5)]
@@ -167,7 +169,7 @@ impl ICharacterBody2D for Character {
             if let Some(result) = self.ground_check() {
                 if self.should_snap_to_floor(result) {
                     self.snap_to_floor(result.distance);
-                    self.set_angles(result.normal);
+                    self.set_ground_angle(result.normal.plane_angle())
                 } else {
                     self.set_grounded(false);
                 }
@@ -192,80 +194,130 @@ impl ICharacterBody2D for Character {
             }
         } else {
             // Airborne
-            let velocity = self.velocity();
-            let motion_direction = MotionDirection::from_velocity(velocity);
-
-            // Wall check
-            match motion_direction {
-                MotionDirection::Up | MotionDirection::Down => {
-                    if let Some(result) = self.right_sensor_check() {
-                        if result.distance <= 0.0 {
-                            self.airborne_wall_collision(result.distance);
-                        }
-                    }
-                    if let Some(result) = self.left_sensor_check() {
-                        if result.distance <= 0.0 {
-                            self.airborne_wall_collision(result.distance);
-                        }
-                    }
+            {
+                // Air Acceleration
+                let mut velocity = self.velocity();
+                if input.is_action_pressed(c"left".into()) {
+                    velocity.x -= self.air_acceleration;
                 }
-                MotionDirection::Right => {
-                    if let Some(result) = self.right_sensor_check() {
-                        if result.distance <= 0.0 {
-                            self.airborne_wall_collision(result.distance);
-                        }
-                    }
+                if input.is_action_pressed(c"right".into()) {
+                    velocity.x += self.air_acceleration;
                 }
-                MotionDirection::Left => {
-                    if let Some(result) = self.left_sensor_check() {
-                        if result.distance <= 0.0 {
-                            self.airborne_wall_collision(result.distance);
-                        }
-                    }
+                velocity.x = velocity.x.clamp(-self.top_speed, self.top_speed);
+                self.set_velocity(velocity);
+            }
+            {
+                // Air Drag
+                let mut velocity = self.velocity();
+                if velocity.y < 0.0 && velocity.y > -4.0 {
+                    velocity.x -= (velocity.x / 0.125) / 256.0;
+                    self.set_velocity(velocity);
                 }
             }
+            {
+                // Move player
+                let mut position = self.position();
+                position += self.velocity();
+                self.set_position(position);
+            }
+            {
+                // Gravity
+                let mut velocity = self.velocity();
+                velocity.y += self.gravity;
+                // Top y speed
+                velocity.y = velocity.y.min(16.0);
+                self.set_velocity(velocity);
+            }
+            {
+                // Rotate ground angle to 0
+                let mut angle = self.ground_angle;
+                let delta = f32::to_radians(2.8125);
+                if angle > 180.0 {
+                    angle += delta;
+                } else {
+                    angle -= delta;
+                }
+                angle %= TAU;
+                self.set_ground_angle(angle);
+            }
+            {
+                // Air collision checks
+                let velocity = self.velocity();
 
-            // Ceiling check
-            match motion_direction {
-                MotionDirection::Right | MotionDirection::Left | MotionDirection::Up => {
-                    if let Some(result) = self.ceiling_check() {
-                        if result.distance <= 0.0 {
-                            // Ceiling collision
-                            let mut position = self.position();
-                            position.y -= result.distance;
-                            self.set_position(position);
+                let motion_direction = MotionDirection::from_velocity(velocity);
 
-                            if self.should_land_on_ceiling() {
-                                self.set_angles(result.normal);
-                                self.set_grounded(true);
-                                self.land_on_ceiling();
-                            } else {
-                                self.set_velocity(Vector2::new(velocity.x, 0.0))
+                // Wall check
+                match motion_direction {
+                    MotionDirection::Up | MotionDirection::Down => {
+                        if let Some(result) = self.right_sensor_check() {
+                            if result.distance <= 0.0 {
+                                self.airborne_wall_collision(result.distance);
+                            }
+                        }
+                        if let Some(result) = self.left_sensor_check() {
+                            if result.distance <= 0.0 {
+                                self.airborne_wall_collision(result.distance);
+                            }
+                        }
+                    }
+                    MotionDirection::Right => {
+                        if let Some(result) = self.right_sensor_check() {
+                            if result.distance <= 0.0 {
+                                self.airborne_wall_collision(result.distance);
+                            }
+                        }
+                    }
+                    MotionDirection::Left => {
+                        if let Some(result) = self.left_sensor_check() {
+                            if result.distance <= 0.0 {
+                                self.airborne_wall_collision(result.distance);
                             }
                         }
                     }
                 }
-                MotionDirection::Down => {}
-            }
-            // Floor check
-            match motion_direction {
-                MotionDirection::Right | MotionDirection::Left | MotionDirection::Down => {
-                    if let Some(result) = self.ground_check() {
-                        if self.is_landed(result) {
-                            // Floor collision
-                            let mut position = self.position();
-                            position.y += result.distance;
-                            self.set_position(position);
 
-                            self.set_angles(result.normal);
-                            self.set_grounded(true);
+                // Ceiling check
+                match motion_direction {
+                    MotionDirection::Right | MotionDirection::Left | MotionDirection::Up => {
+                        if let Some(result) = self.ceiling_check() {
+                            if result.distance <= 0.0 {
+                                // Ceiling collision
+                                let mut position = self.position();
+                                position.y -= result.distance;
+                                self.set_position(position);
 
-                            self.land_on_floor();
-                            // TODO: set speed based on ground angle
+                                if self.should_land_on_ceiling() {
+                                    self.set_ground_angle(result.normal.plane_angle());
+                                    self.set_grounded(true);
+                                    self.land_on_ceiling();
+                                } else {
+                                    self.set_velocity(Vector2::new(velocity.x, 0.0))
+                                }
+                            }
                         }
                     }
+                    MotionDirection::Down => {}
                 }
-                MotionDirection::Up => {}
+                // Floor check
+                match motion_direction {
+                    MotionDirection::Right | MotionDirection::Left | MotionDirection::Down => {
+                        if let Some(result) = self.ground_check() {
+                            if self.is_landed(result) {
+                                // Floor collision
+                                let mut position = self.position();
+                                position.y += result.distance;
+                                self.set_position(position);
+
+                                self.set_ground_angle(result.normal.plane_angle());
+                                self.set_grounded(true);
+
+                                self.land_on_floor();
+                                // TODO: set speed based on ground angle
+                            }
+                        }
+                    }
+                    MotionDirection::Up => {}
+                }
             }
         }
     }
@@ -469,12 +521,7 @@ impl Character {
             }
         }
     }
-    fn set_angles(&mut self, normal: Vector2) {
-        let ground_angle = normal.plane_angle();
-        let rotation_angle = normal.angle() + FRAC_PI_2;
-        self.base_mut().set_rotation(rotation_angle);
-        self.set_ground_angle(ground_angle);
-    }
+
     fn update_y_position(&mut self, delta: f32) {
         let mut position = self.base().get_global_position();
         let down = self.current_mode().down();
