@@ -26,300 +26,84 @@ impl ICharacterBody2D for Character {
             return;
         }
         self.base_mut().queue_redraw();
-        let input = Input::singleton();
         if self.is_grounded {
-            // Grounded
-            godot_print!("Grounded");
-            if self.ground_speed == 0.0 {
-                self.set_state(State::Idle);
-            }
-
-            // Slow down uphill and speeding up downhill
-            if self.current_mode() != Mode::Ceiling {
-                let slope_factor = self.current_slope_factor() * self.ground_angle.sin();
-                // Forces moving when walking on steep slopes
-                let is_stopped = self.ground_speed != 0.0;
-                let is_rolling = self.state.is_rolling();
-                let is_on_steep = slope_factor >= 0.05078125;
-                if !is_stopped || is_rolling || is_on_steep {
-                    godot_print!("Applying slope factor {slope_factor}");
-                    self.ground_speed -= slope_factor * self.ground_angle.sin();
-                }
-            }
-            // Input
-            let mut velocity = self.velocity();
-
-            if self.control_lock_timer <= 0 {
-                // Ground Acceleration
-                if input.is_action_pressed(c"left".into()) {
-                    if self.ground_speed > 0.0 {
-                        // Turn around
-                        godot_print!("Turn around");
-                        self.ground_speed -= self.deceleration;
-                        if self.ground_speed <= 0.0 {
-                            self.ground_speed = -0.5;
-                        }
-                    } else if self.ground_speed > -self.top_speed {
-                        godot_print!("Accelerate left");
-                        self.ground_speed -= self.acceleration;
-                        self.ground_speed = self.ground_speed.max(-self.top_speed);
-                    }
-                    self.set_state(if self.ground_speed <= -self.top_speed {
-                        State::FullMotion
-                    } else {
-                        State::StartMotion
-                    });
-                    self.set_flip_h(true);
-                }
-                if input.is_action_pressed(c"right".into()) {
-                    if self.ground_speed < 0.0 {
-                        // Turn around
-                        godot_print!("Turn around");
-                        self.ground_speed += self.deceleration;
-                        if self.ground_speed >= 0.0 {
-                            self.ground_speed = 0.5;
-                        }
-                    } else if self.ground_speed < self.top_speed {
-                        godot_print!("Accelerate right");
-                        self.ground_speed += self.acceleration;
-                        self.ground_speed = self.ground_speed.min(self.top_speed);
-                    }
-
-                    self.set_state(if self.ground_speed >= self.top_speed {
-                        State::FullMotion
-                    } else {
-                        State::StartMotion
-                    });
-                    self.set_flip_h(false);
-                }
-            }
-
-            // Optional fix: use friction always when control lock is active
-            // Friction
-            if !input.is_action_pressed(c"left".into()) && !input.is_action_pressed(c"right".into())
-            {
-                godot_print!("Apply friction");
-
-                self.ground_speed -=
-                    self.ground_speed.abs().min(self.friction) * self.ground_speed.signum();
-            }
-
-            // Jump Check
-            if input.is_action_just_pressed(c"jump".into()) && self.can_jump() {
-                godot_print!("Jump");
-                let (sin, cos) = self.ground_angle.sin_cos();
-                velocity.x -= self.jump_force * sin;
-                velocity.y -= self.jump_force * cos;
-                godot_print!("{velocity}");
-                self.set_grounded(false);
-                self.set_state(State::AirBall);
-                self.set_velocity(velocity);
-                godot_print!("Update position");
-                let mut position = self.global_position();
-                position += velocity;
-                self.set_global_position(position);
-                return;
-            }
-
-            // Wall checking
-            if self.should_activate_wall_sensors() {
-                if self.ground_speed > 0.0 {
-                    if let Some(result) = self.wall_right_sensor_check() {
-                        if result.distance < 0.0 {
-                            self.grounded_right_wall_collision(result.distance);
-                        }
-                    }
-                } else if let Some(result) = self.wall_left_sensor_check() {
-                    if result.distance < 0.0 {
-                        self.grounded_left_wall_collision(result.distance);
-                    }
-                }
-            }
-
-            // Adjust velocity based on slope
-            godot_print!("Slope velocity adjustment");
-            let (sin, cos) = self.ground_angle.sin_cos();
-            velocity.x = self.ground_speed * cos;
-            velocity.y = -self.ground_speed * sin;
-            self.set_velocity(velocity);
-
-            // Update position
-            godot_print!("Update position");
-            let mut position = self.global_position();
-            position += velocity;
-            self.set_global_position(position);
-
-            // Floor checking
-            if let Some(result) = self.ground_check() {
-                if self.should_snap_to_floor(result) {
-                    godot_print!("Snap to floor");
-                    self.snap_to_floor(result.distance);
-                    self.set_ground_angle(result.normal.plane_angle())
-                } else {
-                    godot_print!("Detach from floor");
-                    self.set_grounded(false);
-                }
-            } else {
-                godot_print!("Detach from floor");
-                self.set_grounded(false);
-            }
-            if self.control_lock_timer <= 0 {
-                // Slipping check
-                if self.ground_speed < 2.5 && self.is_slipping() {
-                    self.control_lock_timer = 30;
-                    // Fall check
-                    if self.is_falling() {
-                        // Detach
-                        godot_print!("Fall");
-                        self.set_grounded(false);
-                        self.ground_speed = 0.0;
-                    } else {
-                        godot_print!("Slip");
-                        // Slipe / slide down
-                        self.ground_speed += if self.ground_angle < PI { -0.5 } else { 0.5 }
-                    }
-                }
-            } else {
-                self.control_lock_timer -= 1;
-            }
+            self.grounded()
         } else {
-            // Airborne
-            godot_print!("Airborne");
-            let mut velocity = self.velocity();
-            if velocity.x.abs() > 0.0 {
-                self.set_flip_h(velocity.x < 0.0)
-            }
-            if !self.state.is_ball() {
-                self.set_state(if self.ground_speed.abs() >= self.top_speed {
-                    State::FullMotion
-                } else if self.ground_speed.abs() >= 0.0 {
-                    State::StartMotion
-                } else {
-                    State::Idle
-                });
-            }
-            // Air Acceleration
-            if input.is_action_pressed(c"left".into()) {
-                godot_print!("Accelerate left");
-                velocity.x -= self.air_acceleration;
-            }
-            if input.is_action_pressed(c"right".into()) {
-                godot_print!("Accelerate right");
-                velocity.x += self.air_acceleration;
-            }
-            velocity.x = velocity.x.clamp(-self.top_speed, self.top_speed);
+            self.airborne()
+        }
+    }
+}
+impl Character {
+    fn airborne(&mut self) {
+        // Airborne
+        let input = Input::singleton();
 
-            // Air Drag
-            if velocity.y < 0.0 && velocity.y > -4.0 {
-                godot_print!("Apply drag");
-                velocity.x -= (velocity.x / 0.125) / 256.0;
-            }
+        godot_print!("Airborne");
+        let mut velocity = self.velocity();
+        self.update_animation_air(velocity);
+        self.air_accelerate(input, &mut velocity);
 
-            // Move player
-            godot_print!("Update position");
-            let mut position = self.global_position();
-            position += velocity;
-            self.set_global_position(position);
+        self.air_drag(&mut velocity);
 
-            // Gravity
-            godot_print!("Apply gravity");
-            velocity.y += self.gravity;
-            // Top y speed
-            velocity.y = velocity.y.min(16.0);
-            self.set_velocity(velocity);
+        self.update_position(velocity);
 
-            // Rotate ground angle to 0
-            let mut rotation = self.base().get_rotation();
-            let delta = f32::to_radians(2.8125);
-            if rotation > 0.0 {
-                rotation -= delta;
-                rotation = rotation.max(0.0);
-            } else if rotation < 0.0 {
-                rotation += delta;
-                rotation = rotation.min(0.0);
-            }
-            self.base_mut().set_rotation(rotation);
+        self.apply_gravity(velocity);
 
-            // Air collision checks
+        self.rotate_to_zero();
 
-            // Wall check
-            match self.current_motion_direction() {
-                MotionDirection::Up | MotionDirection::Down => {
-                    if let Some(result) = self.airborne_wall_right_sensor_check() {
-                        if result.distance <= 0.0 {
-                            self.airborne_right_wall_collision(result.distance);
-                        }
-                    }
-                    if let Some(result) = self.airborne_wall_left_sensor_check() {
-                        if result.distance <= 0.0 {
-                            self.airborne_left_wall_collision(result.distance);
-                        }
-                    }
-                }
-                MotionDirection::Right => {
-                    if let Some(result) = self.airborne_wall_right_sensor_check() {
-                        if result.distance <= 0.0 {
-                            self.airborne_right_wall_collision(result.distance);
-                        }
-                    }
-                }
-                MotionDirection::Left => {
-                    if let Some(result) = self.airborne_wall_left_sensor_check() {
-                        if result.distance <= 0.0 {
-                            self.airborne_left_wall_collision(result.distance);
-                        }
+        // Air collision checks
+
+        self.check_walls_air();
+        self.check_ceiling_air();
+        self.check_floor_air();
+    }
+
+    fn check_floor_air(&mut self) {
+        match self.current_motion_direction() {
+            MotionDirection::Right | MotionDirection::Left | MotionDirection::Down => {
+                if let Some(result) = self.ground_check() {
+                    if self.is_landed(result) {
+                        godot_print!("floor collision");
+                        // Floor collision
+                        let mut position = self.global_position();
+                        position.y += result.distance;
+                        self.set_global_position(position);
+
+                        self.set_ground_angle(result.normal.plane_angle());
+                        self.set_grounded(true);
+
+                        self.land_on_floor();
+
+                        self.set_state(if self.ground_speed.abs() >= self.top_speed {
+                            State::FullMotion
+                        } else if self.ground_speed.abs() >= 0.0 {
+                            State::StartMotion
+                        } else {
+                            State::Idle
+                        });
                     }
                 }
             }
-            // Ceiling check
-            match self.current_motion_direction() {
-                MotionDirection::Right | MotionDirection::Left | MotionDirection::Up => {
-                    if let Some(result) = self.ceiling_check() {
-                        if result.distance < 0.0 {
-                            // Ceiling collision
-                            godot_print!("ceiling collision");
-                            let mut position = self.global_position();
-                            position.y -= result.distance;
-                            self.set_global_position(position);
+            MotionDirection::Up => {}
+        }
+    }
 
-                            if self.should_land_on_ceiling() {
-                                self.set_ground_angle(result.normal.plane_angle());
-                                self.set_grounded(true);
-                                self.land_on_ceiling();
-                                godot_print!("land on ceiling");
-                                self.set_state(if self.ground_speed.abs() >= self.top_speed {
-                                    State::FullMotion
-                                } else if self.ground_speed.abs() >= 0.0 {
-                                    State::StartMotion
-                                } else {
-                                    State::Idle
-                                });
-                            } else {
-                                let velocity = self.velocity();
-                                self.set_velocity(Vector2::new(velocity.x, 0.0));
-                                godot_print!("bump on ceiling");
-                            }
-                        }
-                    }
-                }
-                MotionDirection::Down => {}
-            }
-            // Floor check
-            match self.current_motion_direction() {
-                MotionDirection::Right | MotionDirection::Left | MotionDirection::Down => {
-                    if let Some(result) = self.ground_check() {
-                        if self.is_landed(result) {
-                            godot_print!("floor collision");
-                            // Floor collision
-                            let mut position = self.global_position();
-                            position.y += result.distance;
-                            self.set_global_position(position);
+    fn check_ceiling_air(&mut self) {
+        match self.current_motion_direction() {
+            MotionDirection::Right | MotionDirection::Left | MotionDirection::Up => {
+                if let Some(result) = self.ceiling_check() {
+                    if result.distance < 0.0 {
+                        // Ceiling collision
+                        godot_print!("ceiling collision");
+                        let mut position = self.global_position();
+                        position.y -= result.distance;
+                        self.set_global_position(position);
 
+                        if self.should_land_on_ceiling() {
                             self.set_ground_angle(result.normal.plane_angle());
                             self.set_grounded(true);
-
-                            self.land_on_floor();
-
+                            self.land_on_ceiling();
+                            godot_print!("land on ceiling");
                             self.set_state(if self.ground_speed.abs() >= self.top_speed {
                                 State::FullMotion
                             } else if self.ground_speed.abs() >= 0.0 {
@@ -327,15 +111,299 @@ impl ICharacterBody2D for Character {
                             } else {
                                 State::Idle
                             });
+                        } else {
+                            let velocity = self.velocity();
+                            self.set_velocity(Vector2::new(velocity.x, 0.0));
+                            godot_print!("bump on ceiling");
                         }
                     }
                 }
-                MotionDirection::Up => {}
+            }
+            MotionDirection::Down => {}
+        }
+    }
+
+    fn check_walls_air(&mut self) {
+        match self.current_motion_direction() {
+            MotionDirection::Up | MotionDirection::Down => {
+                if let Some(result) = self.airborne_wall_right_sensor_check() {
+                    if result.distance <= 0.0 {
+                        self.airborne_right_wall_collision(result.distance);
+                    }
+                }
+                if let Some(result) = self.airborne_wall_left_sensor_check() {
+                    if result.distance <= 0.0 {
+                        self.airborne_left_wall_collision(result.distance);
+                    }
+                }
+            }
+            MotionDirection::Right => {
+                if let Some(result) = self.airborne_wall_right_sensor_check() {
+                    if result.distance <= 0.0 {
+                        self.airborne_right_wall_collision(result.distance);
+                    }
+                }
+            }
+            MotionDirection::Left => {
+                if let Some(result) = self.airborne_wall_left_sensor_check() {
+                    if result.distance <= 0.0 {
+                        self.airborne_left_wall_collision(result.distance);
+                    }
+                }
             }
         }
     }
-}
-impl Character {
+
+    fn rotate_to_zero(&mut self) {
+        // Rotate ground angle to 0
+        let mut rotation = self.base().get_rotation();
+        let delta = f32::to_radians(2.8125);
+        if rotation > 0.0 {
+            rotation -= delta;
+            rotation = rotation.max(0.0);
+        } else if rotation < 0.0 {
+            rotation += delta;
+            rotation = rotation.min(0.0);
+        }
+        self.base_mut().set_rotation(rotation);
+    }
+
+    fn apply_gravity(&mut self, mut velocity: Vector2) {
+        godot_print!("Apply gravity");
+        velocity.y += self.gravity;
+        // Top y speed
+        velocity.y = velocity.y.min(16.0);
+        self.set_velocity(velocity);
+    }
+
+    fn update_position(&mut self, velocity: Vector2) {
+        godot_print!("Update position");
+        let mut position = self.global_position();
+        position += velocity;
+        self.set_global_position(position);
+    }
+
+    fn air_accelerate(&mut self, input: Gd<Input>, velocity: &mut Vector2) {
+        if input.is_action_pressed(c"left".into()) {
+            godot_print!("Accelerate left");
+            velocity.x -= self.air_acceleration;
+        }
+        if input.is_action_pressed(c"right".into()) {
+            godot_print!("Accelerate right");
+            velocity.x += self.air_acceleration;
+        }
+        velocity.x = velocity.x.clamp(-self.top_speed, self.top_speed);
+    }
+
+    fn update_animation_air(&mut self, velocity: Vector2) {
+        if velocity.x.abs() > 0.0 {
+            self.set_flip_h(velocity.x < 0.0)
+        }
+        if !self.state.is_ball() {
+            self.set_state(if self.ground_speed.abs() >= self.top_speed {
+                State::FullMotion
+            } else if self.ground_speed.abs() >= 0.0 {
+                State::StartMotion
+            } else {
+                State::Idle
+            });
+        }
+    }
+    fn grounded(&mut self) {
+        // Grounded
+        let input = Input::singleton();
+
+        godot_print!("Grounded");
+        self.update_animation();
+
+        self.apply_slope_factor();
+
+        self.ground_accelerate(&input);
+
+        // Optional fix: use friction always when control lock is active
+        self.apply_friction(&input);
+
+        // Jump Check
+        if self.handle_jump(input) {
+            return;
+        }
+
+        self.check_walls();
+
+        let velocity = self.update_velocity();
+
+        self.update_position(velocity);
+
+        self.check_floor();
+
+        self.handle_slipping();
+    }
+
+    fn handle_slipping(&mut self) {
+        if self.control_lock_timer <= 0 {
+            // Slipping check
+            if self.ground_speed < 2.5 && self.is_slipping() {
+                self.control_lock_timer = 30;
+                // Fall check
+                if self.is_falling() {
+                    // Detach
+                    godot_print!("Fall");
+                    self.set_grounded(false);
+                    self.ground_speed = 0.0;
+                } else {
+                    godot_print!("Slip");
+                    // Slipe / slide down
+                    self.ground_speed += if self.ground_angle < PI { -0.5 } else { 0.5 }
+                }
+            }
+        } else {
+            self.control_lock_timer -= 1;
+        }
+    }
+
+    fn check_floor(&mut self) {
+        // Floor checking
+        if let Some(result) = self.ground_check() {
+            if self.should_snap_to_floor(result) {
+                godot_print!("Snap to floor");
+                self.snap_to_floor(result.distance);
+                self.set_ground_angle(result.normal.plane_angle())
+            } else {
+                godot_print!("Detach from floor");
+                self.set_grounded(false);
+            }
+        } else {
+            godot_print!("Detach from floor");
+            self.set_grounded(false);
+        }
+    }
+
+    fn update_velocity(&mut self) -> Vector2 {
+        // Adjust velocity based on slope
+        godot_print!("Slope velocity adjustment");
+        let mut velocity = self.velocity();
+        let (sin, cos) = self.ground_angle.sin_cos();
+        velocity.x = self.ground_speed * cos;
+        velocity.y = -self.ground_speed * sin;
+        self.set_velocity(velocity);
+        velocity
+    }
+
+    fn check_walls(&mut self) {
+        // Wall checking
+
+        if self.should_activate_wall_sensors() {
+            if self.ground_speed > 0.0 {
+                if let Some(result) = self.wall_right_sensor_check() {
+                    if result.distance < 0.0 {
+                        self.grounded_right_wall_collision(result.distance);
+                    }
+                }
+            } else if let Some(result) = self.wall_left_sensor_check() {
+                if result.distance < 0.0 {
+                    self.grounded_left_wall_collision(result.distance);
+                }
+            }
+        }
+    }
+
+    fn handle_jump(&mut self, input: Gd<Input>) -> bool {
+        if input.is_action_just_pressed(c"jump".into()) && self.can_jump() {
+            godot_print!("Jump");
+            let mut velocity = self.velocity();
+            let (sin, cos) = self.ground_angle.sin_cos();
+            velocity.x -= self.jump_force * sin;
+            velocity.y -= self.jump_force * cos;
+            godot_print!("{velocity}");
+
+            self.set_grounded(false);
+            self.set_state(State::AirBall);
+            self.set_velocity(velocity);
+            self.update_position(velocity);
+
+            return true;
+        }
+        false
+    }
+
+    fn apply_friction(&mut self, input: &Gd<Input>) {
+        // Friction
+        if !input.is_action_pressed(c"left".into()) && !input.is_action_pressed(c"right".into()) {
+            godot_print!("Apply friction");
+
+            self.ground_speed -=
+                self.ground_speed.abs().min(self.friction) * self.ground_speed.signum();
+        }
+    }
+
+    fn ground_accelerate(&mut self, input: &Gd<Input>) {
+        if self.control_lock_timer <= 0 {
+            // Ground Acceleration
+            if input.is_action_pressed(c"left".into()) {
+                if self.ground_speed > 0.0 {
+                    // Turn around
+                    godot_print!("Turn around");
+                    self.ground_speed -= self.deceleration;
+                    if self.ground_speed <= 0.0 {
+                        self.ground_speed = -0.5;
+                    }
+                } else if self.ground_speed > -self.top_speed {
+                    godot_print!("Accelerate left");
+                    self.ground_speed -= self.acceleration;
+                    self.ground_speed = self.ground_speed.max(-self.top_speed);
+                }
+                self.set_state(if self.ground_speed <= -self.top_speed {
+                    State::FullMotion
+                } else {
+                    State::StartMotion
+                });
+                self.set_flip_h(true);
+            }
+            if input.is_action_pressed(c"right".into()) {
+                if self.ground_speed < 0.0 {
+                    // Turn around
+                    godot_print!("Turn around");
+                    self.ground_speed += self.deceleration;
+                    if self.ground_speed >= 0.0 {
+                        self.ground_speed = 0.5;
+                    }
+                } else if self.ground_speed < self.top_speed {
+                    godot_print!("Accelerate right");
+                    self.ground_speed += self.acceleration;
+                    self.ground_speed = self.ground_speed.min(self.top_speed);
+                }
+
+                self.set_state(if self.ground_speed >= self.top_speed {
+                    State::FullMotion
+                } else {
+                    State::StartMotion
+                });
+                self.set_flip_h(false);
+            }
+        }
+    }
+
+    fn apply_slope_factor(&mut self) {
+        // Slow down uphill and speeding up downhill
+        if self.current_mode() != Mode::Ceiling {
+            let slope_factor = self.current_slope_factor() * self.ground_angle.sin();
+            // Forces moving when walking on steep slopes
+            let is_stopped = self.ground_speed != 0.0;
+            let is_rolling = self.state.is_rolling();
+            let is_on_steep = slope_factor >= 0.05078125;
+            if !is_stopped || is_rolling || is_on_steep {
+                godot_print!("Applying slope factor {slope_factor}");
+                self.ground_speed -= slope_factor * self.ground_angle.sin();
+            }
+        }
+    }
+
+    fn update_animation(&mut self) {
+        if self.ground_speed == 0.0 {
+            self.set_state(State::Idle);
+        }
+    }
+
     fn land_on_ceiling(&mut self) {
         let velocity = self.velocity();
         self.ground_speed = velocity.y * -self.ground_angle.sin().signum();
@@ -385,6 +453,12 @@ impl Character {
                     velocity.y * -self.ground_angle.sin().signum()
                 }
             }
+        }
+    }
+    fn air_drag(&self, velocity: &mut Vector2) {
+        if velocity.y < 0.0 && velocity.y > -4.0 {
+            godot_print!("Apply drag");
+            velocity.x -= (velocity.x / 0.125) / 256.0;
         }
     }
 }

@@ -1,4 +1,4 @@
-mod collision_checking;
+mod collision;
 mod lifecycle;
 mod setters;
 mod utils;
@@ -6,7 +6,6 @@ mod utils;
 use godot::engine::{AnimatedSprite2D, CharacterBody2D, CollisionShape2D};
 use godot::prelude::*;
 use setters::{Kind, State};
-use utils::MotionDirection;
 
 use crate::sensor::Sensor;
 
