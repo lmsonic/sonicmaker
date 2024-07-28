@@ -169,7 +169,6 @@ impl Character {
         let mut velocity = self.velocity();
         let right = self.current_mode().right();
         velocity += right * distance;
-        godot_print!("{}", right * distance);
         self.ground_speed = 0.0;
         self.set_velocity(velocity);
     }
@@ -179,7 +178,6 @@ impl Character {
         let mut velocity = self.velocity();
         let left = self.current_mode().left();
         velocity += left * distance;
-        godot_print!("{}", left * distance);
         self.ground_speed = 0.0;
         self.set_velocity(velocity);
     }
@@ -249,11 +247,13 @@ impl Character {
     pub(super) fn snap_to_floor(&mut self, distance: f32) {
         let mode = self.current_mode();
         let mut position = self.global_position();
-        if mode.is_sideways() {
-            position.x += distance;
-        } else {
-            position.y += distance;
+        match mode {
+            Mode::Floor => position.y += distance,
+            Mode::RightWall => position.x += distance,
+            Mode::Ceiling => position.y -= distance,
+            Mode::LeftWall => position.x += distance,
         }
+
         self.set_global_position(position);
     }
     pub(super) fn should_snap_to_floor(&self, result: DetectionResult) -> bool {
@@ -261,7 +261,7 @@ impl Character {
         // result.distance > -14.0 && result.distance < 14.0
         // Sonic 2 and onwards
         let mode = Mode::from_normal(result.normal);
-        let velocity = self.base().get_velocity();
+        let velocity = self.velocity();
         let distance = result.distance;
         if mode.is_sideways() {
             distance <= (velocity.x.abs() + 4.0).min(14.0) && distance >= -14.0

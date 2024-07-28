@@ -34,8 +34,10 @@ impl State {
     fn is_ball(&self) -> bool {
         *self == Self::AirBall || *self == Self::RollingBall
     }
-    fn is_standing(&self) -> bool {
-        *self == Self::Idle || *self == Self::StartMotion || *self == Self::FullMotion
+
+    #[must_use]
+    fn is_rolling(&self) -> bool {
+        matches!(self, Self::RollingBall)
     }
 }
 
@@ -124,10 +126,13 @@ impl ICharacterBody2D for Character {
             godot_print!("Grounded");
             // Slow down uphill and speeding up downhill
             if self.current_mode() != Mode::Ceiling {
-                let slope_factor = self.current_slope_factor();
+                let slope_factor = self.current_slope_factor() * self.ground_angle.sin();
                 // Forces moving when walking on steep slopes
-                if !self.state.is_standing() || slope_factor <= 0.05078125 {
-                    godot_print!("Applying slope factor");
+                let is_stopped = self.ground_speed != 0.0;
+                let is_rolling = self.state.is_rolling();
+                let is_on_steep = slope_factor >= 0.05078125;
+                if !is_stopped || is_rolling || is_on_steep {
+                    godot_print!("Applying slope factor {slope_factor}");
                     self.ground_speed -= slope_factor * self.ground_angle.sin();
                 }
             }
@@ -177,7 +182,9 @@ impl ICharacterBody2D for Character {
             // Jump Check
             if input.is_action_just_pressed(c"jump".into()) && self.can_jump() {
                 godot_print!("Jump");
-                velocity += Vector2::UP * self.jump_force;
+                let (sin, cos) = self.ground_angle.sin_cos();
+                velocity.x -= self.jump_force * sin;
+                velocity.y -= self.jump_force * cos;
             }
 
             // Wall checking
@@ -198,7 +205,7 @@ impl ICharacterBody2D for Character {
             godot_print!("Slope velocity adjustment");
             let (sin, cos) = self.ground_angle.sin_cos();
             velocity.x = self.ground_speed * cos;
-            velocity.y = self.ground_speed * sin;
+            velocity.y = -self.ground_speed * sin;
             self.set_velocity(velocity);
 
             // Update position
@@ -230,6 +237,7 @@ impl ICharacterBody2D for Character {
                         // Detach
                         godot_print!("Fall");
                         self.set_grounded(false);
+                        self.ground_speed = 0.0;
                     } else {
                         godot_print!("Slip");
                         // Slipe / slide down
@@ -376,10 +384,10 @@ impl Character {
     #[func]
     fn set_ground_angle(&mut self, mut value: f32) {
         self.ground_angle = value;
-        if value > PI {
-            value -= TAU;
+        if value < PI {
+            value += TAU;
         }
-        self.base_mut().set_rotation(value);
+        self.base_mut().set_rotation(TAU - value);
         self.update_sensors();
     }
     #[func]
@@ -447,15 +455,11 @@ impl Character {
             let mode = self.current_mode();
 
             // Floor and ceiling sensors
-            let mut down_direction = mode.down_direction();
-            let mut up_direction = mode.up_direction();
+            let down_direction = mode.down_direction();
+            let up_direction = mode.up_direction();
 
-            let mut angle = mode.angle();
-            if mode.is_sideways() {
-                // I have no idea, Glam and Godot have different ideas of rotation?
-                angle = -angle;
-                std::mem::swap(&mut down_direction, &mut up_direction);
-            }
+            let angle = mode.angle();
+
             let bottom_left = Vector2::new(-half_width, half_height).rotated(angle);
             let bottom_right = Vector2::new(half_width, half_height).rotated(angle);
             let top_left = Vector2::new(-half_width, -half_height).rotated(angle);
@@ -492,14 +496,10 @@ impl Character {
                 } else {
                     0.0
                 };
-            let mut right_direction = mode.right_direction();
-            let mut left_direction = mode.left_direction();
-            let mut angle = mode.angle();
-            if mode.is_sideways() {
-                // I have no idea, Glam and Godot have different ideas of rotation?
-                angle = -angle;
-                std::mem::swap(&mut left_direction, &mut right_direction);
-            }
+            let right_direction = mode.right_direction();
+            let left_direction = mode.left_direction();
+            let angle = mode.angle();
+
             let center_left = Vector2::new(-half_width, half_height).rotated(angle);
             let center_right = Vector2::new(half_width, half_height).rotated(angle);
             if let Some(sensor_push_left) = &mut self.sensor_push_left {
@@ -617,10 +617,12 @@ impl Character {
     }
 
     fn current_slope_factor(&self) -> f32 {
-        if self.state == State::RollingBall {
+        if self.state.is_rolling() {
             if self.is_uphill() {
+                godot_print!("uphill");
                 self.slope_factor_rollup
             } else {
+                godot_print!("rolldown");
                 self.slope_factor_rolldown
             }
         } else {

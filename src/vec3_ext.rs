@@ -8,7 +8,7 @@ pub trait Vector2Ext {
 }
 impl Vector2Ext for Vector2 {
     fn plane_angle(&self) -> f32 {
-        let mut angle = self.angle() + FRAC_PI_2;
+        let mut angle = -self.angle() - FRAC_PI_2;
         if angle < 0.0 {
             angle += TAU;
         }
