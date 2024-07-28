@@ -69,17 +69,17 @@ impl Mode {
     }
     pub(super) fn left(&self) -> Vector2 {
         match self {
-            Mode::Floor => Vector2::RIGHT,
+            Mode::Floor => Vector2::LEFT,
             Mode::RightWall => Vector2::UP,
-            Mode::Ceiling => Vector2::LEFT,
+            Mode::Ceiling => Vector2::RIGHT,
             Mode::LeftWall => Vector2::DOWN,
         }
     }
     pub(super) fn right(&self) -> Vector2 {
         match self {
-            Mode::Floor => Vector2::LEFT,
+            Mode::Floor => Vector2::RIGHT,
             Mode::RightWall => Vector2::DOWN,
-            Mode::Ceiling => Vector2::RIGHT,
+            Mode::Ceiling => Vector2::LEFT,
             Mode::LeftWall => Vector2::UP,
         }
     }
@@ -169,6 +169,8 @@ impl Character {
         let mut velocity = self.velocity();
         let right = self.current_mode().right();
         velocity += right * distance;
+        godot_print!("{}", right * distance);
+        self.ground_speed = 0.0;
         self.set_velocity(velocity);
     }
     pub(super) fn grounded_left_wall_collision(&mut self, distance: f32) {
@@ -177,22 +179,26 @@ impl Character {
         let mut velocity = self.velocity();
         let left = self.current_mode().left();
         velocity += left * distance;
+        godot_print!("{}", left * distance);
+        self.ground_speed = 0.0;
         self.set_velocity(velocity);
     }
     pub(super) fn airborne_left_wall_collision(&mut self, distance: f32) {
         godot_print!("Left wall collision");
-        let velocity = self.velocity();
         let mut position = self.global_position();
         position.x += distance;
         self.set_global_position(position);
+
+        let velocity = self.velocity();
         self.set_velocity(Vector2::new(0.0, velocity.y));
     }
     pub(super) fn airborne_right_wall_collision(&mut self, distance: f32) {
         godot_print!("Right wall collision");
-        let velocity = self.velocity();
         let mut position = self.global_position();
         position.x -= distance;
         self.set_global_position(position);
+
+        let velocity = self.velocity();
         self.set_velocity(Vector2::new(0.0, velocity.y));
     }
 
@@ -358,32 +364,13 @@ impl Character {
         results
     }
 
-    pub(super) fn floor_left_sensor_check(&mut self) -> Option<DetectionResult> {
-        if let Some(sensor_floor_left) = &mut self.sensor_floor_left {
-            if let Ok(result) = sensor_floor_left
-                .bind_mut()
-                .detect_solid()
-                .try_to::<DetectionResult>()
-            {
-                return Some(result);
-            }
-        };
-        None
-    }
-    pub(super) fn floor_right_sensor_check(&mut self) -> Option<DetectionResult> {
-        if let Some(sensor_floor_right) = &mut self.sensor_floor_right {
-            if let Ok(result) = sensor_floor_right
-                .bind_mut()
-                .detect_solid()
-                .try_to::<DetectionResult>()
-            {
-                return Some(result);
-            }
-        };
-        None
-    }
     pub(super) fn wall_left_sensor_check(&mut self) -> Option<DetectionResult> {
+        let velocity = self.velocity();
+
         if let Some(sensor_push_left) = &mut self.sensor_push_left {
+            let old_position = sensor_push_left.get_global_position();
+            let new_position = old_position + velocity;
+            sensor_push_left.set_global_position(new_position);
             if let Ok(result) = sensor_push_left
                 .bind_mut()
                 .detect_solid()
@@ -391,11 +378,16 @@ impl Character {
             {
                 return Some(result);
             }
+            sensor_push_left.set_global_position(old_position);
         };
         None
     }
     pub(super) fn wall_right_sensor_check(&mut self) -> Option<DetectionResult> {
+        let velocity = self.velocity();
         if let Some(sensor_push_right) = &mut self.sensor_push_right {
+            let old_position = sensor_push_right.get_global_position();
+            let new_position = old_position + velocity;
+            sensor_push_right.set_global_position(new_position);
             if let Ok(result) = sensor_push_right
                 .bind_mut()
                 .detect_solid()
@@ -403,6 +395,7 @@ impl Character {
             {
                 return Some(result);
             }
+            sensor_push_right.set_global_position(old_position);
         };
         None
     }

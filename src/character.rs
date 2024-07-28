@@ -196,8 +196,9 @@ impl ICharacterBody2D for Character {
             }
             // Adjust velocity based on slope
             godot_print!("Slope velocity adjustment");
-            velocity.x = self.ground_speed * self.ground_angle.cos();
-            velocity.y = self.ground_speed * -self.ground_angle.sin();
+            let (sin, cos) = self.ground_angle.sin_cos();
+            velocity.x = self.ground_speed * cos;
+            velocity.y = self.ground_speed * sin;
             self.set_velocity(velocity);
 
             // Update position
