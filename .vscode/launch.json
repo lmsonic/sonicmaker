@@ -1,0 +1,16 @@
+{
+    "configurations": [
+        {
+            "name": "Debug Project (Godot 4)",
+            "type": "lldb", // type provided by CodeLLDB extension
+            "request": "launch",
+            // "preLaunchTask": "rust: cargo build",
+            "cwd": "${workspaceFolder}",
+            "args": [
+                // "-e", // run editor (remove this to launch the scene directly)
+                "-w", // windowed mode
+            ],
+            "program": "C:\\Users\\loren\\Documents\\Godot\\godot\\godot.exe",
+        }
+    ]
+}
