@@ -159,6 +159,7 @@ sensor_ceiling_left = NodePath("Sensors/SensorCeilingLeft")
 sensor_ceiling_right = NodePath("Sensors/SensorCeilingRight")
 sensor_push_left = NodePath("Sensors/SensorPushLeft")
 sensor_push_right = NodePath("Sensors/SensorPushRight")
+is_grounded = true
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 texture_filter = 1
@@ -198,12 +199,12 @@ target_position = Vector2(0, -16)
 
 [node name="SensorPushRight" parent="Sensors" instance=ExtResource("2_mvnfj")]
 direction = "Right"
-position = Vector2(10, 0)
+position = Vector2(10, 8)
 target_position = Vector2(16, 0)
 
 [node name="SensorPushLeft" parent="Sensors" instance=ExtResource("2_mvnfj")]
 direction = "Left"
-position = Vector2(-10, 0)
+position = Vector2(-10, 8)
 target_position = Vector2(-16, 0)
 
 [node name="SensorShape" type="Area2D" parent="Sensors"]
