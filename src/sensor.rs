@@ -17,12 +17,6 @@ pub enum Direction {
 const TILE_SIZE: f32 = 16.0;
 
 impl Direction {
-    fn is_horizontal(&self) -> bool {
-        *self == Direction::Left || *self == Direction::Right
-    }
-    fn is_positive(&self) -> bool {
-        *self == Direction::Right || *self == Direction::Down
-    }
     fn get_target_direction(&self) -> Vector2 {
         match *self {
             Direction::Left => Vector2::LEFT * TILE_SIZE,

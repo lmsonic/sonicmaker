@@ -1,5 +1,3 @@
-use std::borrow::Borrow;
-
 use godot::{
     engine::{CollisionShape2D, Engine, SegmentShape2D, ThemeDb},
     prelude::*,
