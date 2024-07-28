@@ -267,7 +267,7 @@ impl ICharacterBody2D for Character {
             }
             if self.control_lock_timer <= 0 {
                 // Slipping check
-                if self.velocity().x.abs() < 2.5 && self.is_slipping() {
+                if self.ground_speed < 2.5 && self.is_slipping() {
                     self.control_lock_timer = 30;
                     // Fall check
                     if self.is_falling() {
