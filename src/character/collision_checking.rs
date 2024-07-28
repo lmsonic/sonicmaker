@@ -144,7 +144,7 @@ pub enum MotionDirection {
 
 impl MotionDirection {
     pub(super) fn from_velocity(velocity: Vector2) -> Self {
-        if velocity.x > velocity.y {
+        if velocity.x.abs() > velocity.y.abs() {
             if velocity.x > 0.0 {
                 Self::Right
             } else {
@@ -274,6 +274,7 @@ impl Character {
             return false;
         }
         let velocity = self.velocity();
+
         let direction = MotionDirection::from_velocity(velocity);
         match direction {
             MotionDirection::Right | MotionDirection::Left => self
@@ -326,7 +327,7 @@ impl Character {
     }
     pub(super) fn can_jump(&mut self) -> bool {
         if let Some(result) = self.ceiling_check() {
-            return result.distance > 6.0;
+            return result.distance >= 6.0;
         }
         true
     }
@@ -371,16 +372,20 @@ impl Character {
             let old_position = sensor_push_left.get_global_position();
             let new_position = old_position + velocity;
             sensor_push_left.set_global_position(new_position);
-            if let Ok(result) = sensor_push_left
+            let result = if let Ok(result) = sensor_push_left
                 .bind_mut()
                 .detect_solid()
                 .try_to::<DetectionResult>()
             {
-                return Some(result);
-            }
+                Some(result)
+            } else {
+                None
+            };
             sensor_push_left.set_global_position(old_position);
-        };
-        None
+            result
+        } else {
+            None
+        }
     }
     pub(super) fn wall_right_sensor_check(&mut self) -> Option<DetectionResult> {
         let velocity = self.velocity();
@@ -388,15 +393,19 @@ impl Character {
             let old_position = sensor_push_right.get_global_position();
             let new_position = old_position + velocity;
             sensor_push_right.set_global_position(new_position);
-            if let Ok(result) = sensor_push_right
+            let result = if let Ok(result) = sensor_push_right
                 .bind_mut()
                 .detect_solid()
                 .try_to::<DetectionResult>()
             {
-                return Some(result);
-            }
+                Some(result)
+            } else {
+                None
+            };
             sensor_push_right.set_global_position(old_position);
-        };
-        None
+            result
+        } else {
+            None
+        }
     }
 }

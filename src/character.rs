@@ -154,6 +154,12 @@ impl ICharacterBody2D for Character {
                         self.ground_speed -= self.acceleration;
                         self.ground_speed = self.ground_speed.max(-self.top_speed);
                     }
+                    self.set_state(if self.ground_speed <= -self.top_speed {
+                        State::FullMotion
+                    } else {
+                        State::StartMotion
+                    });
+                    self.set_flip_h(true);
                 }
                 if input.is_action_pressed(c"right".into()) {
                     if self.ground_speed < 0.0 {
@@ -168,6 +174,13 @@ impl ICharacterBody2D for Character {
                         self.ground_speed += self.acceleration;
                         self.ground_speed = self.ground_speed.min(self.top_speed);
                     }
+
+                    self.set_state(if self.ground_speed >= self.top_speed {
+                        State::FullMotion
+                    } else {
+                        State::StartMotion
+                    });
+                    self.set_flip_h(false);
                 }
             }
 
@@ -176,8 +189,12 @@ impl ICharacterBody2D for Character {
             if !input.is_action_pressed(c"left".into()) && !input.is_action_pressed(c"right".into())
             {
                 godot_print!("Apply friction");
+
                 self.ground_speed -=
                     self.ground_speed.abs().min(self.friction) * self.ground_speed.signum();
+            }
+            if self.ground_speed == 0.0 {
+                self.set_state(State::Idle);
             }
             // Jump Check
             if input.is_action_just_pressed(c"jump".into()) && self.can_jump() {
@@ -185,6 +202,15 @@ impl ICharacterBody2D for Character {
                 let (sin, cos) = self.ground_angle.sin_cos();
                 velocity.x -= self.jump_force * sin;
                 velocity.y -= self.jump_force * cos;
+                godot_print!("{velocity}");
+                self.set_grounded(false);
+                self.set_state(State::AirBall);
+                self.set_velocity(velocity);
+                godot_print!("Update position");
+                let mut position = self.global_position();
+                position += velocity;
+                self.set_global_position(position);
+                return;
             }
 
             // Wall checking
@@ -251,7 +277,18 @@ impl ICharacterBody2D for Character {
             // Airborne
             godot_print!("Airborne");
             let mut velocity = self.velocity();
-
+            if velocity.x.abs() > 0.0 {
+                self.set_flip_h(velocity.x < 0.0)
+            }
+            if !self.state.is_ball() {
+                self.set_state(if self.ground_speed.abs() >= self.top_speed {
+                    State::FullMotion
+                } else if self.ground_speed.abs() >= 0.0 {
+                    State::StartMotion
+                } else {
+                    State::Idle
+                });
+            }
             // Air Acceleration
             if input.is_action_pressed(c"left".into()) {
                 godot_print!("Accelerate left");
@@ -300,26 +337,26 @@ impl ICharacterBody2D for Character {
             match motion_direction {
                 MotionDirection::Up | MotionDirection::Down => {
                     if let Some(result) = self.wall_right_sensor_check() {
-                        if result.distance <= 0.0 {
+                        if result.distance < 0.0 {
                             self.airborne_right_wall_collision(result.distance);
                         }
                     }
                     if let Some(result) = self.wall_left_sensor_check() {
-                        if result.distance <= 0.0 {
+                        if result.distance < 0.0 {
                             self.airborne_left_wall_collision(result.distance);
                         }
                     }
                 }
                 MotionDirection::Right => {
                     if let Some(result) = self.wall_right_sensor_check() {
-                        if result.distance <= 0.0 {
+                        if result.distance < 0.0 {
                             self.airborne_right_wall_collision(result.distance);
                         }
                     }
                 }
                 MotionDirection::Left => {
                     if let Some(result) = self.wall_left_sensor_check() {
-                        if result.distance <= 0.0 {
+                        if result.distance < 0.0 {
                             self.airborne_left_wall_collision(result.distance);
                         }
                     }
@@ -330,7 +367,7 @@ impl ICharacterBody2D for Character {
             match motion_direction {
                 MotionDirection::Right | MotionDirection::Left | MotionDirection::Up => {
                     if let Some(result) = self.ceiling_check() {
-                        if result.distance <= 0.0 {
+                        if result.distance < 0.0 {
                             // Ceiling collision
                             godot_print!("ceiling collision");
                             let mut position = self.global_position();
@@ -341,8 +378,11 @@ impl ICharacterBody2D for Character {
                                 self.set_ground_angle(result.normal.plane_angle());
                                 self.set_grounded(true);
                                 self.land_on_ceiling();
+                                godot_print!("land on ceiling");
                             } else {
                                 velocity.y = 0.0;
+
+                                godot_print!("bump on ceiling");
                             }
                         }
                     }
@@ -446,6 +486,12 @@ impl Character {
             }
         }
     }
+    fn set_flip_h(&mut self, value: bool) {
+        if let Some(sprites) = &mut self.sprites {
+            sprites.set_flip_h(value);
+        }
+    }
+
     #[func]
     pub fn update_sensors(&mut self) {
         let mask = self.base().get_collision_layer();
