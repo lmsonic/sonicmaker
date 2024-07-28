@@ -1,3 +1,5 @@
+use std::borrow::Borrow;
+
 use godot::{
     engine::{CollisionShape2D, Engine, SegmentShape2D, ThemeDb},
     prelude::*,
@@ -62,8 +64,10 @@ impl INode2D for LayerSwitcher {
         }
         if let Some(mut player) = self.get_player() {
             let is_player_on_positive_side = self.is_player_on_positive_side(&player);
+            let is_player_grounded = player.bind().get_is_grounded();
             if self.check_player_entered(&player)
                 && self.current_side_of_player != is_player_on_positive_side
+                && (self.grounded_only == is_player_grounded || !self.grounded_only)
             {
                 self.switch(&mut player, is_player_on_positive_side);
             }

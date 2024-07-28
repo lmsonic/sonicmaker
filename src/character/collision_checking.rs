@@ -3,7 +3,7 @@ use std::f32::consts::{FRAC_PI_2, PI};
 use godot::{engine::RectangleShape2D, prelude::*};
 
 use crate::{
-    character::Character,
+    character::{Character, State},
     sensor::{DetectionResult, Direction},
     vec3_ext::Vector2Ext,
 };
@@ -170,6 +170,7 @@ impl Character {
         let right = self.current_mode().right();
         velocity += right * distance;
         self.ground_speed = 0.0;
+        self.set_state(State::Idle);
         self.set_velocity(velocity);
     }
     pub(super) fn grounded_left_wall_collision(&mut self, distance: f32) {
@@ -184,7 +185,7 @@ impl Character {
     pub(super) fn airborne_left_wall_collision(&mut self, distance: f32) {
         godot_print!("Left wall collision");
         let mut position = self.global_position();
-        position.x += distance;
+        position.x -= distance;
         self.set_global_position(position);
 
         let velocity = self.velocity();
@@ -193,7 +194,7 @@ impl Character {
     pub(super) fn airborne_right_wall_collision(&mut self, distance: f32) {
         godot_print!("Right wall collision");
         let mut position = self.global_position();
-        position.x -= distance;
+        position.x += distance;
         self.set_global_position(position);
 
         let velocity = self.velocity();
@@ -270,18 +271,19 @@ impl Character {
         }
     }
     pub(super) fn is_landed(&mut self, result: DetectionResult) -> bool {
-        if result.distance < -14.0 || result.distance > 14.0 {
+        if result.distance >= 0.0 {
             return false;
         }
         let velocity = self.velocity();
 
         let direction = MotionDirection::from_velocity(velocity);
+        godot_print!("{direction:?}");
         match direction {
-            MotionDirection::Right | MotionDirection::Left => self
+            MotionDirection::Down => self
                 .ground_sensor_results()
                 .iter()
                 .any(|r| r.distance >= -(velocity.y + 8.0)),
-            MotionDirection::Down => velocity.y >= 0.0,
+            MotionDirection::Right | MotionDirection::Left => velocity.y >= 0.0,
             MotionDirection::Up => false,
         }
     }
@@ -407,5 +409,29 @@ impl Character {
         } else {
             None
         }
+    }
+    pub(super) fn airborne_wall_left_sensor_check(&mut self) -> Option<DetectionResult> {
+        if let Some(sensor_push_left) = &mut self.sensor_push_left {
+            if let Ok(result) = sensor_push_left
+                .bind_mut()
+                .detect_solid()
+                .try_to::<DetectionResult>()
+            {
+                return Some(result);
+            }
+        }
+        None
+    }
+    pub(super) fn airborne_wall_right_sensor_check(&mut self) -> Option<DetectionResult> {
+        if let Some(sensor_push_right) = &mut self.sensor_push_right {
+            if let Ok(result) = sensor_push_right
+                .bind_mut()
+                .detect_solid()
+                .try_to::<DetectionResult>()
+            {
+                return Some(result);
+            }
+        }
+        None
     }
 }

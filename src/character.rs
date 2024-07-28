@@ -104,10 +104,10 @@ pub struct Character {
     sensor_push_right: Option<Gd<Sensor>>,
     #[export]
     #[var(get,set= set_grounded)]
-    pub(crate) is_grounded: bool,
+    pub is_grounded: bool,
     #[export(range = (0.0, 360.0, 0.001, radians_as_degrees))]
     #[var(get,set= set_ground_angle)]
-    pub(crate) ground_angle: f32,
+    pub ground_angle: f32,
     control_lock_timer: i32,
     #[export]
     enable_in_editor: bool,
@@ -116,14 +116,26 @@ pub struct Character {
 
 #[godot_api]
 impl ICharacterBody2D for Character {
+    fn draw(&mut self) {
+        let velocity = self.velocity();
+        self.base_mut()
+            .draw_line_ex(Vector2::ZERO, velocity * 10.0, Color::RED)
+            .width(5.0)
+            .done();
+    }
     fn physics_process(&mut self, _delta: f64) {
         if Engine::singleton().is_editor_hint() && !self.enable_in_editor {
             return;
         }
+        self.base_mut().queue_redraw();
         let input = Input::singleton();
         if self.is_grounded {
             // Grounded
             godot_print!("Grounded");
+            if self.ground_speed == 0.0 {
+                self.set_state(State::Idle);
+            }
+
             // Slow down uphill and speeding up downhill
             if self.current_mode() != Mode::Ceiling {
                 let slope_factor = self.current_slope_factor() * self.ground_angle.sin();
@@ -193,9 +205,7 @@ impl ICharacterBody2D for Character {
                 self.ground_speed -=
                     self.ground_speed.abs().min(self.friction) * self.ground_speed.signum();
             }
-            if self.ground_speed == 0.0 {
-                self.set_state(State::Idle);
-            }
+
             // Jump Check
             if input.is_action_just_pressed(c"jump".into()) && self.can_jump() {
                 godot_print!("Jump");
@@ -217,16 +227,17 @@ impl ICharacterBody2D for Character {
             if self.should_activate_wall_sensors() {
                 if self.ground_speed > 0.0 {
                     if let Some(result) = self.wall_right_sensor_check() {
-                        if result.distance <= 0.0 {
+                        if result.distance < 0.0 {
                             self.grounded_right_wall_collision(result.distance);
                         }
                     }
                 } else if let Some(result) = self.wall_left_sensor_check() {
-                    if result.distance <= 0.0 {
+                    if result.distance < 0.0 {
                         self.grounded_left_wall_collision(result.distance);
                     }
                 }
             }
+
             // Adjust velocity based on slope
             godot_print!("Slope velocity adjustment");
             let (sin, cos) = self.ground_angle.sin_cos();
@@ -317,6 +328,7 @@ impl ICharacterBody2D for Character {
             velocity.y += self.gravity;
             // Top y speed
             velocity.y = velocity.y.min(16.0);
+            self.set_velocity(velocity);
 
             // Rotate ground angle to 0
             let mut rotation = self.base().get_rotation();
@@ -331,40 +343,38 @@ impl ICharacterBody2D for Character {
             self.base_mut().set_rotation(rotation);
 
             // Air collision checks
-            let motion_direction = MotionDirection::from_velocity(velocity);
 
             // Wall check
-            match motion_direction {
+            match self.current_motion_direction() {
                 MotionDirection::Up | MotionDirection::Down => {
-                    if let Some(result) = self.wall_right_sensor_check() {
-                        if result.distance < 0.0 {
+                    if let Some(result) = self.airborne_wall_right_sensor_check() {
+                        if result.distance <= 0.0 {
                             self.airborne_right_wall_collision(result.distance);
                         }
                     }
-                    if let Some(result) = self.wall_left_sensor_check() {
-                        if result.distance < 0.0 {
+                    if let Some(result) = self.airborne_wall_left_sensor_check() {
+                        if result.distance <= 0.0 {
                             self.airborne_left_wall_collision(result.distance);
                         }
                     }
                 }
                 MotionDirection::Right => {
-                    if let Some(result) = self.wall_right_sensor_check() {
-                        if result.distance < 0.0 {
+                    if let Some(result) = self.airborne_wall_right_sensor_check() {
+                        if result.distance <= 0.0 {
                             self.airborne_right_wall_collision(result.distance);
                         }
                     }
                 }
                 MotionDirection::Left => {
-                    if let Some(result) = self.wall_left_sensor_check() {
-                        if result.distance < 0.0 {
+                    if let Some(result) = self.airborne_wall_left_sensor_check() {
+                        if result.distance <= 0.0 {
                             self.airborne_left_wall_collision(result.distance);
                         }
                     }
                 }
             }
-
             // Ceiling check
-            match motion_direction {
+            match self.current_motion_direction() {
                 MotionDirection::Right | MotionDirection::Left | MotionDirection::Up => {
                     if let Some(result) = self.ceiling_check() {
                         if result.distance < 0.0 {
@@ -379,9 +389,16 @@ impl ICharacterBody2D for Character {
                                 self.set_grounded(true);
                                 self.land_on_ceiling();
                                 godot_print!("land on ceiling");
+                                self.set_state(if self.ground_speed.abs() >= self.top_speed {
+                                    State::FullMotion
+                                } else if self.ground_speed.abs() >= 0.0 {
+                                    State::StartMotion
+                                } else {
+                                    State::Idle
+                                });
                             } else {
-                                velocity.y = 0.0;
-
+                                let velocity = self.velocity();
+                                self.set_velocity(Vector2::new(velocity.x, 0.0));
                                 godot_print!("bump on ceiling");
                             }
                         }
@@ -390,7 +407,7 @@ impl ICharacterBody2D for Character {
                 MotionDirection::Down => {}
             }
             // Floor check
-            match motion_direction {
+            match self.current_motion_direction() {
                 MotionDirection::Right | MotionDirection::Left | MotionDirection::Down => {
                     if let Some(result) = self.ground_check() {
                         if self.is_landed(result) {
@@ -404,12 +421,19 @@ impl ICharacterBody2D for Character {
                             self.set_grounded(true);
 
                             self.land_on_floor();
+
+                            self.set_state(if self.ground_speed.abs() >= self.top_speed {
+                                State::FullMotion
+                            } else if self.ground_speed.abs() >= 0.0 {
+                                State::StartMotion
+                            } else {
+                                State::Idle
+                            });
                         }
                     }
                 }
                 MotionDirection::Up => {}
             }
-            self.set_velocity(velocity);
         }
     }
 }
@@ -438,8 +462,10 @@ impl Character {
 
     #[func]
     fn set_height_radius(&mut self, value: f32) {
+        let delta = self.height_radius - value;
         self.height_radius = value;
         self.update_sensors();
+        self.update_y_position(delta);
     }
 
     #[func]
@@ -536,12 +562,12 @@ impl Character {
             // Push Sensors
             let half_width = self.push_radius;
             let mode = self.current_mode_walls();
-            let half_height =
-                if self.is_grounded && (self.ground_angle == 0.0 || self.ground_angle == TAU) {
-                    8.0
-                } else {
-                    0.0
-                };
+            let half_height = 0.0;
+            // if self.is_grounded && (self.ground_angle == 0.0 || self.ground_angle == TAU) {
+            //     8.0
+            // } else {
+            //     0.0
+            // };
             let right_direction = mode.right_direction();
             let left_direction = mode.left_direction();
             let angle = mode.angle();
@@ -595,6 +621,7 @@ impl Character {
         let floor_kind = FloorKind::from_floor_angle(self.ground_angle);
         let velocity = self.velocity();
         let motion_direction = MotionDirection::from_velocity(velocity);
+
         self.ground_speed = match floor_kind {
             FloorKind::Flat => velocity.x,
             FloorKind::Slope => {
@@ -674,5 +701,8 @@ impl Character {
         } else {
             self.slope_factor_normal
         }
+    }
+    fn current_motion_direction(&self) -> MotionDirection {
+        MotionDirection::from_velocity(self.base().get_velocity())
     }
 }
