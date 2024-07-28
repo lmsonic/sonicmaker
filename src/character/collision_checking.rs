@@ -165,7 +165,7 @@ impl MotionDirection {
 impl Character {
     pub(super) fn grounded_right_wall_collision(&mut self, distance: f32) {
         godot_print!("Right wall collision");
-        self.ground_speed = 0.0;
+
         let mut velocity = self.velocity();
         let right = self.current_mode().right();
         velocity += right * distance;
@@ -173,7 +173,7 @@ impl Character {
     }
     pub(super) fn grounded_left_wall_collision(&mut self, distance: f32) {
         godot_print!("Left wall collision");
-        self.ground_speed = 0.0;
+
         let mut velocity = self.velocity();
         let left = self.current_mode().left();
         velocity += left * distance;
@@ -358,7 +358,7 @@ impl Character {
         results
     }
 
-    pub(super) fn left_sensor_check(&mut self) -> Option<DetectionResult> {
+    pub(super) fn floor_left_sensor_check(&mut self) -> Option<DetectionResult> {
         if let Some(sensor_floor_left) = &mut self.sensor_floor_left {
             if let Ok(result) = sensor_floor_left
                 .bind_mut()
@@ -370,9 +370,33 @@ impl Character {
         };
         None
     }
-    pub(super) fn right_sensor_check(&mut self) -> Option<DetectionResult> {
+    pub(super) fn floor_right_sensor_check(&mut self) -> Option<DetectionResult> {
         if let Some(sensor_floor_right) = &mut self.sensor_floor_right {
             if let Ok(result) = sensor_floor_right
+                .bind_mut()
+                .detect_solid()
+                .try_to::<DetectionResult>()
+            {
+                return Some(result);
+            }
+        };
+        None
+    }
+    pub(super) fn wall_left_sensor_check(&mut self) -> Option<DetectionResult> {
+        if let Some(sensor_push_left) = &mut self.sensor_push_left {
+            if let Ok(result) = sensor_push_left
+                .bind_mut()
+                .detect_solid()
+                .try_to::<DetectionResult>()
+            {
+                return Some(result);
+            }
+        };
+        None
+    }
+    pub(super) fn wall_right_sensor_check(&mut self) -> Option<DetectionResult> {
+        if let Some(sensor_push_right) = &mut self.sensor_push_right {
+            if let Ok(result) = sensor_push_right
                 .bind_mut()
                 .detect_solid()
                 .try_to::<DetectionResult>()

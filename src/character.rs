@@ -137,26 +137,26 @@ impl ICharacterBody2D for Character {
             if self.control_lock_timer <= 0 {
                 // Ground Acceleration
                 if input.is_action_pressed(c"left".into()) {
-                    if self.ground_speed < 0.0 {
-                        // Turn around
-                        godot_print!("Turn around");
-                        self.ground_speed += self.deceleration;
-                        if self.ground_speed > 0.0 {
-                            self.ground_speed = 0.5;
-                        }
-                    } else if self.ground_speed > -self.top_speed {
-                        godot_print!("Accelerate left");
-                        self.ground_speed -= self.acceleration;
-                        self.ground_speed = self.ground_speed.max(self.top_speed);
-                    }
-                }
-                if input.is_action_pressed(c"right".into()) {
                     if self.ground_speed > 0.0 {
                         // Turn around
                         godot_print!("Turn around");
                         self.ground_speed -= self.deceleration;
-                        if self.ground_speed < 0.0 {
+                        if self.ground_speed <= 0.0 {
                             self.ground_speed = -0.5;
+                        }
+                    } else if self.ground_speed > -self.top_speed {
+                        godot_print!("Accelerate left");
+                        self.ground_speed -= self.acceleration;
+                        self.ground_speed = self.ground_speed.max(-self.top_speed);
+                    }
+                }
+                if input.is_action_pressed(c"right".into()) {
+                    if self.ground_speed < 0.0 {
+                        // Turn around
+                        godot_print!("Turn around");
+                        self.ground_speed += self.deceleration;
+                        if self.ground_speed >= 0.0 {
+                            self.ground_speed = 0.5;
                         }
                     } else if self.ground_speed < self.top_speed {
                         godot_print!("Accelerate right");
@@ -168,7 +168,7 @@ impl ICharacterBody2D for Character {
 
             // Optional fix: use friction always when control lock is active
             // Friction
-            if !input.is_action_pressed(c"left".into()) || !input.is_action_pressed(c"right".into())
+            if !input.is_action_pressed(c"left".into()) && !input.is_action_pressed(c"right".into())
             {
                 godot_print!("Apply friction");
                 self.ground_speed -=
@@ -183,12 +183,12 @@ impl ICharacterBody2D for Character {
             // Wall checking
             if self.should_activate_wall_sensors() {
                 if self.ground_speed > 0.0 {
-                    if let Some(result) = self.right_sensor_check() {
+                    if let Some(result) = self.wall_right_sensor_check() {
                         if result.distance <= 0.0 {
                             self.grounded_right_wall_collision(result.distance);
                         }
                     }
-                } else if let Some(result) = self.left_sensor_check() {
+                } else if let Some(result) = self.wall_left_sensor_check() {
                     if result.distance <= 0.0 {
                         self.grounded_left_wall_collision(result.distance);
                     }
@@ -290,26 +290,26 @@ impl ICharacterBody2D for Character {
             // Wall check
             match motion_direction {
                 MotionDirection::Up | MotionDirection::Down => {
-                    if let Some(result) = self.right_sensor_check() {
+                    if let Some(result) = self.wall_right_sensor_check() {
                         if result.distance <= 0.0 {
                             self.airborne_right_wall_collision(result.distance);
                         }
                     }
-                    if let Some(result) = self.left_sensor_check() {
+                    if let Some(result) = self.wall_left_sensor_check() {
                         if result.distance <= 0.0 {
                             self.airborne_left_wall_collision(result.distance);
                         }
                     }
                 }
                 MotionDirection::Right => {
-                    if let Some(result) = self.right_sensor_check() {
+                    if let Some(result) = self.wall_right_sensor_check() {
                         if result.distance <= 0.0 {
                             self.airborne_right_wall_collision(result.distance);
                         }
                     }
                 }
                 MotionDirection::Left => {
-                    if let Some(result) = self.left_sensor_check() {
+                    if let Some(result) = self.wall_left_sensor_check() {
                         if result.distance <= 0.0 {
                             self.airborne_left_wall_collision(result.distance);
                         }
