@@ -258,6 +258,13 @@ impl Character {
             self.slope_factor_normal
         }
     }
+    pub(super) fn current_friction(&self) -> f32 {
+        if self.state.is_rolling() {
+            self.roll_friction
+        } else {
+            self.friction
+        }
+    }
     pub(super) fn current_motion_direction(&self) -> MotionDirection {
         MotionDirection::from_velocity(self.base().get_velocity())
     }

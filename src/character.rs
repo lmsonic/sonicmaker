@@ -52,6 +52,10 @@ pub struct Character {
     slope_factor_rollup: f32,
     #[init(default = 0.3125)]
     slope_factor_rolldown: f32,
+    #[init(default = 0.0234375)]
+    roll_friction: f32,
+    #[init(default = 0.125)]
+    roll_deceleration: f32,
     #[export]
     ground_speed: f32,
     #[export]

@@ -187,26 +187,25 @@ impl Character {
         if input.is_action_pressed(c"left".into()) {
             godot_print!("Accelerate left");
             velocity.x -= self.air_acceleration;
+            self.set_flip_h(true);
         }
         if input.is_action_pressed(c"right".into()) {
             godot_print!("Accelerate right");
             velocity.x += self.air_acceleration;
+            self.set_flip_h(false);
         }
         velocity.x = velocity.x.clamp(-self.top_speed, self.top_speed);
     }
 
     fn update_animation_air(&mut self, velocity: Vector2) {
-        if velocity.x.abs() > 0.0 {
-            self.set_flip_h(velocity.x < 0.0)
-        }
         if !self.state.is_ball() {
-            self.set_state(if self.ground_speed.abs() >= self.top_speed {
-                State::FullMotion
-            } else if self.ground_speed.abs() >= 0.0 {
-                State::StartMotion
+            if velocity.x.abs() >= self.top_speed {
+                self.set_state(State::FullMotion)
+            } else if velocity.x.abs() > 0.0 {
+                self.set_state(State::StartMotion)
             } else {
-                State::Idle
-            });
+                self.set_state(State::Idle)
+            };
         }
     }
     fn grounded(&mut self) {
@@ -214,14 +213,14 @@ impl Character {
         let input = Input::singleton();
 
         godot_print!("Grounded");
-        self.update_animation();
 
         self.apply_slope_factor();
 
         self.ground_accelerate(&input);
 
-        // Optional fix: use friction always when control lock is active
         self.apply_friction(&input);
+
+        self.update_animation();
 
         // Jump Check
         if self.handle_jump(input) {
@@ -327,12 +326,16 @@ impl Character {
     }
 
     fn apply_friction(&mut self, input: &Gd<Input>) {
+        // Optional fix: use friction always when control lock is active
+
         // Friction
-        if !input.is_action_pressed(c"left".into()) && !input.is_action_pressed(c"right".into()) {
+        let horizontal_input_pressed =
+            input.is_action_pressed(c"left".into()) || input.is_action_pressed(c"right".into());
+        if self.state.is_rolling() || !horizontal_input_pressed {
             godot_print!("Apply friction");
 
             self.ground_speed -=
-                self.ground_speed.abs().min(self.friction) * self.ground_speed.signum();
+                self.ground_speed.abs().min(self.current_friction()) * self.ground_speed.signum();
         }
     }
 
@@ -352,11 +355,7 @@ impl Character {
                     self.ground_speed -= self.acceleration;
                     self.ground_speed = self.ground_speed.max(-self.top_speed);
                 }
-                self.set_state(if self.ground_speed <= -self.top_speed {
-                    State::FullMotion
-                } else {
-                    State::StartMotion
-                });
+
                 self.set_flip_h(true);
             }
             if input.is_action_pressed(c"right".into()) {
@@ -372,12 +371,6 @@ impl Character {
                     self.ground_speed += self.acceleration;
                     self.ground_speed = self.ground_speed.min(self.top_speed);
                 }
-
-                self.set_state(if self.ground_speed >= self.top_speed {
-                    State::FullMotion
-                } else {
-                    State::StartMotion
-                });
                 self.set_flip_h(false);
             }
         }
@@ -399,7 +392,11 @@ impl Character {
     }
 
     fn update_animation(&mut self) {
-        if self.ground_speed == 0.0 {
+        if self.ground_speed.abs() >= self.top_speed {
+            self.set_state(State::FullMotion);
+        } else if self.ground_speed.abs() > 0.0 {
+            self.set_state(State::StartMotion);
+        } else {
             self.set_state(State::Idle);
         }
     }
