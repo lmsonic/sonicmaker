@@ -242,7 +242,7 @@ impl Character {
     fn handle_slipping(&mut self) {
         if self.control_lock_timer <= 0 {
             // Slipping check
-            if self.ground_speed < 2.5 && self.is_slipping() {
+            if self.ground_speed.abs() < 2.5 && self.is_slipping() {
                 self.control_lock_timer = 30;
                 // Fall check
                 if self.is_falling() {
@@ -269,18 +269,18 @@ impl Character {
                 self.snap_to_floor(result.distance);
                 self.set_ground_angle(result.normal.plane_angle())
             } else {
-                godot_print!("Detach from floor");
+                godot_print!("Detach from floor: Shouldn't snap");
                 self.set_grounded(false);
             }
         } else {
-            godot_print!("Detach from floor");
+            godot_print!("Detach from floor: No ground detected");
             self.set_grounded(false);
         }
     }
 
     fn update_velocity(&mut self) -> Vector2 {
         // Adjust velocity based on slope
-        godot_print!("Slope velocity adjustment");
+        godot_print!("Update velocity based on slope");
         let mut velocity = self.velocity();
         let (sin, cos) = self.ground_angle.sin_cos();
         velocity.x = self.ground_speed * cos;

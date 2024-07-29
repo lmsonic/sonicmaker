@@ -52,7 +52,7 @@ impl Character {
             Mode::Floor => position.y += distance,
             Mode::RightWall => position.x += distance,
             Mode::Ceiling => position.y -= distance,
-            Mode::LeftWall => position.x += distance,
+            Mode::LeftWall => position.x -= distance,
         }
 
         self.set_global_position(position);
