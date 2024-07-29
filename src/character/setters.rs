@@ -16,15 +16,26 @@ pub(super) enum State {
     Idle,
     StartMotion,
     FullMotion,
-    AirBall,
+    JumpBall,
     RollingBall,
 }
 
 impl State {
     pub(super) fn is_ball(&self) -> bool {
-        *self == Self::AirBall || *self == Self::RollingBall
+        *self == Self::JumpBall || *self == Self::RollingBall
     }
 
+    /// Returns `true` if the state is [`JumpBall`].
+    ///
+    /// [`JumpBall`]: State::JumpBall
+    #[must_use]
+    pub(super) fn is_jumping(&self) -> bool {
+        matches!(self, Self::JumpBall)
+    }
+
+    /// Returns `true` if the state is [`RollingBall`].
+    ///
+    /// [`RollingBall`]: State::RollingBall
     #[must_use]
     pub(super) fn is_rolling(&self) -> bool {
         matches!(self, Self::RollingBall)
@@ -105,7 +116,7 @@ impl Character {
                 State::Idle => sprites.play_ex().name(c"idle".into()).done(),
                 State::StartMotion => sprites.play_ex().name(c"start_motion".into()).done(),
                 State::FullMotion => sprites.play_ex().name(c"full_motion".into()).done(),
-                State::AirBall | State::RollingBall => {
+                State::JumpBall | State::RollingBall => {
                     sprites.play_ex().name(c"rolling".into()).done()
                 }
             }

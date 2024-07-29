@@ -39,11 +39,16 @@ impl Character {
         let input = Input::singleton();
 
         godot_print!("Airborne");
+
         let mut velocity = self.velocity();
-        self.update_animation_air(velocity);
-        self.air_accelerate(input, &mut velocity);
+
+        self.handle_variable_jump(&input, &mut velocity);
+
+        self.air_accelerate(&input, &mut velocity);
 
         self.air_drag(&mut velocity);
+
+        self.update_animation_air(velocity);
 
         self.update_position(velocity);
 
@@ -52,10 +57,15 @@ impl Character {
         self.rotate_to_zero();
 
         // Air collision checks
-
         self.check_walls_air();
         self.check_ceiling_air();
         self.check_floor_air();
+    }
+    fn handle_variable_jump(&self, input: &Gd<Input>, velocity: &mut Vector2) {
+        if self.state.is_jumping() && !input.is_action_pressed(c"jump".into()) && velocity.y < -4.0
+        {
+            velocity.y = -4.0;
+        }
     }
 
     fn check_floor_air(&mut self) {
@@ -183,7 +193,7 @@ impl Character {
         self.set_global_position(position);
     }
 
-    fn air_accelerate(&mut self, input: Gd<Input>, velocity: &mut Vector2) {
+    fn air_accelerate(&mut self, input: &Gd<Input>, velocity: &mut Vector2) {
         if input.is_action_pressed(c"left".into()) {
             godot_print!("Accelerate left");
             velocity.x -= self.air_acceleration;
@@ -216,15 +226,15 @@ impl Character {
 
         self.apply_slope_factor();
 
+        if self.handle_jump(&input) {
+            return;
+        }
+
         self.ground_accelerate(&input);
 
         self.apply_friction(&input);
 
         self.update_animation();
-
-        if self.handle_jump(&input) {
-            return;
-        }
 
         self.check_walls();
 
@@ -328,7 +338,7 @@ impl Character {
             godot_print!("{velocity}");
 
             self.set_grounded(false);
-            self.set_state(State::AirBall);
+            self.set_state(State::JumpBall);
             self.set_velocity(velocity);
             self.update_position(velocity);
 
