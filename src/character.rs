@@ -85,6 +85,6 @@ pub struct Character {
     pub ground_angle: f32,
     control_lock_timer: i32,
     #[export]
-    draw_velocity: bool,
+    debug_draw: bool,
     base: Base<CharacterBody2D>,
 }

@@ -1,5 +1,8 @@
-use godot::{engine::ICharacterBody2D, prelude::*};
-use real_consts::PI;
+use godot::{
+    engine::{ICharacterBody2D, ThemeDb},
+    prelude::*,
+};
+use real_consts::{PI, TAU};
 
 use crate::{
     character::{
@@ -12,12 +15,29 @@ use crate::{
 #[godot_api]
 impl ICharacterBody2D for Character {
     fn draw(&mut self) {
-        if self.draw_velocity {
+        if self.debug_draw {
             let velocity = self.velocity();
+            let rotation = self.base().get_rotation();
             self.base_mut()
-                .draw_line_ex(Vector2::ZERO, velocity * 10.0, Color::RED)
+                .draw_set_transform_ex(Vector2::ZERO)
+                .rotation(-rotation)
+                .done();
+            self.base_mut()
+                .draw_line_ex(Vector2::ZERO, velocity * 20.0, Color::RED)
                 .width(5.0)
                 .done();
+
+            let text = velocity.angle().to_degrees().to_string().into_godot();
+            let angle = self.ground_angle.to_degrees().to_string().into_godot();
+            if let Some(font) = ThemeDb::singleton()
+                .get_project_theme()
+                .and_then(|theme| theme.get_default_font())
+            {
+                self.base_mut()
+                    .draw_string(font.clone(), Vector2::new(10.0, -10.0), text);
+                self.base_mut()
+                    .draw_string(font, Vector2::new(10.0, -30.0), angle);
+            }
         }
     }
     fn physics_process(&mut self, _delta: f64) {
@@ -229,7 +249,7 @@ impl Character {
 
         self.check_floor();
 
-        self.handle_slipping();
+        // self.handle_slipping();
 
         self.update_animation();
     }
@@ -286,11 +306,12 @@ impl Character {
     fn update_velocity(&mut self) -> Vector2 {
         // Adjust velocity based on slope
         godot_print!("Update velocity based on slope");
-        let mut velocity = self.velocity();
-        let (sin, cos) = self.ground_angle.sin_cos();
-        velocity.x = self.ground_speed * cos;
-        velocity.y = -self.ground_speed * sin;
+
+        let x = self.ground_speed * self.ground_angle.cos();
+        let y = -self.ground_speed * self.ground_angle.sin();
+        let velocity = Vector2::new(x, y);
         self.set_velocity(velocity);
+
         velocity
     }
 
