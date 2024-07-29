@@ -19,6 +19,7 @@
             "args": [
                 // "-e", // run editor (remove this to launch the scene directly)
                 "-w", // windowed mode
+                "--debug-collisions"
             ],
             "program": "C:\\Users\\loren\\Documents\\Godot\\godot\\godot.exe",
         }
