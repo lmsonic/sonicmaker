@@ -222,12 +222,13 @@ impl Character {
 
         self.update_animation();
 
-        // Jump Check
-        if self.handle_jump(input) {
+        if self.handle_jump(&input) {
             return;
         }
 
         self.check_walls();
+
+        self.check_rolling(&input);
 
         let velocity = self.update_velocity();
 
@@ -236,6 +237,16 @@ impl Character {
         self.check_floor();
 
         self.handle_slipping();
+    }
+    fn check_rolling(&mut self, input: &Gd<Input>) {
+        if !self.state.is_rolling() && input.is_action_pressed(c"roll".into()) && self.can_roll() {
+            godot_print!("Rolling");
+            self.set_state(State::RollingBall)
+        }
+        if self.state.is_rolling() && self.ground_speed.abs() < 0.5 {
+            godot_print!("Unrolling");
+            self.set_state(State::Idle)
+        }
     }
 
     fn handle_slipping(&mut self) {
@@ -306,7 +317,8 @@ impl Character {
         }
     }
 
-    fn handle_jump(&mut self, input: Gd<Input>) -> bool {
+    fn handle_jump(&mut self, input: &Gd<Input>) -> bool {
+        // Jump Check
         if input.is_action_just_pressed(c"jump".into()) && self.can_jump() {
             godot_print!("Jump");
             let mut velocity = self.velocity();
@@ -341,16 +353,18 @@ impl Character {
 
     fn ground_accelerate(&mut self, input: &Gd<Input>) {
         if self.control_lock_timer <= 0 {
+            let is_rolling = self.state.is_rolling();
             // Ground Acceleration
             if input.is_action_pressed(c"left".into()) {
                 if self.ground_speed > 0.0 {
                     // Turn around
                     godot_print!("Turn around");
-                    self.ground_speed -= self.deceleration;
-                    if self.ground_speed <= 0.0 {
+                    self.ground_speed -= self.current_deceleration();
+                    if self.ground_speed <= 0.0 || is_rolling && self.ground_speed.abs() < 0.1484375
+                    {
                         self.ground_speed = -0.5;
                     }
-                } else if self.ground_speed > -self.top_speed {
+                } else if self.ground_speed > -self.top_speed && !is_rolling {
                     godot_print!("Accelerate left");
                     self.ground_speed -= self.acceleration;
                     self.ground_speed = self.ground_speed.max(-self.top_speed);
@@ -362,17 +376,26 @@ impl Character {
                 if self.ground_speed < 0.0 {
                     // Turn around
                     godot_print!("Turn around");
-                    self.ground_speed += self.deceleration;
-                    if self.ground_speed >= 0.0 {
+                    self.ground_speed += self.current_deceleration();
+                    if self.ground_speed >= 0.0 || is_rolling && self.ground_speed.abs() < 0.1484375
+                    {
                         self.ground_speed = 0.5;
                     }
-                } else if self.ground_speed < self.top_speed {
+                } else if self.ground_speed < self.top_speed && !is_rolling {
                     godot_print!("Accelerate right");
                     self.ground_speed += self.acceleration;
                     self.ground_speed = self.ground_speed.min(self.top_speed);
                 }
+
                 self.set_flip_h(false);
             }
+            // Cap roll velocity
+        }
+        if self.state.is_rolling() {
+            // Optional fix : use ground speed instead
+            let mut velocity = self.velocity();
+            velocity.x = velocity.x.clamp(-self.roll_top_speed, self.roll_top_speed);
+            self.set_velocity(velocity);
         }
     }
 
@@ -381,23 +404,25 @@ impl Character {
         if self.current_mode() != Mode::Ceiling {
             let slope_factor = self.current_slope_factor() * self.ground_angle.sin();
             // Forces moving when walking on steep slopes
-            let is_stopped = self.ground_speed != 0.0;
+            let is_moving = self.ground_speed.abs() > 0.0;
             let is_rolling = self.state.is_rolling();
             let is_on_steep = slope_factor >= 0.05078125;
-            if !is_stopped || is_rolling || is_on_steep {
+            if is_moving || is_rolling || is_on_steep {
                 godot_print!("Applying slope factor {slope_factor}");
-                self.ground_speed -= slope_factor * self.ground_angle.sin();
+                self.ground_speed -= slope_factor;
             }
         }
     }
 
     fn update_animation(&mut self) {
-        if self.ground_speed.abs() >= self.top_speed {
-            self.set_state(State::FullMotion);
-        } else if self.ground_speed.abs() > 0.0 {
-            self.set_state(State::StartMotion);
-        } else {
-            self.set_state(State::Idle);
+        if !self.state.is_rolling() {
+            if self.ground_speed.abs() >= self.top_speed {
+                self.set_state(State::FullMotion);
+            } else if self.ground_speed.abs() > 0.0 {
+                self.set_state(State::StartMotion);
+            } else {
+                self.set_state(State::Idle);
+            }
         }
     }
 

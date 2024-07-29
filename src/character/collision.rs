@@ -81,12 +81,7 @@ impl Character {
         }
         results
     }
-    pub(super) fn can_jump(&mut self) -> bool {
-        if let Some(result) = self.ceiling_check() {
-            return result.distance >= 6.0;
-        }
-        true
-    }
+
     pub(super) fn ground_check(&mut self) -> Option<DetectionResult> {
         self.ground_sensor_results()
             .into_iter()

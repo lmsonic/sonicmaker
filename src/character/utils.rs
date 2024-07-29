@@ -177,6 +177,15 @@ impl Character {
     pub(super) fn is_uphill(&self) -> bool {
         self.ground_speed.signum() == self.ground_angle.sin().signum()
     }
+    pub(super) fn can_jump(&mut self) -> bool {
+        if let Some(result) = self.ceiling_check() {
+            return result.distance >= 6.0;
+        }
+        true
+    }
+    pub(super) fn can_roll(&self) -> bool {
+        self.ground_speed.abs() > 1.0
+    }
 
     #[allow(clippy::just_underscores_and_digits)]
     pub(super) fn is_slipping(&self) -> bool {
@@ -205,9 +214,9 @@ impl Character {
         let velocity = self.velocity();
         let distance = result.distance;
         if mode.is_sideways() {
-            distance <= (velocity.x.abs() + 4.0).min(14.0) && distance >= -14.0
-        } else {
             distance <= (velocity.y.abs() + 4.0).min(14.0) && distance >= -14.0
+        } else {
+            distance <= (velocity.x.abs() + 4.0).min(14.0) && distance >= -14.0
         }
     }
     pub(super) fn is_landed(&mut self, result: DetectionResult) -> bool {
@@ -263,6 +272,13 @@ impl Character {
             self.roll_friction
         } else {
             self.friction
+        }
+    }
+    pub(super) fn current_deceleration(&self) -> f32 {
+        if self.state.is_rolling() {
+            self.roll_deceleration
+        } else {
+            self.deceleration
         }
     }
     pub(super) fn current_motion_direction(&self) -> MotionDirection {

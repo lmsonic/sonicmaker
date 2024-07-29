@@ -56,6 +56,8 @@ pub struct Character {
     roll_friction: f32,
     #[init(default = 0.125)]
     roll_deceleration: f32,
+    #[init(default = 16.0)]
+    roll_top_speed: f32,
     #[export]
     ground_speed: f32,
     #[export]
