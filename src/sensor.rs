@@ -131,10 +131,17 @@ impl Sensor {
 
 impl Sensor {
     fn update_debug_label(&mut self) {
+        if self.last_result.is_some() {
+            let collision_point = self.base().get_collision_point();
+            let position = self.base().get_global_position();
+            self.base_mut()
+                .draw_circle(collision_point - position, 2.0, Color::RED);
+        }
+
         let text: GString = match self.last_result {
             Some(result) => {
                 let angle = result.normal.plane_angle();
-                format!("{:.0} \n{:.0}°", result.distance, angle.to_degrees()).into()
+                format!("{:.0} \n{:.0}°", result.distance, angle.to_degrees(),).into()
             }
 
             None => "".into(),

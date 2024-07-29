@@ -1,4 +1,7 @@
-use godot::{engine::RectangleShape2D, prelude::*};
+use godot::{
+    engine::{Engine, RectangleShape2D},
+    prelude::*,
+};
 use real_consts::{PI, TAU};
 
 #[derive(GodotConvert, Var, Export, Default, Debug, PartialEq, Eq, Clone, Copy)]
@@ -71,11 +74,18 @@ impl Character {
         self.update_sensors();
         self.update_y_position(delta);
     }
+    #[func]
+    pub(super) fn set_push_radius(&mut self, value: f32) {
+        self.push_radius = value;
+        self.update_sensors();
+    }
     fn update_y_position(&mut self, delta: f32) {
-        let mut position = self.base().get_global_position();
+        let mut position = self.global_position();
         let down = self.current_mode().down();
-        position += down * delta;
-        self.base_mut().set_global_position(position)
+        if delta > 0.0 || Engine::singleton().is_editor_hint() {
+            position += down * delta;
+        }
+        self.set_global_position(position)
     }
 
     #[func]

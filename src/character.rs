@@ -10,7 +10,7 @@ use setters::{Kind, State};
 use crate::sensor::Sensor;
 
 #[derive(GodotClass)]
-#[class(tool,init, base=CharacterBody2D)]
+#[class(init, base=CharacterBody2D)]
 pub struct Character {
     #[export]
     #[var(get, set = set_character)]
@@ -28,7 +28,8 @@ pub struct Character {
     #[var(get, set = set_height_radius)]
     #[init(default = 19.0)]
     height_radius: f32,
-    #[export]
+    #[export(range = (0.0,100.0, 1.0))]
+    #[var(get, set = set_push_radius)]
     #[init(default = 10.0)]
     push_radius: f32,
     #[export]
@@ -84,6 +85,6 @@ pub struct Character {
     pub ground_angle: f32,
     control_lock_timer: i32,
     #[export]
-    enable_in_editor: bool,
+    draw_velocity: bool,
     base: Base<CharacterBody2D>,
 }

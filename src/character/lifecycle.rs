@@ -1,7 +1,4 @@
-use godot::{
-    engine::{Engine, ICharacterBody2D},
-    prelude::*,
-};
+use godot::{engine::ICharacterBody2D, prelude::*};
 use real_consts::PI;
 
 use crate::{
@@ -15,16 +12,15 @@ use crate::{
 #[godot_api]
 impl ICharacterBody2D for Character {
     fn draw(&mut self) {
-        let velocity = self.velocity();
-        self.base_mut()
-            .draw_line_ex(Vector2::ZERO, velocity * 10.0, Color::RED)
-            .width(5.0)
-            .done();
+        if self.draw_velocity {
+            let velocity = self.velocity();
+            self.base_mut()
+                .draw_line_ex(Vector2::ZERO, velocity * 10.0, Color::RED)
+                .width(5.0)
+                .done();
+        }
     }
     fn physics_process(&mut self, _delta: f64) {
-        if Engine::singleton().is_editor_hint() && !self.enable_in_editor {
-            return;
-        }
         self.base_mut().queue_redraw();
         if self.is_grounded {
             self.grounded()
@@ -83,14 +79,6 @@ impl Character {
                         self.set_grounded(true);
 
                         self.land_on_floor();
-
-                        self.set_state(if self.ground_speed.abs() >= self.top_speed {
-                            State::FullMotion
-                        } else if self.ground_speed.abs() >= 0.0 {
-                            State::StartMotion
-                        } else {
-                            State::Idle
-                        });
                     }
                 }
             }
@@ -114,13 +102,6 @@ impl Character {
                             self.set_grounded(true);
                             self.land_on_ceiling();
                             godot_print!("land on ceiling");
-                            self.set_state(if self.ground_speed.abs() >= self.top_speed {
-                                State::FullMotion
-                            } else if self.ground_speed.abs() >= 0.0 {
-                                State::StartMotion
-                            } else {
-                                State::Idle
-                            });
                         } else {
                             let velocity = self.velocity();
                             self.set_velocity(Vector2::new(velocity.x, 0.0));
@@ -166,16 +147,20 @@ impl Character {
 
     fn rotate_to_zero(&mut self) {
         // Rotate ground angle to 0
-        let mut rotation = self.base().get_rotation();
-        let delta = f32::to_radians(2.8125);
-        if rotation > 0.0 {
-            rotation -= delta;
-            rotation = rotation.max(0.0);
-        } else if rotation < 0.0 {
-            rotation += delta;
-            rotation = rotation.min(0.0);
+        if !self.state.is_ball() {
+            let mut rotation = self.base().get_rotation();
+            let delta = f32::to_radians(2.8125);
+            if rotation > 0.0 {
+                rotation -= delta;
+                rotation = rotation.max(0.0);
+            } else if rotation < 0.0 {
+                rotation += delta;
+                rotation = rotation.min(0.0);
+            }
+            self.base_mut().set_rotation(rotation);
+        } else {
+            self.base_mut().set_rotation(0.0);
         }
-        self.base_mut().set_rotation(rotation);
     }
 
     fn apply_gravity(&mut self, mut velocity: Vector2) {
@@ -234,8 +219,6 @@ impl Character {
 
         self.apply_friction(&input);
 
-        self.update_animation();
-
         self.check_walls();
 
         self.check_rolling(&input);
@@ -247,6 +230,8 @@ impl Character {
         self.check_floor();
 
         self.handle_slipping();
+
+        self.update_animation();
     }
     fn check_rolling(&mut self, input: &Gd<Input>) {
         if !self.state.is_rolling() && input.is_action_pressed(c"roll".into()) && self.can_roll() {

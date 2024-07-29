@@ -69,17 +69,17 @@ impl Mode {
     pub(super) fn left(&self) -> Vector2 {
         match self {
             Mode::Floor => Vector2::LEFT,
-            Mode::RightWall => Vector2::UP,
+            Mode::RightWall => Vector2::DOWN,
             Mode::Ceiling => Vector2::RIGHT,
-            Mode::LeftWall => Vector2::DOWN,
+            Mode::LeftWall => Vector2::UP,
         }
     }
     pub(super) fn right(&self) -> Vector2 {
         match self {
             Mode::Floor => Vector2::RIGHT,
-            Mode::RightWall => Vector2::DOWN,
+            Mode::RightWall => Vector2::UP,
             Mode::Ceiling => Vector2::LEFT,
-            Mode::LeftWall => Vector2::UP,
+            Mode::LeftWall => Vector2::DOWN,
         }
     }
 }
@@ -167,6 +167,12 @@ impl Character {
     pub(super) fn set_velocity(&mut self, value: Vector2) {
         self.base_mut().set_velocity(value)
     }
+    pub(super) fn position(&self) -> Vector2 {
+        self.base().get_position()
+    }
+    pub(super) fn set_position(&mut self, value: Vector2) {
+        self.base_mut().set_position(value)
+    }
 
     pub(super) fn global_position(&self) -> Vector2 {
         self.base().get_global_position()
@@ -184,7 +190,7 @@ impl Character {
         true
     }
     pub(super) fn can_roll(&self) -> bool {
-        self.ground_speed.abs() > 1.0
+        self.ground_speed.abs() > 0.5
     }
 
     #[allow(clippy::just_underscores_and_digits)]
@@ -208,7 +214,7 @@ impl Character {
     }
     pub(super) fn should_snap_to_floor(&self, result: DetectionResult) -> bool {
         // Sonic 1
-        // result.distance > -14.0 && result.distance < 14.0
+        // return result.distance > -14.0 && result.distance < 14.0;
         // Sonic 2 and onwards
         let mode = Mode::from_normal(result.normal);
         let velocity = self.velocity();
