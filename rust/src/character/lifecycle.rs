@@ -258,7 +258,10 @@ impl Character {
         }
         if self.state.is_rolling() && self.ground_speed.abs() < 0.5 {
             godot_print!("Unrolling");
-            self.set_state(State::Idle)
+            self.set_state(State::Idle);
+            // HACK: in case of unroll, don't bother moving the player
+            let down = self.current_mode().down();
+            self.update_position(down * 5.0);
         }
     }
 
