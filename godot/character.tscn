@@ -1,0 +1,218 @@
+[gd_scene load_steps=22 format=3 uid="uid://cwy1rw6rmm00c"]
+
+[ext_resource type="Texture2D" uid="uid://dpigsx74d37wt" path="res://sonic/sonic.png" id="1_ddxe8"]
+[ext_resource type="PackedScene" uid="uid://cwfcb4naaj1h1" path="res://sensor.tscn" id="2_mvnfj"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_biw3g"]
+atlas = ExtResource("1_ddxe8")
+region = Rect2(88, 184, 44, 46)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_et1gs"]
+atlas = ExtResource("1_ddxe8")
+region = Rect2(132, 184, 44, 46)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_btlso"]
+atlas = ExtResource("1_ddxe8")
+region = Rect2(176, 184, 44, 46)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_oorms"]
+atlas = ExtResource("1_ddxe8")
+region = Rect2(220, 184, 44, 46)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_yq81c"]
+atlas = ExtResource("1_ddxe8")
+region = Rect2(0, 0, 44, 46)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2wk2y"]
+atlas = ExtResource("1_ddxe8")
+region = Rect2(132, 138, 44, 46)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_i3ajv"]
+atlas = ExtResource("1_ddxe8")
+region = Rect2(176, 138, 44, 46)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4uw31"]
+atlas = ExtResource("1_ddxe8")
+region = Rect2(220, 138, 44, 46)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_krcll"]
+atlas = ExtResource("1_ddxe8")
+region = Rect2(0, 184, 44, 46)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2ljb3"]
+atlas = ExtResource("1_ddxe8")
+region = Rect2(44, 184, 44, 46)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_68bs1"]
+atlas = ExtResource("1_ddxe8")
+region = Rect2(0, 46, 44, 46)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_w020c"]
+atlas = ExtResource("1_ddxe8")
+region = Rect2(44, 46, 44, 46)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_1hqco"]
+atlas = ExtResource("1_ddxe8")
+region = Rect2(88, 46, 44, 46)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_qxbvq"]
+atlas = ExtResource("1_ddxe8")
+region = Rect2(132, 46, 44, 46)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_c2y4b"]
+atlas = ExtResource("1_ddxe8")
+region = Rect2(176, 46, 44, 46)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_cu841"]
+atlas = ExtResource("1_ddxe8")
+region = Rect2(220, 46, 44, 46)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_fg2lh"]
+animations = [{
+"frames": [],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_biw3g")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_et1gs")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_btlso")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_oorms")
+}],
+"loop": true,
+"name": &"full_motion",
+"speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_yq81c")
+}],
+"loop": false,
+"name": &"idle",
+"speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2wk2y")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_i3ajv")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_4uw31")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_krcll")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2ljb3")
+}],
+"loop": true,
+"name": &"rolling",
+"speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_68bs1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_w020c")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_1hqco")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_qxbvq")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_c2y4b")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_cu841")
+}],
+"loop": true,
+"name": &"start_motion",
+"speed": 10.0
+}]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_g03oc"]
+size = Vector2(18, 38)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_j2lx3"]
+size = Vector2(15, 35)
+
+[node name="Character" type="Character" node_paths=PackedStringArray("sprites", "sensor_shape", "hitbox_shape", "sensor_floor_left", "sensor_floor_right", "sensor_ceiling_left", "sensor_ceiling_right", "sensor_push_left", "sensor_push_right") groups=["player"]]
+sprites = NodePath("AnimatedSprite2D")
+sensor_shape = NodePath("Sensors/SensorShape/CollisionShape2D")
+hitbox_shape = NodePath("Sensors/Hitbox/CollisionShape2D")
+sensor_floor_left = NodePath("Sensors/SensorFloorLeft")
+sensor_floor_right = NodePath("Sensors/SensorFloorRight")
+sensor_ceiling_left = NodePath("Sensors/SensorCeilingLeft")
+sensor_ceiling_right = NodePath("Sensors/SensorCeilingRight")
+sensor_push_left = NodePath("Sensors/SensorPushLeft")
+sensor_push_right = NodePath("Sensors/SensorPushRight")
+position = Vector2(0, -19)
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+texture_filter = 1
+position = Vector2(0, -4)
+sprite_frames = SubResource("SpriteFrames_fg2lh")
+animation = &"idle"
+frame_progress = 1.0
+
+[node name="RemoteTransform2D" type="RemoteTransform2D" parent="."]
+remote_path = NodePath("../Sensors")
+update_rotation = false
+update_scale = false
+
+[node name="Sensors" type="Node2D" parent="."]
+top_level = true
+position = Vector2(0, -19)
+
+[node name="SensorFloorLeft" parent="Sensors" instance=ExtResource("2_mvnfj")]
+position = Vector2(-9, 19)
+
+[node name="SensorFloorRight" parent="Sensors" instance=ExtResource("2_mvnfj")]
+position = Vector2(9, 19)
+
+[node name="SensorCeilingLeft" parent="Sensors" instance=ExtResource("2_mvnfj")]
+direction = "Up"
+position = Vector2(-9, -19)
+target_position = Vector2(0, -16)
+
+[node name="SensorCeilingRight" parent="Sensors" instance=ExtResource("2_mvnfj")]
+direction = "Up"
+position = Vector2(9, -19)
+target_position = Vector2(0, -16)
+
+[node name="SensorPushRight" parent="Sensors" instance=ExtResource("2_mvnfj")]
+direction = "Right"
+position = Vector2(10, 0)
+target_position = Vector2(16, 0)
+
+[node name="SensorPushLeft" parent="Sensors" instance=ExtResource("2_mvnfj")]
+direction = "Left"
+position = Vector2(-10, 0)
+target_position = Vector2(-16, 0)
+
+[node name="SensorShape" type="Area2D" parent="Sensors"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Sensors/SensorShape"]
+shape = SubResource("RectangleShape2D_g03oc")
+disabled = true
+debug_color = Color(0.62819, 0.530627, 0, 0.42)
+
+[node name="Hitbox" type="Area2D" parent="Sensors"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Sensors/Hitbox"]
+shape = SubResource("RectangleShape2D_j2lx3")
+disabled = true
+debug_color = Color(0.84355, 0.00105406, 0.915062, 0.42)

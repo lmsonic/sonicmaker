@@ -1,0 +1,14 @@
+[configuration]
+entry_symbol = "gdext_rust_init"
+compatibility_minimum = 4.1
+reloadable = true
+
+[libraries]
+linux.debug.x86_64 =     "res://../rust/target/debug/libsonicmaker.so"
+linux.release.x86_64 =   "res://../rust/target/release/libsonicmaker.so"
+windows.debug.x86_64 =   "res://../rust/target/debug/sonicmaker.dll"
+windows.release.x86_64 = "res://../rust/target/release/sonicmaker.dll"
+macos.debug =            "res://../rust/target/debug/libsonicmaker.dylib"
+macos.release =          "res://../rust/target/release/libsonicmaker.dylib"
+macos.debug.arm64 =      "res://../rust/target/debug/libsonicmaker.dylib"
+macos.release.arm64 =    "res://../rust/target/release/libsonicmaker.dylib"

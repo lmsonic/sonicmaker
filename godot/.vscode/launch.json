@@ -1,0 +1,27 @@
+{
+    "configurations": [
+        {
+            "name": "GDScript: Launch Project",
+            "type": "godot",
+            "request": "launch",
+            "project": "",
+            "debug_collisions": false,
+            "debug_paths": false,
+            "debug_navigation": false,
+            "additional_options": ""
+        },
+        {
+            "name": "Debug Project (Godot 4)",
+            "type": "lldb", // type provided by CodeLLDB extension
+            "request": "launch",
+            // "preLaunchTask": "rust: cargo build",
+            "cwd": "${workspaceFolder}",
+            "args": [
+                // "-e", // run editor (remove this to launch the scene directly)
+                "-w", // windowed mode
+                "--debug-collisions"
+            ],
+            "program": "C:\\Users\\loren\\Documents\\Godot\\godot\\godot.exe",
+        }
+    ]
+}
