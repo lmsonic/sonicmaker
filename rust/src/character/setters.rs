@@ -110,6 +110,7 @@ impl Character {
     pub(super) fn set_state(&mut self, value: State) {
         let was_ball = self.state.is_ball();
         let is_ball = value.is_ball();
+
         if was_ball && !is_ball {
             self.set_character(self.character);
         } else if is_ball && !was_ball {

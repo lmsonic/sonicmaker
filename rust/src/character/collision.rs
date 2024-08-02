@@ -5,8 +5,6 @@ use crate::{
     sensor::DetectionResult,
 };
 
-use super::utils::Mode;
-
 impl Character {
     pub(super) fn grounded_right_wall_collision(&mut self, distance: f32) {
         godot_print!("Right wall collision");
@@ -49,12 +47,7 @@ impl Character {
     pub(super) fn snap_to_floor(&mut self, distance: f32) {
         let mode = self.current_mode();
         let mut position = self.global_position();
-        match mode {
-            Mode::Floor => position.y += distance,
-            Mode::RightWall => position.x += distance,
-            Mode::Ceiling => position.y -= distance,
-            Mode::LeftWall => position.x -= distance,
-        }
+        position += mode.down() * distance;
 
         self.set_global_position(position);
     }

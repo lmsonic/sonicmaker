@@ -226,7 +226,6 @@ impl Character {
         let velocity = self.velocity();
 
         let direction = MotionDirection::from_velocity(velocity);
-        godot_print!("{direction:?}");
         match direction {
             MotionDirection::Down => self
                 .ground_sensor_results()

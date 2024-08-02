@@ -94,7 +94,9 @@ impl Character {
 
                         self.set_ground_angle(result.angle);
                         self.set_grounded(true);
-                        self.update_animation();
+                        if !self.state.is_rolling() {
+                            self.update_animation();
+                        }
 
                         self.land_on_floor();
                     }
@@ -222,6 +224,7 @@ impl Character {
         }
     }
     fn grounded(&mut self) {
+        self.update_animation();
         // Grounded
         let input = Input::singleton();
 
@@ -248,20 +251,15 @@ impl Character {
         self.check_floor();
 
         self.handle_slipping();
-
-        self.update_animation();
     }
     fn check_rolling(&mut self, input: &Gd<Input>) {
         if !self.state.is_rolling() && input.is_action_pressed(c"roll".into()) && self.can_roll() {
             godot_print!("Rolling");
-            self.set_state(State::RollingBall)
+            self.set_state(State::RollingBall);
         }
         if self.state.is_rolling() && self.ground_speed.abs() < 0.5 {
             godot_print!("Unrolling");
             self.set_state(State::Idle);
-            // HACK: in case of unroll, don't bother moving the player
-            let down = self.current_mode().down();
-            self.update_position(down * 5.0);
         }
     }
 
