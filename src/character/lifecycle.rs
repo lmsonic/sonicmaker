@@ -2,15 +2,12 @@ use godot::{
     engine::{ICharacterBody2D, ThemeDb},
     prelude::*,
 };
-use real_consts::{PI, TAU};
+use real_consts::PI;
 
-use crate::{
-    character::{
-        setters::State,
-        utils::{Mode, MotionDirection},
-        Character,
-    },
-    vec3_ext::Vector2Ext,
+use crate::character::{
+    setters::State,
+    utils::{Mode, MotionDirection},
+    Character,
 };
 #[godot_api]
 impl ICharacterBody2D for Character {
@@ -95,8 +92,9 @@ impl Character {
                         position.y += result.distance;
                         self.set_global_position(position);
 
-                        self.set_ground_angle(result.normal.plane_angle());
+                        self.set_ground_angle(result.angle);
                         self.set_grounded(true);
+                        self.update_animation();
 
                         self.land_on_floor();
                     }
@@ -118,7 +116,7 @@ impl Character {
                         self.set_global_position(position);
 
                         if self.should_land_on_ceiling() {
-                            self.set_ground_angle(result.normal.plane_angle());
+                            self.set_ground_angle(result.angle);
                             self.set_grounded(true);
                             self.land_on_ceiling();
                             godot_print!("land on ceiling");
@@ -249,7 +247,7 @@ impl Character {
 
         self.check_floor();
 
-        // self.handle_slipping();
+        self.handle_slipping();
 
         self.update_animation();
     }
@@ -292,7 +290,7 @@ impl Character {
             if self.should_snap_to_floor(result) {
                 godot_print!("Snap to floor");
                 self.snap_to_floor(result.distance);
-                self.set_ground_angle(result.normal.plane_angle())
+                self.set_ground_angle(result.angle)
             } else {
                 godot_print!("Detach from floor: Shouldn't snap");
                 self.set_grounded(false);
@@ -325,9 +323,11 @@ impl Character {
                         self.grounded_right_wall_collision(result.distance);
                     }
                 }
-            } else if let Some(result) = self.wall_left_sensor_check() {
-                if result.distance < 0.0 {
-                    self.grounded_left_wall_collision(result.distance);
+            } else if self.ground_speed < 0.0 {
+                if let Some(result) = self.wall_left_sensor_check() {
+                    if result.distance < 0.0 {
+                        self.grounded_left_wall_collision(result.distance);
+                    }
                 }
             }
         }
@@ -491,7 +491,8 @@ impl Character {
                     velocity.y * -self.ground_angle.sin().signum()
                 }
             }
-        }
+        };
+        self.set_velocity(Vector2::ZERO);
     }
     fn air_drag(&self, velocity: &mut Vector2) {
         if velocity.y < 0.0 && velocity.y > -4.0 {

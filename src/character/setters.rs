@@ -1,7 +1,4 @@
-use godot::{
-    engine::{Engine, RectangleShape2D},
-    prelude::*,
-};
+use godot::{engine::RectangleShape2D, prelude::*};
 use real_consts::{PI, TAU};
 
 #[derive(GodotConvert, Var, Export, Default, Debug, PartialEq, Eq, Clone, Copy)]
@@ -82,9 +79,8 @@ impl Character {
     fn update_y_position(&mut self, delta: f32) {
         let mut position = self.global_position();
         let down = self.current_mode().down();
-        if delta > 0.0 || Engine::singleton().is_editor_hint() {
-            position += down * delta;
-        }
+        position += down * delta;
+
         self.set_global_position(position)
     }
 
@@ -182,12 +178,12 @@ impl Character {
             // Push Sensors
             let half_width = self.push_radius;
             let mode = self.current_mode_walls();
-            let half_height = 0.0;
-            // if self.is_grounded && (self.ground_angle == 0.0 || self.ground_angle == TAU) {
-            //     8.0
-            // } else {
-            //     0.0
-            // };
+            let half_height =
+                if self.is_grounded && (self.ground_angle == 0.0 || self.ground_angle == TAU) {
+                    8.0
+                } else {
+                    0.0
+                };
             let right_direction = mode.right_direction();
             let left_direction = mode.left_direction();
             let angle = mode.angle();

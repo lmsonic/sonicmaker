@@ -1,5 +1,8 @@
 use godot::{
-    engine::{CollisionObject2D, CollisionShape2D, Engine, IRayCast2D, RayCast2D, ThemeDb},
+    engine::{
+        CollisionObject2D, CollisionShape2D, Engine, IRayCast2D, RayCast2D, ThemeDb, TileData,
+        TileMap,
+    },
     prelude::*,
 };
 
@@ -51,7 +54,7 @@ pub enum Solidity {
 #[derive(Debug, Clone, Copy)]
 pub struct DetectionResult {
     pub distance: f32,
-    pub normal: Vector2,
+    pub angle: f32,
     pub solidity: Solidity,
 }
 
@@ -60,7 +63,7 @@ impl GodotConvert for DetectionResult {
 }
 impl ToGodot for DetectionResult {
     fn to_godot(&self) -> Self::Via {
-        dict! {"distance":self.distance,"normal":self.normal,"solidity":self.solidity}
+        dict! {"distance":self.distance,"angle":self.angle,"solidity":self.solidity}
     }
 }
 impl FromGodot for DetectionResult {
@@ -69,27 +72,24 @@ impl FromGodot for DetectionResult {
             .get("distance")
             .ok_or(ConvertError::default())?
             .try_to()?;
-        let normal = dict
-            .get("normal")
-            .ok_or(ConvertError::default())?
-            .try_to()?;
+        let angle = dict.get("angle").ok_or(ConvertError::default())?.try_to()?;
         let solidity = dict
             .get("solidity")
             .ok_or(ConvertError::default())?
             .try_to()?;
         Ok(Self {
             distance,
-            normal,
+            angle,
             solidity,
         })
     }
 }
 
 impl DetectionResult {
-    fn new(distance: f32, normal: Vector2, solidity: Solidity) -> Self {
+    fn new(distance: f32, angle: f32, solidity: Solidity) -> Self {
         Self {
             distance,
-            normal,
+            angle,
             solidity,
         }
     }
@@ -100,7 +100,7 @@ impl IRayCast2D for Sensor {
         if Engine::singleton().is_editor_hint() && !self.enable_in_editor {
             return;
         }
-        self.last_result = self._detect_solid();
+        self._detect_solid();
     }
     fn draw(&mut self) {
         if Engine::singleton().is_editor_hint() && !self.enable_in_editor {
@@ -140,7 +140,7 @@ impl Sensor {
 
         let text: GString = match self.last_result {
             Some(result) => {
-                let angle = result.normal.plane_angle();
+                let angle = result.angle;
                 format!("{:.0} \n{:.0}°", result.distance, angle.to_degrees(),).into()
             }
 
@@ -198,7 +198,8 @@ impl Sensor {
     fn get_detection(&self, original_position: Vector2) -> DetectionResult {
         let collision_point = self.base().get_collision_point();
         let distance = self.get_distance(original_position, collision_point);
-        let normal = self.base().get_collision_normal();
+        let angle = self.base().get_collision_normal().plane_angle();
+        if let Some(tile_data) = self.get_collided_tile_data() {}
         let solidity = if let Some(shape) = self.get_collider_shape() {
             if shape.is_one_way_collision_enabled() {
                 Solidity::Top
@@ -208,7 +209,7 @@ impl Sensor {
         } else {
             Solidity::Fully
         };
-        DetectionResult::new(distance, normal, solidity)
+        DetectionResult::new(distance, angle, solidity)
     }
     fn get_collider_shape(&self) -> Option<Gd<CollisionShape2D>> {
         let target = self
@@ -222,6 +223,13 @@ impl Sensor {
             .shape_owner_get_owner(owner_id)?
             .try_cast::<CollisionShape2D>()
             .ok()
+    }
+    fn get_collided_tile_data(&self) -> Option<Gd<TileData>> {
+        let world_coords = self.base().get_collision_point();
+        let tilemap = self.base().get_collider()?.try_cast::<TileMap>().ok()?;
+        let local_coords = tilemap.to_local(world_coords);
+        let map_coords = tilemap.local_to_map(local_coords);
+        tilemap.get_cell_tile_data(0, map_coords)
     }
 
     fn get_distance(&self, position: Vector2, collision_point: Vector2) -> f32 {

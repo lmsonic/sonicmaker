@@ -121,9 +121,9 @@ impl Character {
         let velocity = self.velocity();
 
         if let Some(sensor_push_left) = &mut self.sensor_push_left {
-            let old_position = sensor_push_left.get_position();
+            let old_position = sensor_push_left.get_global_position();
             let new_position = old_position + velocity;
-            sensor_push_left.set_position(new_position);
+            sensor_push_left.set_global_position(new_position);
             let result = if let Ok(result) = sensor_push_left
                 .bind_mut()
                 .detect_solid()
@@ -133,7 +133,7 @@ impl Character {
             } else {
                 None
             };
-            sensor_push_left.set_position(old_position);
+            sensor_push_left.set_global_position(old_position);
             result
         } else {
             None
@@ -142,9 +142,9 @@ impl Character {
     pub(super) fn wall_right_sensor_check(&mut self) -> Option<DetectionResult> {
         let velocity = self.velocity();
         if let Some(sensor_push_right) = &mut self.sensor_push_right {
-            let old_position = sensor_push_right.get_position();
+            let old_position = sensor_push_right.get_global_position();
             let new_position = old_position + velocity;
-            sensor_push_right.set_position(new_position);
+            sensor_push_right.set_global_position(new_position);
             let result = if let Ok(result) = sensor_push_right
                 .bind_mut()
                 .detect_solid()
@@ -154,7 +154,7 @@ impl Character {
             } else {
                 None
             };
-            sensor_push_right.set_position(old_position);
+            sensor_push_right.set_global_position(old_position);
             result
         } else {
             None

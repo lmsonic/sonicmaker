@@ -1,7 +1,4 @@
-use crate::{
-    sensor::{DetectionResult, Direction},
-    vec3_ext::Vector2Ext,
-};
+use crate::sensor::{DetectionResult, Direction};
 
 use super::Character;
 use godot::prelude::*;
@@ -125,9 +122,6 @@ impl Mode {
             Self::default()
         }
     }
-    pub(super) fn from_normal(normal: Vector2) -> Mode {
-        Mode::from_ground_angle(normal.plane_angle())
-    }
 
     pub(super) fn is_sideways(&self) -> bool {
         *self == Self::RightWall || *self == Self::LeftWall
@@ -216,7 +210,7 @@ impl Character {
         // Sonic 1
         // return result.distance > -14.0 && result.distance < 14.0;
         // Sonic 2 and onwards
-        let mode = Mode::from_normal(result.normal);
+        let mode = Mode::from_ground_angle(result.angle);
         let velocity = self.velocity();
         let distance = result.distance;
         if mode.is_sideways() {
