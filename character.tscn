@@ -159,7 +159,6 @@ sensor_ceiling_left = NodePath("Sensors/SensorCeilingLeft")
 sensor_ceiling_right = NodePath("Sensors/SensorCeilingRight")
 sensor_push_left = NodePath("Sensors/SensorPushLeft")
 sensor_push_right = NodePath("Sensors/SensorPushRight")
-draw_velocity = true
 position = Vector2(0, -19)
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
@@ -168,7 +167,6 @@ position = Vector2(0, -4)
 sprite_frames = SubResource("SpriteFrames_fg2lh")
 animation = &"idle"
 frame_progress = 1.0
-metadata/_edit_lock_ = true
 
 [node name="RemoteTransform2D" type="RemoteTransform2D" parent="."]
 remote_path = NodePath("../Sensors")
