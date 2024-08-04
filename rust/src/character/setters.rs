@@ -1,3 +1,5 @@
+use std::f32::consts::FRAC_PI_2;
+
 use godot::{engine::RectangleShape2D, prelude::*};
 use real_consts::{PI, TAU};
 
@@ -41,7 +43,7 @@ impl State {
         matches!(self, Self::RollingBall)
     }
 }
-use crate::character::Character;
+use crate::{character::Character, sensor::DetectionResult};
 #[godot_api]
 impl Character {
     #[func]
@@ -50,12 +52,18 @@ impl Character {
         self.update_sensors();
     }
     #[func]
-    pub(super) fn set_ground_angle(&mut self, mut value: f32) {
-        self.ground_angle = value;
-        if value < PI {
-            value += TAU;
+    pub(super) fn set_ground_angle(&mut self, result: DetectionResult) {
+        let mut angle = if result.snap {
+            godot_print!("snap");
+            ((self.ground_angle / FRAC_PI_2) % 4.0) * FRAC_PI_2
+        } else {
+            result.angle
+        };
+        self.ground_angle = angle;
+        if angle < PI {
+            angle += TAU;
         }
-        self.base_mut().set_rotation(TAU - value);
+        self.base_mut().set_rotation(TAU - angle);
         self.update_sensors();
     }
     #[func]

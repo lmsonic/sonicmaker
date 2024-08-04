@@ -182,7 +182,6 @@ position = Vector2(0, -19)
 position = Vector2(-9, 19)
 
 [node name="SensorFloorRight" parent="Sensors" instance=ExtResource("2_mvnfj")]
-show_debug_label = true
 position = Vector2(9, 19)
 
 [node name="SensorCeilingLeft" parent="Sensors" instance=ExtResource("2_mvnfj")]
@@ -192,13 +191,11 @@ target_position = Vector2(0, -16)
 
 [node name="SensorCeilingRight" parent="Sensors" instance=ExtResource("2_mvnfj")]
 direction = "Up"
-show_debug_label = true
 position = Vector2(9, -19)
 target_position = Vector2(0, -16)
 
 [node name="SensorPushRight" parent="Sensors" instance=ExtResource("2_mvnfj")]
 direction = "Right"
-show_debug_label = true
 position = Vector2(10, 0)
 target_position = Vector2(16, 0)
 

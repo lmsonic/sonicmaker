@@ -7,49 +7,50 @@ use crate::{
 
 impl Character {
     pub(super) fn grounded_right_wall_collision(&mut self, distance: f32) {
-        godot_print!("Right wall collision");
-
         let mut velocity = self.velocity();
         let right = self.current_mode().right();
         velocity += right * distance;
         self.ground_speed = 0.0;
-
         self.set_velocity(velocity);
+        godot_print!("Grounded right wall collision, dv:{} ", right * distance);
     }
     pub(super) fn grounded_left_wall_collision(&mut self, distance: f32) {
-        godot_print!("Left wall collision");
-
         let mut velocity = self.velocity();
         let left = self.current_mode().left();
         velocity += left * distance;
         self.ground_speed = 0.0;
         self.set_velocity(velocity);
+
+        godot_print!("Grounded left wall collision, dv:{} ", left * distance);
     }
     pub(super) fn airborne_left_wall_collision(&mut self, distance: f32) {
-        godot_print!("Left wall collision");
         let mut position = self.global_position();
         position.x -= distance;
         self.set_global_position(position);
 
         let velocity = self.velocity();
         self.set_velocity(Vector2::new(0.0, velocity.y));
+
+        godot_print!("Airborne left wall collision dx:{}", -distance);
     }
     pub(super) fn airborne_right_wall_collision(&mut self, distance: f32) {
-        godot_print!("Right wall collision");
         let mut position = self.global_position();
         position.x += distance;
         self.set_global_position(position);
 
         let velocity = self.velocity();
         self.set_velocity(Vector2::new(0.0, velocity.y));
+
+        godot_print!("Airborne right wall collision dx:{}", distance);
     }
 
     pub(super) fn snap_to_floor(&mut self, distance: f32) {
-        let mode = self.current_mode();
         let mut position = self.global_position();
-        position += mode.down() * distance;
+        let down = self.current_mode().down();
+        position += down * distance;
 
         self.set_global_position(position);
+        godot_print!("Snap to floor dp: {}", down * distance);
     }
 
     pub(super) fn ground_sensor_results(&mut self) -> Vec<DetectionResult> {

@@ -86,15 +86,13 @@ impl Character {
             MotionDirection::Right | MotionDirection::Left | MotionDirection::Down => {
                 if let Some(result) = self.ground_check() {
                     if self.is_landed(result) {
-                        let direction = self.current_motion_direction();
-
-                        godot_print!("floor collision {direction:?}");
                         // Floor collision
                         let mut position = self.global_position();
                         position.y += result.distance;
                         self.set_global_position(position);
 
-                        self.set_ground_angle(result.angle);
+                        godot_print!("floor collision dy:{}", result.distance);
+                        self.set_ground_angle(result);
                         self.set_grounded(true);
                         if !self.state.is_rolling() {
                             self.update_animation();
@@ -112,15 +110,15 @@ impl Character {
         match self.current_motion_direction() {
             MotionDirection::Right | MotionDirection::Left | MotionDirection::Up => {
                 if let Some(result) = self.ceiling_check() {
-                    if result.distance < 0.0 {
+                    if result.distance <= 0.0 {
                         // Ceiling collision
-                        godot_print!("ceiling collision");
                         let mut position = self.global_position();
                         position.y -= result.distance;
                         self.set_global_position(position);
+                        godot_print!("ceiling collision dy:{}", -result.distance);
 
                         if self.should_land_on_ceiling() {
-                            self.set_ground_angle(result.angle);
+                            self.set_ground_angle(result);
                             self.set_grounded(true);
                             self.land_on_ceiling();
                             godot_print!("land on ceiling");
@@ -254,7 +252,7 @@ impl Character {
 
         self.check_floor();
 
-        self.handle_slipping();
+        // self.handle_slipping();
     }
     fn check_rolling(&mut self, input: &Gd<Input>) {
         if !self.state.is_rolling() && input.is_action_pressed(c"roll".into()) && self.can_roll() {
@@ -295,9 +293,8 @@ impl Character {
         // Floor checking
         if let Some(result) = self.ground_check() {
             if self.should_snap_to_floor(result) {
-                godot_print!("Snap to floor");
                 self.snap_to_floor(result.distance);
-                self.set_ground_angle(result.angle)
+                self.set_ground_angle(result)
             } else {
                 godot_print!("Detach from floor: Shouldn't snap");
                 self.set_grounded(false);

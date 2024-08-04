@@ -56,6 +56,7 @@ pub struct DetectionResult {
     pub distance: f32,
     pub angle: f32,
     pub solidity: Solidity,
+    pub snap: bool,
 }
 
 impl GodotConvert for DetectionResult {
@@ -63,7 +64,7 @@ impl GodotConvert for DetectionResult {
 }
 impl ToGodot for DetectionResult {
     fn to_godot(&self) -> Self::Via {
-        dict! {"distance":self.distance,"angle":self.angle,"solidity":self.solidity}
+        dict! {"distance":self.distance,"angle":self.angle,"solidity":self.solidity,"snap":self.snap}
     }
 }
 impl FromGodot for DetectionResult {
@@ -77,20 +78,23 @@ impl FromGodot for DetectionResult {
             .get("solidity")
             .ok_or(ConvertError::default())?
             .try_to()?;
+        let snap = dict.get("snap").ok_or(ConvertError::default())?.try_to()?;
         Ok(Self {
             distance,
             angle,
             solidity,
+            snap,
         })
     }
 }
 
 impl DetectionResult {
-    fn new(distance: f32, angle: f32, solidity: Solidity) -> Self {
+    fn new(distance: f32, angle: f32, solidity: Solidity, snap: bool) -> Self {
         Self {
             distance,
             angle,
             solidity,
+            snap,
         }
     }
 }
@@ -198,8 +202,13 @@ impl Sensor {
     fn get_detection(&self, original_position: Vector2) -> DetectionResult {
         let collision_point = self.base().get_collision_point();
         let distance = self.get_distance(original_position, collision_point);
-        let angle = self.base().get_collision_normal().plane_angle();
-        if let Some(tile_data) = self.get_collided_tile_data() {}
+        let normal = self.base().get_collision_normal();
+        let snapped = if let Some(tile_data) = self.get_collided_tile_data() {
+            tile_data.get_custom_data("snap".into_godot()).booleanize()
+        } else {
+            false
+        };
+        let angle = normal.plane_angle();
         let solidity = if let Some(shape) = self.get_collider_shape() {
             if shape.is_one_way_collision_enabled() {
                 Solidity::Top
@@ -209,7 +218,12 @@ impl Sensor {
         } else {
             Solidity::Fully
         };
-        DetectionResult::new(distance, angle, solidity)
+        DetectionResult::new(
+            distance,
+            angle,
+            solidity,
+            normal == Vector2::ZERO || snapped,
+        )
     }
     fn get_collider_shape(&self) -> Option<Gd<CollisionShape2D>> {
         let target = self
