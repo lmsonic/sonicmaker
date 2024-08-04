@@ -80,8 +80,7 @@ impl Character {
         let mut position = self.global_position();
         let down = self.current_mode().down();
         position += down * delta;
-
-        self.set_global_position(position)
+        self.set_global_position(position);
     }
 
     #[func]

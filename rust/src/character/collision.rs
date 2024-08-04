@@ -13,7 +13,7 @@ impl Character {
         let right = self.current_mode().right();
         velocity += right * distance;
         self.ground_speed = 0.0;
-        self.set_state(State::Idle);
+
         self.set_velocity(velocity);
     }
     pub(super) fn grounded_left_wall_collision(&mut self, distance: f32) {

@@ -11,6 +11,23 @@ script/source = "extends Node
 	set(value):
 		ticks = value
 		Engine.physics_ticks_per_second = value
+
+
+
+
+func _input(event: InputEvent) -> void:
+	if Input.is_action_just_pressed(\"pause\"):
+		get_tree().paused = !get_tree().paused
+	if Input.is_key_pressed(KEY_DOWN):
+		self.ticks = 2
+	elif Input.is_key_pressed(KEY_UP):
+		self.ticks = 60
+
+
+	if Input.is_action_just_pressed(\"restart\"):
+		get_tree().paused =false
+		self.ticks = 60
+		get_tree().reload_current_scene()
 "
 
 [node name="Tilemap" type="TileMap"]
@@ -22,6 +39,7 @@ layer_0/tile_data = PackedInt32Array(393216, 0, 6, 458752, 0, 7, 524288, 0, 8, 5
 
 [node name="Character" parent="." instance=ExtResource("1_dsfe8")]
 is_grounded = true
+debug_draw = false
 position = Vector2(389, -104)
 velocity = Vector2(0, 5.6875)
 
@@ -47,4 +65,5 @@ positive_side_layer = 1
 position = Vector2(1920, 89)
 
 [node name="SetTimeScale" type="Node" parent="."]
+process_mode = 3
 script = SubResource("GDScript_43165")

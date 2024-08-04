@@ -184,7 +184,7 @@ impl Character {
         true
     }
     pub(super) fn can_roll(&self) -> bool {
-        self.ground_speed.abs() > 0.5
+        self.ground_speed.abs() > 1.0
     }
 
     #[allow(clippy::just_underscores_and_digits)]
@@ -225,7 +225,7 @@ impl Character {
         }
         let velocity = self.velocity();
 
-        let direction = MotionDirection::from_velocity(velocity);
+        let direction = self.current_motion_direction();
         match direction {
             MotionDirection::Down => self
                 .ground_sensor_results()
@@ -281,7 +281,7 @@ impl Character {
         }
     }
     pub(super) fn current_motion_direction(&self) -> MotionDirection {
-        MotionDirection::from_velocity(self.base().get_velocity())
+        MotionDirection::from_velocity(self.velocity())
     }
     pub(super) fn current_mode(&self) -> Mode {
         if self.is_grounded {

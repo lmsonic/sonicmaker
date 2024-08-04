@@ -86,7 +86,9 @@ impl Character {
             MotionDirection::Right | MotionDirection::Left | MotionDirection::Down => {
                 if let Some(result) = self.ground_check() {
                     if self.is_landed(result) {
-                        godot_print!("floor collision");
+                        let direction = self.current_motion_direction();
+
+                        godot_print!("floor collision {direction:?}");
                         // Floor collision
                         let mut position = self.global_position();
                         position.y += result.distance;
@@ -224,6 +226,8 @@ impl Character {
         }
     }
     fn grounded(&mut self) {
+        self.check_unrolling();
+
         self.update_animation();
         // Grounded
         let input = Input::singleton();
@@ -257,6 +261,8 @@ impl Character {
             godot_print!("Rolling");
             self.set_state(State::RollingBall);
         }
+    }
+    fn check_unrolling(&mut self) {
         if self.state.is_rolling() && self.ground_speed.abs() < 0.5 {
             godot_print!("Unrolling");
             self.set_state(State::Idle);
