@@ -31,8 +31,6 @@ impl ICharacterBody2D for Character {
                 .and_then(|theme| theme.get_default_font())
             {
                 self.base_mut()
-                    .draw_string(font.clone(), Vector2::new(10.0, -10.0), text);
-                self.base_mut()
                     .draw_string(font, Vector2::new(10.0, -30.0), angle);
             }
         }
@@ -110,7 +108,7 @@ impl Character {
         match self.current_motion_direction() {
             MotionDirection::Right | MotionDirection::Left | MotionDirection::Up => {
                 if let Some(result) = self.ceiling_check() {
-                    if result.distance <= 0.0 {
+                    if result.distance < -0.1 {
                         // Ceiling collision
                         let mut position = self.global_position();
                         position.y -= result.distance;

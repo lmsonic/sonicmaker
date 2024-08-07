@@ -1,4 +1,4 @@
-use std::f32::consts::FRAC_PI_2;
+use std::{f32::consts::FRAC_PI_2, ops::Rem};
 
 use godot::{engine::RectangleShape2D, prelude::*};
 use real_consts::{PI, TAU};
@@ -55,7 +55,7 @@ impl Character {
     pub(super) fn set_ground_angle(&mut self, result: DetectionResult) {
         let mut angle = if result.snap {
             godot_print!("snap");
-            ((self.ground_angle / FRAC_PI_2) % 4.0) * FRAC_PI_2
+            (result.angle / FRAC_PI_2).round().rem(4.0) * FRAC_PI_2
         } else {
             result.angle
         };

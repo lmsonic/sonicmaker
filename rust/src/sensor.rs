@@ -1,3 +1,5 @@
+use std::f32::consts::{FRAC_PI_2, PI, TAU};
+
 use godot::{
     engine::{
         CollisionObject2D, CollisionShape2D, Engine, IRayCast2D, RayCast2D, ThemeDb, TileData,
@@ -133,6 +135,16 @@ impl Sensor {
     }
 }
 
+fn is_polygon_full(array: PackedVector2Array) -> bool {
+    let full_polygon = PackedVector2Array::from(&[
+        Vector2::new(-8.0, -8.0),
+        Vector2::new(8.0, -8.0),
+        Vector2::new(8.0, 8.0),
+        Vector2::new(-8.0, 8.0),
+    ]);
+    array == full_polygon
+}
+
 impl Sensor {
     fn update_debug_label(&mut self) {
         if self.last_result.is_some() {
@@ -144,8 +156,18 @@ impl Sensor {
 
         let text: GString = match self.last_result {
             Some(result) => {
-                let angle = result.angle;
-                format!("{:.0} \n{:.0}°", result.distance, angle.to_degrees(),).into()
+                let angle = if result.snap {
+                    (result.angle / FRAC_PI_2).round() * FRAC_PI_2
+                } else {
+                    result.angle
+                };
+                format!(
+                    "{:.0} \n{:.0}° {}",
+                    result.distance,
+                    angle.to_degrees(),
+                    if result.snap { "snap" } else { "" }
+                )
+                .into()
             }
 
             None => "".into(),
@@ -203,8 +225,14 @@ impl Sensor {
         let collision_point = self.base().get_collision_point();
         let distance = self.get_distance(original_position, collision_point);
         let normal = self.base().get_collision_normal();
-        let snapped = if let Some(tile_data) = self.get_collided_tile_data() {
-            tile_data.get_custom_data("snap".into_godot()).booleanize()
+        let snapped = if let Some((layer, tile_data)) = self.get_collided_tile_data() {
+            let polygon_full = if tile_data.get_collision_polygons_count(layer) > 0 {
+                let collision_data = tile_data.get_collision_polygon_points(layer, 0);
+                is_polygon_full(collision_data)
+            } else {
+                false
+            };
+            polygon_full || tile_data.get_custom_data("snap".into_godot()).booleanize()
         } else {
             false
         };
@@ -225,6 +253,7 @@ impl Sensor {
             normal == Vector2::ZERO || snapped,
         )
     }
+
     fn get_collider_shape(&self) -> Option<Gd<CollisionShape2D>> {
         let target = self
             .base()
@@ -238,12 +267,13 @@ impl Sensor {
             .try_cast::<CollisionShape2D>()
             .ok()
     }
-    fn get_collided_tile_data(&self) -> Option<Gd<TileData>> {
-        let world_coords = self.base().get_collision_point();
-        let tilemap = self.base().get_collider()?.try_cast::<TileMap>().ok()?;
-        let local_coords = tilemap.to_local(world_coords);
-        let map_coords = tilemap.local_to_map(local_coords);
-        tilemap.get_cell_tile_data(0, map_coords)
+    fn get_collided_tile_data(&self) -> Option<(i32, Gd<TileData>)> {
+        let collider_rid = self.base().get_collider_rid();
+        let mut tilemap = self.base().get_collider()?.try_cast::<TileMap>().ok()?;
+        let map_coords = tilemap.get_coords_for_body_rid(collider_rid);
+        let layer = tilemap.get_layer_for_body_rid(collider_rid);
+        let tile_data = tilemap.get_cell_tile_data(layer, map_coords)?;
+        Some((layer, tile_data))
     }
 
     fn get_distance(&self, position: Vector2, collision_point: Vector2) -> f32 {
