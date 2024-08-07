@@ -21,17 +21,19 @@ impl ICharacterBody2D for Character {
                 .done();
             self.base_mut()
                 .draw_line_ex(Vector2::ZERO, velocity * 20.0, Color::RED)
-                .width(5.0)
+                .width(2.0)
                 .done();
 
-            let text = velocity.angle().to_degrees().to_string().into_godot();
-            let angle = self.ground_angle.to_degrees().to_string().into_godot();
+            let angle = self.ground_angle.to_degrees();
             if let Some(font) = ThemeDb::singleton()
                 .get_project_theme()
                 .and_then(|theme| theme.get_default_font())
             {
-                self.base_mut()
-                    .draw_string(font, Vector2::new(10.0, -30.0), angle);
+                self.base_mut().draw_string(
+                    font,
+                    Vector2::new(10.0, -30.0),
+                    format!("{:.0}°", angle).into_godot(),
+                );
             }
         }
     }
@@ -108,11 +110,12 @@ impl Character {
         match self.current_motion_direction() {
             MotionDirection::Right | MotionDirection::Left | MotionDirection::Up => {
                 if let Some(result) = self.ceiling_check() {
-                    if result.distance < -0.1 {
+                    if result.distance < 0.0 {
                         // Ceiling collision
                         let mut position = self.global_position();
                         position.y -= result.distance;
                         self.set_global_position(position);
+                        godot_print!("{}", position);
                         godot_print!("ceiling collision dy:{}", -result.distance);
 
                         if self.should_land_on_ceiling() {
@@ -136,26 +139,26 @@ impl Character {
         match self.current_motion_direction() {
             MotionDirection::Up | MotionDirection::Down => {
                 if let Some(result) = self.airborne_wall_right_sensor_check() {
-                    if result.distance <= 0.0 {
+                    if result.distance < 0.0 {
                         self.airborne_right_wall_collision(result.distance);
                     }
                 }
                 if let Some(result) = self.airborne_wall_left_sensor_check() {
-                    if result.distance <= 0.0 {
+                    if result.distance < 0.0 {
                         self.airborne_left_wall_collision(result.distance);
                     }
                 }
             }
             MotionDirection::Right => {
                 if let Some(result) = self.airborne_wall_right_sensor_check() {
-                    if result.distance <= 0.0 {
+                    if result.distance < 0.0 {
                         self.airborne_right_wall_collision(result.distance);
                     }
                 }
             }
             MotionDirection::Left => {
                 if let Some(result) = self.airborne_wall_left_sensor_check() {
-                    if result.distance <= 0.0 {
+                    if result.distance < 0.0 {
                         self.airborne_left_wall_collision(result.distance);
                     }
                 }
@@ -250,7 +253,7 @@ impl Character {
 
         self.check_floor();
 
-        // self.handle_slipping();
+        self.handle_slipping();
     }
     fn check_rolling(&mut self, input: &Gd<Input>) {
         if !self.state.is_rolling() && input.is_action_pressed(c"roll".into()) && self.can_roll() {
@@ -262,6 +265,9 @@ impl Character {
         if self.state.is_rolling() && self.ground_speed.abs() < 0.5 {
             godot_print!("Unrolling");
             self.set_state(State::Idle);
+            let position = self.global_position();
+            let down = self.current_mode().down();
+            self.set_global_position(position + down * 3.0)
         }
     }
 

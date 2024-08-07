@@ -1,9 +1,6 @@
 use godot::prelude::*;
 
-use crate::{
-    character::{Character, State},
-    sensor::DetectionResult,
-};
+use crate::{character::Character, sensor::DetectionResult};
 
 impl Character {
     pub(super) fn grounded_right_wall_collision(&mut self, distance: f32) {
@@ -35,6 +32,7 @@ impl Character {
     }
     pub(super) fn airborne_right_wall_collision(&mut self, distance: f32) {
         let mut position = self.global_position();
+        godot_print!("{}", position);
         position.x += distance;
         self.set_global_position(position);
 
@@ -59,7 +57,7 @@ impl Character {
         if let Some(sensor_floor_left) = &mut self.sensor_floor_left {
             if let Ok(r) = sensor_floor_left
                 .bind_mut()
-                .detect_solid()
+                .sense()
                 .try_to::<DetectionResult>()
             {
                 results.push(r);
@@ -68,7 +66,7 @@ impl Character {
         if let Some(sensor_floor_right) = &mut self.sensor_floor_right {
             if let Ok(r) = sensor_floor_right
                 .bind_mut()
-                .detect_solid()
+                .sense()
                 .try_to::<DetectionResult>()
             {
                 results.push(r);
@@ -93,7 +91,7 @@ impl Character {
         if let Some(sensor_ceiling_left) = &mut self.sensor_ceiling_left {
             if let Ok(r) = sensor_ceiling_left
                 .bind_mut()
-                .detect_solid()
+                .sense()
                 .try_to::<DetectionResult>()
             {
                 results.push(r);
@@ -102,7 +100,7 @@ impl Character {
         if let Some(sensor_ceiling_right) = &mut self.sensor_ceiling_right {
             if let Ok(r) = sensor_ceiling_right
                 .bind_mut()
-                .detect_solid()
+                .sense()
                 .try_to::<DetectionResult>()
             {
                 results.push(r);
@@ -120,7 +118,7 @@ impl Character {
             sensor_push_left.set_global_position(new_position);
             let result = if let Ok(result) = sensor_push_left
                 .bind_mut()
-                .detect_solid()
+                .sense()
                 .try_to::<DetectionResult>()
             {
                 Some(result)
@@ -141,7 +139,7 @@ impl Character {
             sensor_push_right.set_global_position(new_position);
             let result = if let Ok(result) = sensor_push_right
                 .bind_mut()
-                .detect_solid()
+                .sense()
                 .try_to::<DetectionResult>()
             {
                 Some(result)
@@ -158,7 +156,7 @@ impl Character {
         if let Some(sensor_push_left) = &mut self.sensor_push_left {
             if let Ok(result) = sensor_push_left
                 .bind_mut()
-                .detect_solid()
+                .sense()
                 .try_to::<DetectionResult>()
             {
                 return Some(result);
@@ -170,7 +168,7 @@ impl Character {
         if let Some(sensor_push_right) = &mut self.sensor_push_right {
             if let Ok(result) = sensor_push_right
                 .bind_mut()
-                .detect_solid()
+                .sense()
                 .try_to::<DetectionResult>()
             {
                 return Some(result);

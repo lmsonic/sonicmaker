@@ -1,9 +1,9 @@
-use std::f32::consts::{FRAC_PI_2, PI, TAU};
+use std::f32::consts::FRAC_PI_2;
 
 use godot::{
     engine::{
-        CollisionObject2D, CollisionShape2D, Engine, IRayCast2D, RayCast2D, ThemeDb, TileData,
-        TileMap,
+        CollisionObject2D, CollisionShape2D, Engine, PhysicsRayQueryParameters2D, ThemeDb,
+        TileData, TileMap,
     },
     prelude::*,
 };
@@ -22,7 +22,7 @@ pub enum Direction {
 const TILE_SIZE: f32 = 16.0;
 
 impl Direction {
-    fn get_target_direction(&self) -> Vector2 {
+    fn target_direction(&self) -> Vector2 {
         match *self {
             Direction::Left => Vector2::LEFT * TILE_SIZE,
             Direction::Up => Vector2::UP * TILE_SIZE,
@@ -30,19 +30,74 @@ impl Direction {
             Direction::Down => Vector2::DOWN * TILE_SIZE,
         }
     }
+    fn target_direction_normalized(&self) -> Vector2 {
+        match *self {
+            Direction::Left => Vector2::LEFT,
+            Direction::Up => Vector2::UP,
+            Direction::Right => Vector2::RIGHT,
+            Direction::Down => Vector2::DOWN,
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct RaycastResult {
+    position: Vector2,
+    normal: Vector2,
+    collider: Gd<Object>,
+    rid: Rid,
+    shape: i32,
+}
+
+impl GodotConvert for RaycastResult {
+    type Via = Dictionary;
+}
+
+impl FromGodot for RaycastResult {
+    fn try_from_godot(dict: Self::Via) -> Result<Self, ConvertError> {
+        let position = dict
+            .get("position")
+            .ok_or(ConvertError::default())?
+            .try_to()?;
+        let normal = dict
+            .get("normal")
+            .ok_or(ConvertError::default())?
+            .try_to()?;
+        let collider = dict
+            .get("collider")
+            .ok_or(ConvertError::default())?
+            .try_to()?;
+        let rid = dict.get("rid").ok_or(ConvertError::default())?.try_to()?;
+        let shape = dict.get("shape").ok_or(ConvertError::default())?.try_to()?;
+
+        Ok(Self {
+            position,
+            normal,
+            collider,
+            rid,
+            shape,
+        })
+    }
 }
 #[derive(GodotClass)]
-#[class(init, base=RayCast2D)]
+#[class(tool,init, base=Node2D)]
 pub struct Sensor {
     #[export]
     #[var(get, set = set_direction)]
     direction: Direction,
     #[export]
-    enable_in_editor: bool,
+    update_in_editor: bool,
     #[export]
-    show_debug_label: bool,
+    display_debug_label: bool,
+
     last_result: Option<DetectionResult>,
-    base: Base<RayCast2D>,
+    #[export(flags_2d_physics)]
+    #[var(get, set)]
+    collision_mask: u32,
+    #[export]
+    #[init(default = Color::from_rgba(0.0, 0.6, 0.7, 0.42))]
+    debug_color: Color,
+    base: Base<Node2D>,
 }
 
 #[derive(GodotConvert, Var, Export, Default, Debug, PartialEq, Eq, Clone, Copy)]
@@ -101,20 +156,15 @@ impl DetectionResult {
     }
 }
 #[godot_api]
-impl IRayCast2D for Sensor {
+impl INode2D for Sensor {
     fn physics_process(&mut self, _delta: f64) {
-        if Engine::singleton().is_editor_hint() && !self.enable_in_editor {
-            return;
+        if Engine::singleton().is_editor_hint() && self.update_in_editor {
+            self._sense();
         }
-        self._detect_solid();
+        self.base_mut().queue_redraw();
     }
     fn draw(&mut self) {
-        if Engine::singleton().is_editor_hint() && !self.enable_in_editor {
-            return;
-        }
-        if self.show_debug_label {
-            self.update_debug_label();
-        }
+        self.draw_ray();
     }
 }
 
@@ -123,12 +173,11 @@ impl Sensor {
     #[func]
     pub fn set_direction(&mut self, value: Direction) {
         self.direction = value;
-        self.reset_target_position();
     }
 
     #[func]
-    pub fn detect_solid(&mut self) -> Variant {
-        match self._detect_solid() {
+    pub fn sense(&mut self) -> Variant {
+        match self._sense() {
             Some(result) => result.into_godot().to_variant(),
             None => Variant::nil(),
         }
@@ -146,86 +195,137 @@ fn is_polygon_full(array: PackedVector2Array) -> bool {
 }
 
 impl Sensor {
-    fn update_debug_label(&mut self) {
-        if self.last_result.is_some() {
-            let collision_point = self.base().get_collision_point();
-            let position = self.base().get_global_position();
+    fn global_position(&self) -> Vector2 {
+        self.base().get_global_position()
+    }
+
+    fn draw_ray(&mut self) {
+        let debug_color = self.debug_color;
+        if let Some(result) = self.last_result {
+            let collision_point = self.direction.target_direction_normalized() * result.distance;
             self.base_mut()
-                .draw_circle(collision_point - position, 2.0, Color::RED);
-        }
+                .draw_line_ex(Vector2::ZERO, collision_point, debug_color)
+                .width(1.0)
+                .done();
 
-        let text: GString = match self.last_result {
-            Some(result) => {
-                let angle = if result.snap {
-                    (result.angle / FRAC_PI_2).round() * FRAC_PI_2
-                } else {
-                    result.angle
-                };
-                format!(
-                    "{:.0} \n{:.0}° {}",
-                    result.distance,
-                    angle.to_degrees(),
-                    if result.snap { "snap" } else { "" }
-                )
-                .into()
+            self.base_mut()
+                .draw_circle(collision_point, 2.0, Color::RED);
+
+            if !self.display_debug_label {
+                return;
             }
+            let angle = if result.snap {
+                (result.angle / FRAC_PI_2).round() * FRAC_PI_2
+            } else {
+                result.angle
+            };
 
-            None => "".into(),
+            let text = format!(
+                "{:.0}px \n{:.0}° {}",
+                result.distance,
+                angle.to_degrees(),
+                if result.snap { "snap" } else { "" }
+            );
+
+            if let Some(font) = ThemeDb::singleton()
+                .get_project_theme()
+                .and_then(|theme| theme.get_default_font())
+            {
+                self.base_mut()
+                    .draw_string(font, collision_point, text.into_godot());
+            }
+        } else {
+            let target_direction = self.direction.target_direction();
+
+            self.base_mut()
+                .draw_line_ex(Vector2::ZERO, target_direction, debug_color)
+                .width(1.0)
+                .done();
+        }
+    }
+
+    fn _sense(&mut self) -> Option<DetectionResult> {
+        let position = self.global_position();
+        let target_direction = self.direction.target_direction();
+        let snapped_position = self.snapped_position();
+        let mut result;
+        if let Some(r) = self.raycast(snapped_position, snapped_position + target_direction) {
+            let distance = self.get_distance(position, r.position);
+            result = Some(self.get_detection(&r));
+            if distance < 0.0 {
+                let tile_above_position = snapped_position - target_direction;
+                if let Some(r) =
+                    self.raycast(tile_above_position, tile_above_position + target_direction)
+                {
+                    let distance = self.get_distance(position, r.position);
+
+                    if distance < TILE_SIZE {
+                        result = Some(self.get_detection(&r));
+                    }
+                }
+            }
+        } else {
+            let double_target_direction = 2.0 * target_direction;
+            result = self
+                .raycast(position, position + double_target_direction)
+                .map(|r| self.get_detection(&r));
         };
+        self.last_result = result;
+        result
+    }
+
+    fn raycast(&self, from: Vector2, to: Vector2) -> Option<RaycastResult> {
+        let mut space_state = self.base().get_world_2d()?.get_direct_space_state()?;
+        let mask = self.collision_mask;
+
+        let mut query = PhysicsRayQueryParameters2D::create_ex(from, to)
+            .collision_mask(mask)
+            .done()?;
+        query.set_collide_with_areas(false);
+        query.set_hit_from_inside(true);
+        let result = space_state.intersect_ray(query);
+        if !result.is_empty() {
+            RaycastResult::try_from_godot(result).ok()
+        } else {
+            None
+        }
+    }
+
+    fn update_debug(&mut self) {
+        let Some(result) = self.last_result else {
+            return;
+        };
+        godot_print!("DRAW");
+        let collision_point = self.direction.target_direction_normalized() * result.distance;
+        self.base_mut()
+            .draw_circle(collision_point, 50.0, Color::RED);
+
+        let angle = if result.snap {
+            (result.angle / FRAC_PI_2).round() * FRAC_PI_2
+        } else {
+            result.angle
+        };
+        let text = format!(
+            "{:.0}px \n{:.0}° {}",
+            result.distance,
+            angle.to_degrees(),
+            if result.snap { "snap" } else { "" }
+        );
+
         if let Some(font) = ThemeDb::singleton()
             .get_project_theme()
             .and_then(|theme| theme.get_default_font())
         {
             self.base_mut()
-                .draw_string(font, Vector2::new(0.0, 0.0), text);
+                .draw_string(font, collision_point, text.into_godot());
         }
     }
-    fn _detect_solid(&mut self) -> Option<DetectionResult> {
-        // Reset positions
-        let original_position = self.base().get_global_position();
-        let original_target = self.base().get_target_position();
-        self.snap_position();
-
-        self.base_mut().force_raycast_update();
-
-        let result = if self.base().is_colliding() {
-            let mut detection = self.get_detection(original_position);
-            if detection.distance <= 0.0 {
-                // Regression, hit a solid wall
-
-                let snapped_position = self.base().get_global_position();
-
-                let tile_above_position = snapped_position - self.direction.get_target_direction();
-                self.base_mut().set_global_position(tile_above_position);
-                self.base_mut().force_raycast_update();
-
-                detection = self.get_detection(original_position);
-            }
-            Some(detection)
-        } else {
-            // Extension
-            // Checking extending to tile below
-
-            let new_position = original_target * 2.0;
-            self.base_mut().set_target_position(new_position);
-            self.base_mut().force_raycast_update();
-            if self.base().is_colliding() {
-                Some(self.get_detection(original_position))
-            } else {
-                None
-            }
-        };
-        self.base_mut().set_target_position(original_target);
-        self.base_mut().set_global_position(original_position);
-        self.last_result = result;
-
-        result
-    }
-    fn get_detection(&self, original_position: Vector2) -> DetectionResult {
-        let collision_point = self.base().get_collision_point();
-        let distance = self.get_distance(original_position, collision_point);
-        let normal = self.base().get_collision_normal();
-        let snapped = if let Some((layer, tile_data)) = self.get_collided_tile_data() {
+    fn get_detection(&self, result: &RaycastResult) -> DetectionResult {
+        let collision_point = result.position;
+        let position = self.global_position();
+        let distance = self.get_distance(position, collision_point);
+        let normal = result.normal;
+        let snapped = if let Some((layer, tile_data)) = self.get_collided_tile_data(result) {
             let polygon_full = if tile_data.get_collision_polygons_count(layer) > 0 {
                 let collision_data = tile_data.get_collision_polygon_points(layer, 0);
                 is_polygon_full(collision_data)
@@ -237,7 +337,7 @@ impl Sensor {
             false
         };
         let angle = normal.plane_angle();
-        let solidity = if let Some(shape) = self.get_collider_shape() {
+        let solidity = if let Some(shape) = self.get_collider_shape(result) {
             if shape.is_one_way_collision_enabled() {
                 Solidity::Top
             } else {
@@ -254,22 +354,25 @@ impl Sensor {
         )
     }
 
-    fn get_collider_shape(&self) -> Option<Gd<CollisionShape2D>> {
-        let target = self
-            .base()
-            .get_collider()?
+    fn get_collider_shape(&self, result: &RaycastResult) -> Option<Gd<CollisionShape2D>> {
+        let target = result
+            .collider
+            .clone()
             .try_cast::<CollisionObject2D>()
             .ok()?;
-        let shape_id = self.base().get_collider_shape();
+        let shape_id = result.shape;
         let owner_id = target.shape_find_owner(shape_id);
         target
             .shape_owner_get_owner(owner_id)?
             .try_cast::<CollisionShape2D>()
             .ok()
     }
-    fn get_collided_tile_data(&self) -> Option<(i32, Gd<TileData>)> {
-        let collider_rid = self.base().get_collider_rid();
-        let mut tilemap = self.base().get_collider()?.try_cast::<TileMap>().ok()?;
+    fn get_collided_tile_data(
+        &self,
+        raycast_result: &RaycastResult,
+    ) -> Option<(i32, Gd<TileData>)> {
+        let collider_rid = raycast_result.rid;
+        let mut tilemap = raycast_result.collider.clone().try_cast::<TileMap>().ok()?;
         let map_coords = tilemap.get_coords_for_body_rid(collider_rid);
         let layer = tilemap.get_layer_for_body_rid(collider_rid);
         let tile_data = tilemap.get_cell_tile_data(layer, map_coords)?;
@@ -285,8 +388,8 @@ impl Sensor {
         }
     }
 
-    fn snap_position(&mut self) {
-        let mut position = self.base().get_global_position();
+    fn snapped_position(&self) -> Vector2 {
+        let mut position = self.global_position();
         match self.direction {
             Direction::Up => position.y += TILE_SIZE - (position.y % TILE_SIZE),
             Direction::Down => position.y -= position.y % TILE_SIZE,
@@ -294,10 +397,6 @@ impl Sensor {
             Direction::Right => position.x -= position.x % TILE_SIZE,
         }
 
-        self.base_mut().set_global_position(position);
-    }
-    fn reset_target_position(&mut self) {
-        let target_direction = self.direction.get_target_direction();
-        self.base_mut().set_target_position(target_direction);
+        position
     }
 }

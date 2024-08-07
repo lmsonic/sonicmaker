@@ -54,7 +54,6 @@ impl Character {
     #[func]
     pub(super) fn set_ground_angle(&mut self, result: DetectionResult) {
         let mut angle = if result.snap {
-            godot_print!("snap");
             (result.angle / FRAC_PI_2).round().rem(4.0) * FRAC_PI_2
         } else {
             result.angle
@@ -164,22 +163,22 @@ impl Character {
             if let Some(sensor_floor_left) = &mut self.sensor_floor_left {
                 sensor_floor_left.set_position(bottom_left);
                 sensor_floor_left.bind_mut().set_direction(down_direction);
-                sensor_floor_left.set_collision_mask(mask);
+                sensor_floor_left.bind_mut().set_collision_mask(mask);
             };
             if let Some(sensor_floor_right) = &mut self.sensor_floor_right {
                 sensor_floor_right.set_position(bottom_right);
                 sensor_floor_right.bind_mut().set_direction(down_direction);
-                sensor_floor_right.set_collision_mask(mask);
+                sensor_floor_right.bind_mut().set_collision_mask(mask);
             };
             if let Some(sensor_ceiling_left) = &mut self.sensor_ceiling_left {
                 sensor_ceiling_left.set_position(top_left);
                 sensor_ceiling_left.bind_mut().set_direction(up_direction);
-                sensor_ceiling_left.set_collision_mask(mask);
+                sensor_ceiling_left.bind_mut().set_collision_mask(mask);
             };
             if let Some(sensor_ceiling_right) = &mut self.sensor_ceiling_right {
                 sensor_ceiling_right.set_position(top_right);
                 sensor_ceiling_right.bind_mut().set_direction(up_direction);
-                sensor_ceiling_right.set_collision_mask(mask);
+                sensor_ceiling_right.bind_mut().set_collision_mask(mask);
             };
         }
         {
@@ -201,12 +200,12 @@ impl Character {
             if let Some(sensor_push_left) = &mut self.sensor_push_left {
                 sensor_push_left.set_position(center_left);
                 sensor_push_left.bind_mut().set_direction(left_direction);
-                sensor_push_left.set_collision_mask(mask);
+                sensor_push_left.bind_mut().set_collision_mask(mask);
             };
             if let Some(sensor_push_right) = &mut self.sensor_push_right {
                 sensor_push_right.set_position(center_right);
                 sensor_push_right.bind_mut().set_direction(right_direction);
-                sensor_push_right.set_collision_mask(mask);
+                sensor_push_right.bind_mut().set_collision_mask(mask);
             };
         }
         self.update_shapes();
