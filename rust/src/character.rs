@@ -3,14 +3,14 @@ mod lifecycle;
 mod setters;
 mod utils;
 
-use godot::engine::{AnimatedSprite2D, CharacterBody2D, CollisionShape2D};
+use godot::engine::{AnimatedSprite2D, CollisionShape2D};
 use godot::prelude::*;
 use setters::{Kind, State};
 
 use crate::sensor::Sensor;
 
 #[derive(GodotClass)]
-#[class(init, base=CharacterBody2D)]
+#[class(init, base=Node2D)]
 pub struct Character {
     #[export]
     #[var(get, set = set_character)]
@@ -86,5 +86,10 @@ pub struct Character {
     control_lock_timer: i32,
     #[export]
     debug_draw: bool,
-    base: Base<CharacterBody2D>,
+    #[export(flags_2d_physics)]
+    #[var(get, set)]
+    collision_layer: u32,
+    #[export]
+    velocity: Vector2,
+    base: Base<Node2D>,
 }

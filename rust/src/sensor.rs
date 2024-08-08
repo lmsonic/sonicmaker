@@ -30,14 +30,6 @@ impl Direction {
             Direction::Down => Vector2::DOWN * TILE_SIZE,
         }
     }
-    fn target_direction_normalized(&self) -> Vector2 {
-        match *self {
-            Direction::Left => Vector2::LEFT,
-            Direction::Up => Vector2::UP,
-            Direction::Right => Vector2::RIGHT,
-            Direction::Down => Vector2::DOWN,
-        }
-    }
 }
 
 #[derive(Debug, Clone)]
@@ -89,7 +81,7 @@ pub struct Sensor {
     update_in_editor: bool,
     #[export]
     display_debug_label: bool,
-
+    last_collision_point: Option<Vector2>,
     last_result: Option<DetectionResult>,
     #[export(flags_2d_physics)]
     #[var(get, set)]
@@ -165,6 +157,8 @@ impl INode2D for Sensor {
     }
     fn draw(&mut self) {
         self.draw_ray();
+        self.last_result = None;
+        self.last_collision_point = None;
     }
 }
 
@@ -201,16 +195,16 @@ impl Sensor {
 
     fn draw_ray(&mut self) {
         let debug_color = self.debug_color;
-        if let Some(result) = self.last_result {
-            let collision_point = self.direction.target_direction_normalized() * result.distance;
+        if let Some(point) = self.last_collision_point {
+            let point = point - self.global_position();
             self.base_mut()
-                .draw_line_ex(Vector2::ZERO, collision_point, debug_color)
+                .draw_line_ex(Vector2::ZERO, point, debug_color)
                 .width(1.0)
                 .done();
 
-            self.base_mut()
-                .draw_circle(collision_point, 2.0, Color::RED);
-
+            self.base_mut().draw_circle(point, 2.0, Color::RED);
+        }
+        if let Some(result) = self.last_result {
             if !self.display_debug_label {
                 return;
             }
@@ -232,7 +226,7 @@ impl Sensor {
                 .and_then(|theme| theme.get_default_font())
             {
                 self.base_mut()
-                    .draw_string(font, collision_point, text.into_godot());
+                    .draw_string(font, Vector2::ZERO, text.into_godot());
             }
         } else {
             let target_direction = self.direction.target_direction();
@@ -252,7 +246,7 @@ impl Sensor {
         if let Some(r) = self.raycast(snapped_position, snapped_position + target_direction) {
             let distance = self.get_distance(position, r.position);
             result = Some(self.get_detection(&r));
-            if distance < 0.0 {
+            if distance <= 0.0 {
                 let tile_above_position = snapped_position - target_direction;
                 if let Some(r) =
                     self.raycast(tile_above_position, tile_above_position + target_direction)
@@ -291,37 +285,9 @@ impl Sensor {
         }
     }
 
-    fn update_debug(&mut self) {
-        let Some(result) = self.last_result else {
-            return;
-        };
-        godot_print!("DRAW");
-        let collision_point = self.direction.target_direction_normalized() * result.distance;
-        self.base_mut()
-            .draw_circle(collision_point, 50.0, Color::RED);
-
-        let angle = if result.snap {
-            (result.angle / FRAC_PI_2).round() * FRAC_PI_2
-        } else {
-            result.angle
-        };
-        let text = format!(
-            "{:.0}px \n{:.0}° {}",
-            result.distance,
-            angle.to_degrees(),
-            if result.snap { "snap" } else { "" }
-        );
-
-        if let Some(font) = ThemeDb::singleton()
-            .get_project_theme()
-            .and_then(|theme| theme.get_default_font())
-        {
-            self.base_mut()
-                .draw_string(font, collision_point, text.into_godot());
-        }
-    }
-    fn get_detection(&self, result: &RaycastResult) -> DetectionResult {
+    fn get_detection(&mut self, result: &RaycastResult) -> DetectionResult {
         let collision_point = result.position;
+        self.last_collision_point = Some(collision_point);
         let position = self.global_position();
         let distance = self.get_distance(position, collision_point);
         let normal = result.normal;

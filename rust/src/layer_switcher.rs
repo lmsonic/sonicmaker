@@ -159,10 +159,10 @@ impl LayerSwitcher {
             self.negative_side_z_index
         };
         match self.change_type {
-            SwitcherTypeChange::PhysicsLayer => player.set_collision_layer(layer),
+            SwitcherTypeChange::PhysicsLayer => player.bind_mut().set_collision_layer(layer),
             SwitcherTypeChange::ZIndex => player.set_z_index(z_index),
             SwitcherTypeChange::Both => {
-                player.set_collision_layer(layer);
+                player.bind_mut().set_collision_layer(layer);
                 player.set_z_index(z_index);
             }
         }

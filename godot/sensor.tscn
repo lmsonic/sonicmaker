@@ -1,4 +1,3 @@
 [gd_scene format=3 uid="uid://cwfcb4naaj1h1"]
 
 [node name="Sensor" type="Sensor"]
-display_debug_label = false

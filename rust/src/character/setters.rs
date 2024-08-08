@@ -143,7 +143,7 @@ impl Character {
 
     #[func]
     pub fn update_sensors(&mut self) {
-        let mask = self.base().get_collision_layer();
+        let mask = self.get_collision_layer();
         {
             let half_width = self.width_radius;
             let half_height = self.height_radius;

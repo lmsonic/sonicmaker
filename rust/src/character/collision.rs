@@ -4,19 +4,15 @@ use crate::{character::Character, sensor::DetectionResult};
 
 impl Character {
     pub(super) fn grounded_right_wall_collision(&mut self, distance: f32) {
-        let mut velocity = self.velocity();
         let right = self.current_mode().right();
-        velocity += right * distance;
+        self.velocity += right * distance;
         self.ground_speed = 0.0;
-        self.set_velocity(velocity);
         godot_print!("Grounded right wall collision, dv:{} ", right * distance);
     }
     pub(super) fn grounded_left_wall_collision(&mut self, distance: f32) {
-        let mut velocity = self.velocity();
         let left = self.current_mode().left();
-        velocity += left * distance;
+        self.velocity += left * distance;
         self.ground_speed = 0.0;
-        self.set_velocity(velocity);
 
         godot_print!("Grounded left wall collision, dv:{} ", left * distance);
     }
@@ -25,8 +21,7 @@ impl Character {
         position.x -= distance;
         self.set_global_position(position);
 
-        let velocity = self.velocity();
-        self.set_velocity(Vector2::new(0.0, velocity.y));
+        self.velocity.x = 0.0;
 
         godot_print!("Airborne left wall collision dx:{}", -distance);
     }
@@ -36,8 +31,7 @@ impl Character {
         position.x += distance;
         self.set_global_position(position);
 
-        let velocity = self.velocity();
-        self.set_velocity(Vector2::new(0.0, velocity.y));
+        self.velocity.x = 0.0;
 
         godot_print!("Airborne right wall collision dx:{}", distance);
     }
@@ -110,11 +104,9 @@ impl Character {
     }
 
     pub(super) fn wall_left_sensor_check(&mut self) -> Option<DetectionResult> {
-        let velocity = self.velocity();
-
         if let Some(sensor_push_left) = &mut self.sensor_push_left {
             let old_position = sensor_push_left.get_global_position();
-            let new_position = old_position + velocity;
+            let new_position = old_position + self.velocity;
             sensor_push_left.set_global_position(new_position);
             let result = if let Ok(result) = sensor_push_left
                 .bind_mut()
@@ -132,10 +124,9 @@ impl Character {
         }
     }
     pub(super) fn wall_right_sensor_check(&mut self) -> Option<DetectionResult> {
-        let velocity = self.velocity();
         if let Some(sensor_push_right) = &mut self.sensor_push_right {
             let old_position = sensor_push_right.get_global_position();
-            let new_position = old_position + velocity;
+            let new_position = old_position + self.velocity;
             sensor_push_right.set_global_position(new_position);
             let result = if let Ok(result) = sensor_push_right
                 .bind_mut()

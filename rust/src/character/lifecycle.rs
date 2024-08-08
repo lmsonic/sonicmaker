@@ -1,7 +1,4 @@
-use godot::{
-    engine::{ICharacterBody2D, ThemeDb},
-    prelude::*,
-};
+use godot::{engine::ThemeDb, prelude::*};
 use real_consts::PI;
 
 use crate::character::{
@@ -10,10 +7,10 @@ use crate::character::{
     Character,
 };
 #[godot_api]
-impl ICharacterBody2D for Character {
+impl INode2D for Character {
     fn draw(&mut self) {
         if self.debug_draw {
-            let velocity = self.velocity();
+            let velocity = self.velocity;
             let rotation = self.base().get_rotation();
             self.base_mut()
                 .draw_set_transform_ex(Vector2::ZERO)
@@ -53,19 +50,17 @@ impl Character {
 
         godot_print!("Airborne");
 
-        let mut velocity = self.velocity();
+        self.handle_variable_jump(&input);
 
-        self.handle_variable_jump(&input, &mut velocity);
+        self.air_accelerate(&input);
 
-        self.air_accelerate(&input, &mut velocity);
+        self.air_drag();
 
-        self.air_drag(&mut velocity);
+        self.update_animation_air();
 
-        self.update_animation_air(velocity);
+        self.update_position();
 
-        self.update_position(velocity);
-
-        self.apply_gravity(velocity);
+        self.apply_gravity();
 
         self.rotate_to_zero();
 
@@ -74,10 +69,12 @@ impl Character {
         self.check_ceiling_air();
         self.check_floor_air();
     }
-    fn handle_variable_jump(&self, input: &Gd<Input>, velocity: &mut Vector2) {
-        if self.state.is_jumping() && !input.is_action_pressed(c"jump".into()) && velocity.y < -4.0
+    fn handle_variable_jump(&mut self, input: &Gd<Input>) {
+        if self.state.is_jumping()
+            && !input.is_action_pressed(c"jump".into())
+            && self.velocity.y < -4.0
         {
-            velocity.y = -4.0;
+            self.velocity.y = -4.0;
         }
     }
 
@@ -124,8 +121,7 @@ impl Character {
                             self.land_on_ceiling();
                             godot_print!("land on ceiling");
                         } else {
-                            let velocity = self.velocity();
-                            self.set_velocity(Vector2::new(velocity.x, 0.0));
+                            self.velocity.y = 0.0;
                             godot_print!("bump on ceiling");
                         }
                     }
@@ -184,40 +180,39 @@ impl Character {
         }
     }
 
-    fn apply_gravity(&mut self, mut velocity: Vector2) {
+    fn apply_gravity(&mut self) {
         godot_print!("Apply gravity");
-        velocity.y += self.gravity;
+        self.velocity.y += self.gravity;
         // Top y speed
-        velocity.y = velocity.y.min(16.0);
-        self.set_velocity(velocity);
+        self.velocity.y = self.velocity.y.min(16.0);
     }
 
-    fn update_position(&mut self, velocity: Vector2) {
+    fn update_position(&mut self) {
         godot_print!("Update position");
         let mut position = self.global_position();
-        position += velocity;
+        position += self.velocity;
         self.set_global_position(position);
     }
 
-    fn air_accelerate(&mut self, input: &Gd<Input>, velocity: &mut Vector2) {
+    fn air_accelerate(&mut self, input: &Gd<Input>) {
         if input.is_action_pressed(c"left".into()) {
             godot_print!("Accelerate left");
-            velocity.x -= self.air_acceleration;
+            self.velocity.x -= self.air_acceleration;
             self.set_flip_h(true);
         }
         if input.is_action_pressed(c"right".into()) {
             godot_print!("Accelerate right");
-            velocity.x += self.air_acceleration;
+            self.velocity.x += self.air_acceleration;
             self.set_flip_h(false);
         }
-        velocity.x = velocity.x.clamp(-self.top_speed, self.top_speed);
+        self.velocity.x = self.velocity.x.clamp(-self.top_speed, self.top_speed);
     }
 
-    fn update_animation_air(&mut self, velocity: Vector2) {
+    fn update_animation_air(&mut self) {
         if !self.state.is_ball() {
-            if velocity.x.abs() >= self.top_speed {
+            if self.velocity.x.abs() >= self.top_speed {
                 self.set_state(State::FullMotion)
-            } else if velocity.x.abs() > 0.0 {
+            } else if self.velocity.x.abs() > 0.0 {
                 self.set_state(State::StartMotion)
             } else {
                 self.set_state(State::Idle)
@@ -247,9 +242,9 @@ impl Character {
 
         self.check_rolling(&input);
 
-        let velocity = self.update_velocity();
+        self.update_velocity();
 
-        self.update_position(velocity);
+        self.update_position();
 
         self.check_floor();
 
@@ -309,16 +304,13 @@ impl Character {
         }
     }
 
-    fn update_velocity(&mut self) -> Vector2 {
+    fn update_velocity(&mut self) {
         // Adjust velocity based on slope
         godot_print!("Update velocity based on slope");
 
         let x = self.ground_speed * self.ground_angle.cos();
         let y = -self.ground_speed * self.ground_angle.sin();
-        let velocity = Vector2::new(x, y);
-        self.set_velocity(velocity);
-
-        velocity
+        self.velocity = Vector2::new(x, y);
     }
 
     fn check_walls(&mut self) {
@@ -344,17 +336,14 @@ impl Character {
     fn handle_jump(&mut self, input: &Gd<Input>) -> bool {
         // Jump Check
         if input.is_action_just_pressed(c"jump".into()) && self.can_jump() {
-            godot_print!("Jump");
-            let mut velocity = self.velocity();
             let (sin, cos) = self.ground_angle.sin_cos();
-            velocity.x -= self.jump_force * sin;
-            velocity.y -= self.jump_force * cos;
-            godot_print!("{velocity}");
+            self.velocity.x -= self.jump_force * sin;
+            self.velocity.y -= self.jump_force * cos;
+            godot_print!("Jump {}", self.velocity);
 
             self.set_grounded(false);
             self.set_state(State::JumpBall);
-            self.set_velocity(velocity);
-            self.update_position(velocity);
+            self.update_position();
 
             return true;
         }
@@ -417,9 +406,10 @@ impl Character {
         }
         if self.state.is_rolling() {
             // Optional fix : use ground speed instead
-            let mut velocity = self.velocity();
-            velocity.x = velocity.x.clamp(-self.roll_top_speed, self.roll_top_speed);
-            self.set_velocity(velocity);
+            self.velocity.x = self
+                .velocity
+                .x
+                .clamp(-self.roll_top_speed, self.roll_top_speed);
         }
     }
 
@@ -451,8 +441,7 @@ impl Character {
     }
 
     fn land_on_ceiling(&mut self) {
-        let velocity = self.velocity();
-        self.ground_speed = velocity.y * -self.ground_angle.sin().signum();
+        self.ground_speed = self.velocity.y * -self.ground_angle.sin().signum();
     }
     fn land_on_floor(&mut self) {
         #[derive(Default, Debug, PartialEq, Eq, Clone, Copy)]
@@ -480,32 +469,31 @@ impl Character {
             }
         }
         let floor_kind = FloorKind::from_floor_angle(self.ground_angle);
-        let velocity = self.velocity();
-        let motion_direction = MotionDirection::from_velocity(velocity);
+        let motion_direction = MotionDirection::from_velocity(self.velocity);
 
         self.ground_speed = match floor_kind {
-            FloorKind::Flat => velocity.x,
+            FloorKind::Flat => self.velocity.x,
             FloorKind::Slope => {
                 if motion_direction.is_horizontal() {
-                    velocity.x
+                    self.velocity.x
                 } else {
-                    velocity.y * 0.5 * -self.ground_angle.sin().signum()
+                    self.velocity.y * 0.5 * -self.ground_angle.sin().signum()
                 }
             }
             FloorKind::Steep => {
                 if motion_direction.is_horizontal() {
-                    velocity.x
+                    self.velocity.x
                 } else {
-                    velocity.y * -self.ground_angle.sin().signum()
+                    self.velocity.y * -self.ground_angle.sin().signum()
                 }
             }
         };
         self.set_velocity(Vector2::ZERO);
     }
-    fn air_drag(&self, velocity: &mut Vector2) {
-        if velocity.y < 0.0 && velocity.y > -4.0 {
+    fn air_drag(&mut self) {
+        if self.velocity.y < 0.0 && self.velocity.y > -4.0 {
             godot_print!("Apply drag");
-            velocity.x -= (velocity.x / 0.125) / 256.0;
+            self.velocity.x -= (self.velocity.x / 0.125) / 256.0;
         }
     }
 }

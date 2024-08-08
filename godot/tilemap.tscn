@@ -18,9 +18,9 @@ script/source = "extends Node
 func _input(event: InputEvent) -> void:
 	if Input.is_action_just_pressed(\"pause\"):
 		get_tree().paused = !get_tree().paused
-	if Input.is_key_pressed(KEY_DOWN):
+	if Input.is_action_just_pressed(\"slow_time\"):
 		self.ticks = 2
-	elif Input.is_key_pressed(KEY_UP):
+	elif Input.is_action_just_pressed(\"normal_time\"):
 		self.ticks = 60
 
 
@@ -39,8 +39,8 @@ layer_0/tile_data = PackedInt32Array(393216, 0, 6, 458752, 0, 7, 524288, 0, 8, 5
 
 [node name="Character" parent="." instance=ExtResource("1_dsfe8")]
 is_grounded = true
-position = Vector2(737, 55)
 velocity = Vector2(0, 5.6875)
+position = Vector2(737, 55)
 
 [node name="Camera2D" type="Camera2D" parent="Character"]
 drag_vertical_enabled = true

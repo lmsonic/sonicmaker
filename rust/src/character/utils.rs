@@ -1,3 +1,5 @@
+use std::f32::consts::TAU;
+
 use crate::sensor::{DetectionResult, Direction};
 
 use super::Character;
@@ -84,11 +86,12 @@ impl Mode {
 impl Mode {
     #[allow(clippy::just_underscores_and_digits)]
     pub(super) fn from_ground_angle(angle: f32) -> Self {
-        let _46 = f32::to_radians(46.0);
+        let _46 = f32::to_radians(45.0);
         let _135 = f32::to_radians(135.0);
         let _226 = f32::to_radians(226.0);
         let _315 = f32::to_radians(315.0);
         let _360 = f32::to_radians(360.0);
+
         if (0.0.._46).contains(&angle) || (_315..=_360).contains(&angle) {
             Self::Floor
         } else if (_46.._135).contains(&angle) {
@@ -155,12 +158,6 @@ impl MotionDirection {
     }
 }
 impl Character {
-    pub(super) fn velocity(&self) -> Vector2 {
-        self.base().get_velocity()
-    }
-    pub(super) fn set_velocity(&mut self, value: Vector2) {
-        self.base_mut().set_velocity(value)
-    }
     pub(super) fn position(&self) -> Vector2 {
         self.base().get_position()
     }
@@ -211,27 +208,24 @@ impl Character {
         // return result.distance > -14.0 && result.distance < 14.0;
         // Sonic 2 and onwards
         let mode = Mode::from_ground_angle(result.angle);
-        let velocity = self.velocity();
         let distance = result.distance;
         if mode.is_sideways() {
-            distance <= (velocity.y.abs() + 4.0).min(14.0) && distance >= -14.0
+            distance <= (self.velocity.y.abs() + 4.0).min(14.0) && distance >= -14.0
         } else {
-            distance <= (velocity.x.abs() + 4.0).min(14.0) && distance >= -14.0
+            distance <= (self.velocity.x.abs() + 4.0).min(14.0) && distance >= -14.0
         }
     }
     pub(super) fn is_landed(&mut self, result: DetectionResult) -> bool {
         if result.distance >= 0.0 {
             return false;
         }
-        let velocity = self.velocity();
-
         let direction = self.current_motion_direction();
         match direction {
             MotionDirection::Down => self
                 .ground_sensor_results()
                 .iter()
-                .any(|r| r.distance >= -(velocity.y + 8.0)),
-            MotionDirection::Right | MotionDirection::Left => velocity.y >= 0.0,
+                .any(|r| r.distance >= -(self.velocity.y + 8.0)),
+            MotionDirection::Right | MotionDirection::Left => self.velocity.y >= 0.0,
             MotionDirection::Up => false,
         }
     }
@@ -239,18 +233,15 @@ impl Character {
     pub(super) fn should_land_on_ceiling(&self) -> bool {
         let _91 = f32::to_radians(91.0);
         let _225 = f32::to_radians(225.0);
-        let velocity = self.velocity();
-        let motion_direction = MotionDirection::from_velocity(velocity);
+        let motion_direction = MotionDirection::from_velocity(self.velocity);
         (_91..=_225).contains(&self.ground_angle) && motion_direction == MotionDirection::Up
     }
     #[allow(clippy::just_underscores_and_digits)]
     pub(super) fn should_activate_wall_sensors(&self) -> bool {
-        let _90 = f32::to_radians(90.0);
         let _270 = f32::to_radians(270.0);
-        let _360 = f32::to_radians(360.0);
-        (0.0..=_90).contains(&self.ground_angle)
-            || (_270..=_360).contains(&self.ground_angle)
-            || self.ground_angle % _90 == 0.0
+        (0.0..=FRAC_PI_2).contains(&self.ground_angle)
+            || (_270..=TAU).contains(&self.ground_angle)
+            || self.ground_angle % FRAC_PI_2 == 0.0
     }
 
     pub(super) fn current_slope_factor(&self) -> f32 {
@@ -281,7 +272,7 @@ impl Character {
         }
     }
     pub(super) fn current_motion_direction(&self) -> MotionDirection {
-        MotionDirection::from_velocity(self.velocity())
+        MotionDirection::from_velocity(self.velocity)
     }
     pub(super) fn current_mode(&self) -> Mode {
         if self.is_grounded {
