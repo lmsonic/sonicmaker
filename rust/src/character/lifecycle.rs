@@ -2,7 +2,7 @@ use godot::{engine::ThemeDb, prelude::*};
 use real_consts::PI;
 
 use crate::character::{
-    setters::State,
+    godot_api::State,
     utils::{Mode, MotionDirection},
     Character,
 };
@@ -50,11 +50,14 @@ impl Character {
 
         godot_print!("Airborne");
 
-        self.handle_variable_jump(&input);
+        if !self.state.is_hurt() {
+            // Disable input when hurt
+            self.handle_variable_jump(&input);
 
-        self.air_accelerate(&input);
+            self.air_accelerate(&input);
 
-        self.air_drag();
+            self.air_drag();
+        }
 
         self.update_animation_air();
 
@@ -182,7 +185,11 @@ impl Character {
 
     fn apply_gravity(&mut self) {
         godot_print!("Apply gravity");
-        self.velocity.y += self.gravity;
+        if self.state.is_hurt() {
+            self.velocity.y += self.hurt_gravity;
+        } else {
+            self.velocity.y += self.gravity;
+        }
         // Top y speed
         self.velocity.y = self.velocity.y.min(16.0);
     }
@@ -209,7 +216,7 @@ impl Character {
     }
 
     fn update_animation_air(&mut self) {
-        if !self.state.is_ball() {
+        if !(self.state.is_ball() || self.state.is_hurt()) {
             if self.velocity.x.abs() >= self.top_speed {
                 self.set_state(State::FullMotion)
             } else if self.velocity.x.abs() > 0.0 {
@@ -465,6 +472,12 @@ impl Character {
                 }
             }
         }
+        if self.state.is_hurt() {
+            self.ground_speed = 0.0;
+            self.set_velocity(Vector2::ZERO);
+            return;
+        }
+
         let floor_kind = FloorKind::from_floor_angle(self.ground_angle);
         let motion_direction = MotionDirection::from_velocity(self.velocity);
 

@@ -1,11 +1,11 @@
 mod collision;
+mod godot_api;
 mod lifecycle;
-mod setters;
 mod utils;
 
 use godot::engine::{AnimatedSprite2D, Area2D, CollisionShape2D};
 use godot::prelude::*;
-use setters::{Kind, State};
+use godot_api::{Kind, State};
 
 use crate::sensor::Sensor;
 
@@ -32,7 +32,7 @@ pub struct Character {
     #[var(get, set = set_push_radius)]
     #[init(default = 10.0)]
     push_radius: f32,
-    #[export]
+
     #[init(default = 6.5)]
     jump_force: f32,
     #[init(default = 0.09375)]
@@ -93,5 +93,15 @@ pub struct Character {
     collision_layer: u32,
     #[export]
     velocity: Vector2,
+    #[export]
+    #[var(set, get)]
+    rings: i32,
+
+    #[init(default = 2.0)]
+    hurt_x_force: f32,
+    #[init(default = -4.0)]
+    hurt_y_force: f32,
+    #[init(default = 0.1875)]
+    hurt_gravity: f32,
     base: Base<Node2D>,
 }

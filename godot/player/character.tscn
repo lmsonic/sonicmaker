@@ -163,6 +163,7 @@ sensor_push_left = NodePath("Sensors/SensorPushLeft")
 sensor_push_right = NodePath("Sensors/SensorPushRight")
 debug_draw = true
 collision_layer = 1
+rings = 0
 position = Vector2(0, -19)
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
@@ -225,10 +226,11 @@ monitoring = false
 shape = SubResource("RectangleShape2D_16psm")
 debug_color = Color(0, 0.6, 0.701961, 0)
 
-[node name="PlayerHitbox" type="Area2D" parent="Sensors"]
+[node name="PlayerHitbox" type="Area2D" parent="Sensors" node_paths=PackedStringArray("player")]
 collision_mask = 0
 monitoring = false
 script = ExtResource("4_2cy7d")
+player = NodePath("../..")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Sensors/PlayerHitbox"]
 shape = SubResource("RectangleShape2D_j2lx3")

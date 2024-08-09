@@ -20,6 +20,7 @@ pub(super) enum State {
     FullMotion,
     JumpBall,
     RollingBall,
+    Hurt,
 }
 
 impl State {
@@ -42,10 +43,34 @@ impl State {
     pub(super) fn is_rolling(&self) -> bool {
         matches!(self, Self::RollingBall)
     }
+
+    /// Returns `true` if the state is [`Hurt`].
+    ///
+    /// [`Hurt`]: State::Hurt
+    #[must_use]
+    pub(super) fn is_hurt(&self) -> bool {
+        matches!(self, Self::Hurt)
+    }
 }
 use crate::{character::Character, sensor::DetectionResult};
 #[godot_api]
 impl Character {
+    #[func]
+    fn on_hurt(&mut self, hazard: Gd<Node2D>) {
+        if self.rings <= 0 {
+            // Death
+            if let Some(mut tree) = self.base().get_tree() {
+                tree.call_deferred("reload_current_scene".into(), &[]);
+                return;
+            }
+        }
+        let hazard_position = hazard.get_global_position();
+        let sign = (self.position().x - hazard_position.x).signum();
+        self.rings = 0;
+        self.velocity = Vector2::new(self.hurt_x_force * sign, self.hurt_y_force);
+        self.set_state(State::Hurt);
+        self.set_grounded(false);
+    }
     #[func]
     pub fn set_collision_layer(&mut self, value: u32) {
         self.collision_layer = value;
@@ -152,6 +177,8 @@ impl Character {
                 State::JumpBall | State::RollingBall => {
                     sprites.play_ex().name(c"rolling".into()).done()
                 }
+                // TODO: add the hurt animation
+                State::Hurt => sprites.play_ex().name(c"idle".into()).done(),
             }
         }
     }
