@@ -6,6 +6,9 @@ use crate::character::{
     utils::{Mode, MotionDirection},
     Character,
 };
+
+// Genesis runs at 60 fps
+const FPS: f32 = 60.0;
 #[godot_api]
 impl INode2D for Character {
     fn draw(&mut self) {
@@ -34,17 +37,23 @@ impl INode2D for Character {
             }
         }
     }
-    fn physics_process(&mut self, _delta: f64) {
+    fn physics_process(&mut self, delta: f64) {
         self.base_mut().queue_redraw();
-        if self.is_grounded {
-            self.grounded()
+
+        let delta = if self.fix_delta {
+            1.0
         } else {
-            self.airborne()
+            delta as f32 * FPS
+        };
+        if self.is_grounded {
+            self.grounded(delta)
+        } else {
+            self.airborne(delta)
         }
     }
 }
 impl Character {
-    fn airborne(&mut self) {
+    fn airborne(&mut self, delta: f32) {
         // Airborne
         let input = Input::singleton();
 
@@ -54,16 +63,16 @@ impl Character {
             // Disable input when hurt
             self.handle_variable_jump(&input);
 
-            self.air_accelerate(&input);
+            self.air_accelerate(&input, delta);
 
-            self.air_drag();
+            self.air_drag(delta);
         }
 
         self.update_animation_air();
 
-        self.update_position();
+        self.update_position(delta);
 
-        self.apply_gravity();
+        self.apply_gravity(delta);
 
         self.rotate_to_zero();
 
@@ -183,33 +192,33 @@ impl Character {
         }
     }
 
-    fn apply_gravity(&mut self) {
+    fn apply_gravity(&mut self, delta: f32) {
         godot_print!("Apply gravity");
         if self.state.is_hurt() {
-            self.velocity.y += self.hurt_gravity;
+            self.velocity.y += self.hurt_gravity * delta;
         } else {
-            self.velocity.y += self.gravity;
+            self.velocity.y += self.gravity * delta;
         }
         // Top y speed
         self.velocity.y = self.velocity.y.min(16.0);
     }
 
-    fn update_position(&mut self) {
+    fn update_position(&mut self, delta: f32) {
         godot_print!("Update position");
         let mut position = self.global_position();
-        position += self.velocity;
+        position += self.velocity * delta;
         self.set_global_position(position);
     }
 
-    fn air_accelerate(&mut self, input: &Gd<Input>) {
+    fn air_accelerate(&mut self, input: &Gd<Input>, delta: f32) {
         if input.is_action_pressed(c"left".into()) {
             godot_print!("Accelerate left");
-            self.velocity.x -= self.air_acceleration;
+            self.velocity.x -= self.air_acceleration * delta;
             self.set_flip_h(true);
         }
         if input.is_action_pressed(c"right".into()) {
             godot_print!("Accelerate right");
-            self.velocity.x += self.air_acceleration;
+            self.velocity.x += self.air_acceleration * delta;
             self.set_flip_h(false);
         }
         self.velocity.x = self.velocity.x.clamp(-self.top_speed, self.top_speed);
@@ -226,7 +235,7 @@ impl Character {
             };
         }
     }
-    fn grounded(&mut self) {
+    fn grounded(&mut self, delta: f32) {
         self.check_unrolling();
 
         self.update_animation();
@@ -235,15 +244,16 @@ impl Character {
 
         godot_print!("Grounded");
 
-        self.apply_slope_factor();
+        self.apply_slope_factor(delta);
 
         if self.handle_jump(&input) {
+            self.update_position(delta);
             return;
         }
 
-        self.ground_accelerate(&input);
+        self.ground_accelerate(&input, delta);
 
-        self.apply_friction(&input);
+        self.apply_friction(&input, delta);
 
         self.check_walls();
 
@@ -253,7 +263,7 @@ impl Character {
 
         self.update_velocity();
 
-        self.update_position();
+        self.update_position(delta);
 
         self.handle_slipping();
     }
@@ -347,14 +357,13 @@ impl Character {
 
             self.set_grounded(false);
             self.set_state(State::JumpBall);
-            self.update_position();
 
             return true;
         }
         false
     }
 
-    fn apply_friction(&mut self, input: &Gd<Input>) {
+    fn apply_friction(&mut self, input: &Gd<Input>, delta: f32) {
         // Optional fix: use friction always when control lock is active
 
         // Friction
@@ -363,12 +372,12 @@ impl Character {
         if self.state.is_rolling() || !horizontal_input_pressed {
             godot_print!("Apply friction");
 
-            self.ground_speed -=
-                self.ground_speed.abs().min(self.current_friction()) * self.ground_speed.signum();
+            self.ground_speed -= self.ground_speed.abs().min(self.current_friction() * delta)
+                * self.ground_speed.signum();
         }
     }
 
-    fn ground_accelerate(&mut self, input: &Gd<Input>) {
+    fn ground_accelerate(&mut self, input: &Gd<Input>, delta: f32) {
         if self.control_lock_timer <= 0 {
             let is_rolling = self.state.is_rolling();
             // Ground Acceleration
@@ -376,14 +385,17 @@ impl Character {
                 if self.ground_speed > 0.0 {
                     // Turn around
                     godot_print!("Turn around");
-                    self.ground_speed -= self.current_deceleration();
-                    if self.ground_speed <= 0.0 || is_rolling && self.ground_speed.abs() < 0.1484375
+                    self.ground_speed -= self.current_deceleration() * delta;
+
+                    let roll_turn_threshold = (self.roll_deceleration + self.roll_friction) * delta;
+                    if self.ground_speed <= 0.0
+                        || is_rolling && self.ground_speed.abs() < roll_turn_threshold
                     {
                         self.ground_speed = -0.5;
                     }
                 } else if self.ground_speed > -self.top_speed && !is_rolling {
                     godot_print!("Accelerate left");
-                    self.ground_speed -= self.acceleration;
+                    self.ground_speed -= self.acceleration * delta;
                     self.ground_speed = self.ground_speed.max(-self.top_speed);
                 }
 
@@ -393,14 +405,16 @@ impl Character {
                 if self.ground_speed < 0.0 {
                     // Turn around
                     godot_print!("Turn around");
-                    self.ground_speed += self.current_deceleration();
-                    if self.ground_speed >= 0.0 || is_rolling && self.ground_speed.abs() < 0.1484375
+                    self.ground_speed += self.current_deceleration() * delta;
+                    let roll_turn_threshold = (self.roll_deceleration + self.roll_friction) * delta;
+                    if self.ground_speed >= 0.0
+                        || is_rolling && self.ground_speed.abs() < roll_turn_threshold
                     {
                         self.ground_speed = 0.5;
                     }
                 } else if self.ground_speed < self.top_speed && !is_rolling {
                     godot_print!("Accelerate right");
-                    self.ground_speed += self.acceleration;
+                    self.ground_speed += self.acceleration * delta;
                     self.ground_speed = self.ground_speed.min(self.top_speed);
                 }
 
@@ -417,17 +431,18 @@ impl Character {
         }
     }
 
-    fn apply_slope_factor(&mut self) {
+    fn apply_slope_factor(&mut self, delta: f32) {
         // Slow down uphill and speeding up downhill
         if self.current_mode() != Mode::Ceiling {
             let slope_factor = self.current_slope_factor() * self.ground_angle.sin();
             // Forces moving when walking on steep slopes
             let is_moving = self.ground_speed.abs() > 0.0;
             let is_rolling = self.state.is_rolling();
-            let is_on_steep = slope_factor >= 0.05078125;
+            const STEEP_ANGLE: f32 = 0.05078125;
+            let is_on_steep = slope_factor >= STEEP_ANGLE;
             if is_moving || is_rolling || is_on_steep {
                 godot_print!("Applying slope factor {slope_factor}");
-                self.ground_speed -= slope_factor;
+                self.ground_speed -= slope_factor * delta;
             }
         }
     }
@@ -500,10 +515,10 @@ impl Character {
         };
         self.set_velocity(Vector2::ZERO);
     }
-    fn air_drag(&mut self) {
+    fn air_drag(&mut self, delta: f32) {
         if self.velocity.y < 0.0 && self.velocity.y > -4.0 {
             godot_print!("Apply drag");
-            self.velocity.x -= (self.velocity.x / 0.125) / 256.0;
+            self.velocity.x -= (self.velocity.x / 0.125) / 256.0 * delta;
         }
     }
 }

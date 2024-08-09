@@ -103,5 +103,9 @@ pub struct Character {
     hurt_y_force: f32,
     #[init(default = 0.1875)]
     hurt_gravity: f32,
+
+    #[export]
+    #[init(default = true)]
+    pub fix_delta: bool,
     base: Base<Node2D>,
 }

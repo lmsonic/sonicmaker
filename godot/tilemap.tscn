@@ -41,6 +41,7 @@ layer_0/tile_data = PackedInt32Array(393216, 0, 6, 458752, 0, 7, 524288, 0, 8, 5
 
 [node name="Character" parent="." instance=ExtResource("1_dsfe8")]
 velocity = Vector2(0, 5.6875)
+fix_delta = true
 position = Vector2(259, 89)
 
 [node name="Camera2D" type="Camera2D" parent="Character"]
