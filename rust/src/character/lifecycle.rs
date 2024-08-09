@@ -81,7 +81,7 @@ impl Character {
     fn check_floor_air(&mut self) {
         match self.current_motion_direction() {
             MotionDirection::Right | MotionDirection::Left | MotionDirection::Down => {
-                if let Some(result) = self.ground_check() {
+                if let Some(result) = self.ground_check(true) {
                     if self.is_landed(result) {
                         // Floor collision
                         let mut position = self.global_position();
@@ -106,7 +106,7 @@ impl Character {
     fn check_ceiling_air(&mut self) {
         match self.current_motion_direction() {
             MotionDirection::Right | MotionDirection::Left | MotionDirection::Up => {
-                if let Some(result) = self.ceiling_check() {
+                if let Some(result) = self.ceiling_check(true) {
                     if result.distance < 0.0 {
                         // Ceiling collision
                         let mut position = self.global_position();
@@ -134,26 +134,26 @@ impl Character {
     fn check_walls_air(&mut self) {
         match self.current_motion_direction() {
             MotionDirection::Up | MotionDirection::Down => {
-                if let Some(result) = self.airborne_wall_right_sensor_check() {
+                if let Some(result) = self.wall_right_sensor_check(true) {
                     if result.distance < 0.0 {
                         self.airborne_right_wall_collision(result.distance);
                     }
                 }
-                if let Some(result) = self.airborne_wall_left_sensor_check() {
+                if let Some(result) = self.wall_left_sensor_check(true) {
                     if result.distance < 0.0 {
                         self.airborne_left_wall_collision(result.distance);
                     }
                 }
             }
             MotionDirection::Right => {
-                if let Some(result) = self.airborne_wall_right_sensor_check() {
+                if let Some(result) = self.wall_right_sensor_check(true) {
                     if result.distance < 0.0 {
                         self.airborne_right_wall_collision(result.distance);
                     }
                 }
             }
             MotionDirection::Left => {
-                if let Some(result) = self.airborne_wall_left_sensor_check() {
+                if let Some(result) = self.wall_left_sensor_check(true) {
                     if result.distance < 0.0 {
                         self.airborne_left_wall_collision(result.distance);
                     }
@@ -260,9 +260,6 @@ impl Character {
         if self.state.is_rolling() && self.ground_speed.abs() < 0.5 {
             godot_print!("Unrolling");
             self.set_state(State::Idle);
-            let position = self.global_position();
-            let down = self.current_mode().down();
-            self.set_global_position(position + down * 5.0)
         }
     }
 
@@ -290,7 +287,7 @@ impl Character {
 
     fn check_floor(&mut self) {
         // Floor checking
-        if let Some(result) = self.ground_check() {
+        if let Some(result) = self.ground_check(false) {
             if self.should_snap_to_floor(result) {
                 self.snap_to_floor(result.distance);
                 self.set_ground_angle(result)
@@ -318,13 +315,13 @@ impl Character {
 
         if self.should_activate_wall_sensors() {
             if self.ground_speed > 0.0 {
-                if let Some(result) = self.wall_right_sensor_check() {
+                if let Some(result) = self.wall_right_sensor_check(false) {
                     if result.distance < 0.0 {
                         self.grounded_right_wall_collision(result.distance);
                     }
                 }
             } else if self.ground_speed < 0.0 {
-                if let Some(result) = self.wall_left_sensor_check() {
+                if let Some(result) = self.wall_left_sensor_check(false) {
                     if result.distance < 0.0 {
                         self.grounded_left_wall_collision(result.distance);
                     }
@@ -432,7 +429,7 @@ impl Character {
         if !self.state.is_rolling() {
             if self.ground_speed.abs() >= self.top_speed {
                 self.set_state(State::FullMotion);
-            } else if self.ground_speed.abs() > 0.0 {
+            } else if self.ground_speed.abs() > 0.1 {
                 self.set_state(State::StartMotion);
             } else {
                 self.set_state(State::Idle);

@@ -95,7 +95,6 @@ impl Character {
 
     #[func]
     pub(super) fn set_height_radius(&mut self, value: f32) {
-        let delta = self.height_radius - value;
         self.height_radius = value;
         self.update_sensors();
     }
@@ -107,7 +106,7 @@ impl Character {
     fn update_y_position(&mut self, delta: f32) {
         let mut position = self.global_position();
         let down = self.current_mode().down();
-        position += down * delta;
+        position += down * (delta - 2.0);
         self.set_global_position(position);
     }
 
@@ -140,11 +139,9 @@ impl Character {
 
         if was_ball && !is_ball {
             self.set_character(self.character);
-            self.update_y_position(-5.0);
         } else if is_ball && !was_ball {
             self.set_width_radius(7.0);
             self.set_height_radius(14.0);
-            self.update_y_position(5.0);
         }
         self.state = value;
         if let Some(sprites) = &mut self.sprites {

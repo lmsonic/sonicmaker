@@ -175,7 +175,7 @@ impl Character {
         self.ground_speed.signum() == self.ground_angle.sin().signum()
     }
     pub(super) fn can_jump(&mut self) -> bool {
-        if let Some(result) = self.ceiling_check() {
+        if let Some(result) = self.ceiling_check(false) {
             return result.distance >= 6.0;
         }
         true
@@ -222,7 +222,7 @@ impl Character {
         let direction = self.current_motion_direction();
         match direction {
             MotionDirection::Down => self
-                .ground_sensor_results()
+                .ground_sensor_results(false)
                 .iter()
                 .any(|r| r.distance >= -(self.velocity.y + 8.0)),
             MotionDirection::Right | MotionDirection::Left => self.velocity.y >= 0.0,
