@@ -11,14 +11,17 @@ impl Character {
         let mut position = self.global_position();
         position += right * distance;
         self.ground_speed = 0.0;
+        self.velocity.x = 0.0;
+
         self.set_global_position(position);
         godot_print!("Grounded right wall collision, d:{} ", right * distance);
     }
     pub(super) fn grounded_left_wall_collision(&mut self, distance: f32) {
         let left = self.current_mode().left();
         let mut position = self.global_position();
-        position += left * (distance);
+        position += left * distance;
         self.ground_speed = 0.0;
+        self.velocity.x = 0.0;
         self.set_global_position(position);
 
         godot_print!("Grounded left wall collision, dp:{} ", left * distance);

@@ -240,13 +240,13 @@ impl Character {
 
         self.check_walls();
 
+        self.check_floor();
+
         self.check_rolling(&input);
 
         self.update_velocity();
 
         self.update_position();
-
-        self.check_floor();
 
         self.handle_slipping();
     }

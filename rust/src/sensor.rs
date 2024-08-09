@@ -239,20 +239,19 @@ impl Sensor {
     }
 
     fn _sense(&mut self) -> Option<DetectionResult> {
-        let position = self.global_position();
         let target_direction = self.direction.target_direction();
         let snapped_position = self.snapped_position();
         let mut result;
         if let Some(r) = self.raycast(snapped_position, snapped_position + target_direction) {
-            let distance = self.get_distance(position, r.position);
+            let distance = self.get_distance(r.position);
             result = Some(self.get_detection(&r));
-            if distance < 1.0 {
+            if distance <= 0.0 {
                 // Regression
                 let tile_above_position = snapped_position - target_direction;
                 if let Some(r) =
                     self.raycast(tile_above_position, tile_above_position + target_direction)
                 {
-                    let distance = self.get_distance(position, r.position);
+                    let distance = self.get_distance(r.position);
 
                     if distance < TILE_SIZE {
                         result = Some(self.get_detection(&r));
@@ -291,8 +290,7 @@ impl Sensor {
     fn get_detection(&mut self, result: &RaycastResult) -> DetectionResult {
         let collision_point = result.position;
         self.last_collision_point = Some(collision_point);
-        let position = self.global_position();
-        let distance = self.get_distance(position, collision_point);
+        let distance = self.get_distance(collision_point);
         let normal = result.normal;
         let snapped = if let Some((layer, tile_data)) = self.get_collided_tile_data(result) {
             let polygon_full = if tile_data.get_collision_polygons_count(layer) > 0 {
@@ -348,7 +346,8 @@ impl Sensor {
         Some((layer, tile_data))
     }
 
-    fn get_distance(&self, position: Vector2, collision_point: Vector2) -> f32 {
+    fn get_distance(&self, collision_point: Vector2) -> f32 {
+        let position = self.global_position();
         match self.direction {
             Direction::Up => position.y - collision_point.y,
             Direction::Down => collision_point.y - position.y,
