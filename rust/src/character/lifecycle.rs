@@ -262,7 +262,7 @@ impl Character {
             self.set_state(State::Idle);
             let position = self.global_position();
             let down = self.current_mode().down();
-            self.set_global_position(position + down * 3.0)
+            self.set_global_position(position + down * 5.0)
         }
     }
 

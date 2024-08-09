@@ -47,6 +47,28 @@ use crate::{character::Character, sensor::DetectionResult};
 #[godot_api]
 impl Character {
     #[func]
+    pub fn set_collision_layer(&mut self, value: u32) {
+        self.collision_layer = value;
+        if let Some(sensor_floor_left) = &mut self.sensor_floor_left {
+            sensor_floor_left.bind_mut().set_collision_mask(value);
+        };
+        if let Some(sensor_floor_right) = &mut self.sensor_floor_right {
+            sensor_floor_right.bind_mut().set_collision_mask(value);
+        };
+        if let Some(sensor_ceiling_left) = &mut self.sensor_ceiling_left {
+            sensor_ceiling_left.bind_mut().set_collision_mask(value);
+        };
+        if let Some(sensor_ceiling_right) = &mut self.sensor_ceiling_right {
+            sensor_ceiling_right.bind_mut().set_collision_mask(value);
+        };
+        if let Some(sensor_push_left) = &mut self.sensor_push_left {
+            sensor_push_left.bind_mut().set_collision_mask(value);
+        };
+        if let Some(sensor_push_right) = &mut self.sensor_push_right {
+            sensor_push_right.bind_mut().set_collision_mask(value);
+        };
+    }
+    #[func]
     pub(super) fn set_grounded(&mut self, value: bool) {
         self.is_grounded = value;
         self.update_sensors();
@@ -76,7 +98,6 @@ impl Character {
         let delta = self.height_radius - value;
         self.height_radius = value;
         self.update_sensors();
-        self.update_y_position(delta);
     }
     #[func]
     pub(super) fn set_push_radius(&mut self, value: f32) {
@@ -119,9 +140,11 @@ impl Character {
 
         if was_ball && !is_ball {
             self.set_character(self.character);
+            self.update_y_position(-5.0);
         } else if is_ball && !was_ball {
             self.set_width_radius(7.0);
             self.set_height_radius(14.0);
+            self.update_y_position(5.0);
         }
         self.state = value;
         if let Some(sprites) = &mut self.sprites {
@@ -143,7 +166,6 @@ impl Character {
 
     #[func]
     pub fn update_sensors(&mut self) {
-        let mask = self.get_collision_layer();
         {
             let half_width = self.width_radius;
             let half_height = self.height_radius;
@@ -163,22 +185,18 @@ impl Character {
             if let Some(sensor_floor_left) = &mut self.sensor_floor_left {
                 sensor_floor_left.set_position(bottom_left);
                 sensor_floor_left.bind_mut().set_direction(down_direction);
-                sensor_floor_left.bind_mut().set_collision_mask(mask);
             };
             if let Some(sensor_floor_right) = &mut self.sensor_floor_right {
                 sensor_floor_right.set_position(bottom_right);
                 sensor_floor_right.bind_mut().set_direction(down_direction);
-                sensor_floor_right.bind_mut().set_collision_mask(mask);
             };
             if let Some(sensor_ceiling_left) = &mut self.sensor_ceiling_left {
                 sensor_ceiling_left.set_position(top_left);
                 sensor_ceiling_left.bind_mut().set_direction(up_direction);
-                sensor_ceiling_left.bind_mut().set_collision_mask(mask);
             };
             if let Some(sensor_ceiling_right) = &mut self.sensor_ceiling_right {
                 sensor_ceiling_right.set_position(top_right);
                 sensor_ceiling_right.bind_mut().set_direction(up_direction);
-                sensor_ceiling_right.bind_mut().set_collision_mask(mask);
             };
         }
         {
@@ -200,12 +218,10 @@ impl Character {
             if let Some(sensor_push_left) = &mut self.sensor_push_left {
                 sensor_push_left.set_position(center_left);
                 sensor_push_left.bind_mut().set_direction(left_direction);
-                sensor_push_left.bind_mut().set_collision_mask(mask);
             };
             if let Some(sensor_push_right) = &mut self.sensor_push_right {
                 sensor_push_right.set_position(center_right);
                 sensor_push_right.bind_mut().set_direction(right_direction);
-                sensor_push_right.bind_mut().set_collision_mask(mask);
             };
         }
         self.update_shapes();

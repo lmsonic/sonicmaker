@@ -246,7 +246,8 @@ impl Sensor {
         if let Some(r) = self.raycast(snapped_position, snapped_position + target_direction) {
             let distance = self.get_distance(position, r.position);
             result = Some(self.get_detection(&r));
-            if distance <= 0.0 {
+            if distance < 1.0 {
+                // Regression
                 let tile_above_position = snapped_position - target_direction;
                 if let Some(r) =
                     self.raycast(tile_above_position, tile_above_position + target_direction)
@@ -259,9 +260,11 @@ impl Sensor {
                 }
             }
         } else {
-            let double_target_direction = 2.0 * target_direction;
+            // Extension
+            let tile_below_position = snapped_position + target_direction;
+
             result = self
-                .raycast(position, position + double_target_direction)
+                .raycast(tile_below_position, tile_below_position + target_direction)
                 .map(|r| self.get_detection(&r));
         };
         self.last_result = result;
@@ -357,10 +360,10 @@ impl Sensor {
     fn snapped_position(&self) -> Vector2 {
         let mut position = self.global_position();
         match self.direction {
-            Direction::Up => position.y += TILE_SIZE - (position.y % TILE_SIZE),
-            Direction::Down => position.y -= position.y % TILE_SIZE,
-            Direction::Left => position.x += TILE_SIZE - (position.x % TILE_SIZE),
-            Direction::Right => position.x -= position.x % TILE_SIZE,
+            Direction::Up => position.y = (position.y / TILE_SIZE).ceil() * TILE_SIZE,
+            Direction::Down => position.y = (position.y / TILE_SIZE).floor() * TILE_SIZE,
+            Direction::Left => position.x = (position.x / TILE_SIZE).ceil() * TILE_SIZE,
+            Direction::Right => position.x = (position.x / TILE_SIZE).floor() * TILE_SIZE,
         }
 
         position

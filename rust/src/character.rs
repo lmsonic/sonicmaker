@@ -87,7 +87,7 @@ pub struct Character {
     #[export]
     debug_draw: bool,
     #[export(flags_2d_physics)]
-    #[var(get, set)]
+    #[var(get, set = set_collision_layer)]
     collision_layer: u32,
     #[export]
     velocity: Vector2,
