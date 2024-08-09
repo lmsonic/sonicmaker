@@ -1,6 +1,6 @@
 [gd_resource type="Theme" load_steps=2 format=3 uid="uid://crtx7c5lvgijs"]
 
-[ext_resource type="FontFile" uid="uid://bc7o36py1a6ds" path="res://sonic-3.ttf" id="1_6ppix"]
+[ext_resource type="FontFile" uid="uid://bc7o36py1a6ds" path="res://assets/sonic-3.ttf" id="1_6ppix"]
 
 [resource]
 default_font = ExtResource("1_6ppix")

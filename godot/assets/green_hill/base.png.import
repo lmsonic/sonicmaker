@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b25cp3ao1ee2l"
-path="res://.godot/imported/waterfalls.png-10f8bf9ae59e9230c6eb1e936796921c.ctex"
+uid="uid://c8j6ahymdsuhe"
+path="res://.godot/imported/base.png-5476338a29f9e73a832c55f04b413433.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://green_hill/waterfalls.png"
-dest_files=["res://.godot/imported/waterfalls.png-10f8bf9ae59e9230c6eb1e936796921c.ctex"]
+source_file="res://assets/green_hill/base.png"
+dest_files=["res://.godot/imported/base.png-5476338a29f9e73a832c55f04b413433.ctex"]
 
 [params]
 

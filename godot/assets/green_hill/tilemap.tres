@@ -1,9 +1,9 @@
 [gd_resource type="TileSet" load_steps=3 format=3 uid="uid://cqlsdl65vv0s2"]
 
-[ext_resource type="Texture2D" uid="uid://cp0jm57w0ynls" path="res://green_hill/base_processed.png" id="1_03v4g"]
+[ext_resource type="Texture2D" uid="uid://cp0jm57w0ynls" path="res://assets/green_hill/base_processed.png" id="1_qgb6c"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_27py0"]
-texture = ExtResource("1_03v4g")
+texture = ExtResource("1_qgb6c")
 1:0/0 = 0
 1:0/0/physics_layer_0/linear_velocity = Vector2(0, 0)
 1:0/0/physics_layer_0/angular_velocity = 0.0

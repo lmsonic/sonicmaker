@@ -137,13 +137,13 @@ impl Character {
         let was_ball = self.state.is_ball();
         let is_ball = value.is_ball();
 
+        self.state = value;
         if was_ball && !is_ball {
             self.set_character(self.character);
         } else if is_ball && !was_ball {
             self.set_width_radius(7.0);
             self.set_height_radius(14.0);
         }
-        self.state = value;
         if let Some(sprites) = &mut self.sprites {
             match self.state {
                 State::Idle => sprites.play_ex().name(c"idle".into()).done(),
@@ -227,6 +227,7 @@ impl Character {
         let width = self.width_radius * 2.0;
         let height = self.height_radius * 2.0;
         let mode = self.current_mode();
+        let attacking = self.state.is_ball();
 
         if let Some(mut shape) = self
             .sensor_shape
@@ -240,17 +241,25 @@ impl Character {
             }
             shape.set_size(size);
         }
-        if let Some(mut hitbox) = self
-            .hitbox_shape
-            .as_deref_mut()
-            .and_then(|cs| cs.get_shape())
-            .and_then(|shape| shape.try_cast::<RectangleShape2D>().ok())
-        {
-            let mut size = Vector2::new(15.0, height - 3.0);
-            if mode.is_sideways() {
-                size = Vector2::new(size.y, size.x);
+        if let Some(collision_shape) = self.hitbox_shape.as_deref_mut() {
+            if let Some(mut rect) = collision_shape
+                .get_shape()
+                .and_then(|shape| shape.try_cast::<RectangleShape2D>().ok())
+            {
+                let mut size = Vector2::new(15.0, height - 3.0);
+                if mode.is_sideways() {
+                    size = Vector2::new(size.y, size.x);
+                }
+                rect.set_size(size);
             }
-            hitbox.set_size(size);
+            collision_shape.set_debug_color(if attacking {
+                Color::RED.with_alpha(0.2)
+            } else {
+                Color::BLUE.with_alpha(0.2)
+            })
+        }
+        if let Some(area) = &mut self.hitbox_area {
+            area.set(c"attacking".into(), attacking.to_variant());
         }
     }
 }

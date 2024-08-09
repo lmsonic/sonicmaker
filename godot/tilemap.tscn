@@ -1,8 +1,10 @@
-[gd_scene load_steps=5 format=3 uid="uid://uyn5gaitoc5w"]
+[gd_scene load_steps=7 format=3 uid="uid://uyn5gaitoc5w"]
 
-[ext_resource type="PackedScene" uid="uid://cwy1rw6rmm00c" path="res://character.tscn" id="1_dsfe8"]
-[ext_resource type="TileSet" uid="uid://cqlsdl65vv0s2" path="res://green_hill/tilemap.tres" id="1_euhdp"]
-[ext_resource type="PackedScene" uid="uid://bmf6tr4scfbsw" path="res://layer_switcher.tscn" id="4_iri1k"]
+[ext_resource type="PackedScene" uid="uid://cwy1rw6rmm00c" path="res://player/character.tscn" id="1_dsfe8"]
+[ext_resource type="TileSet" uid="uid://cqlsdl65vv0s2" path="res://assets/green_hill/tilemap.tres" id="1_euhdp"]
+[ext_resource type="PackedScene" uid="uid://bmf6tr4scfbsw" path="res://hitboxes/layer_switcher.tscn" id="4_iri1k"]
+[ext_resource type="Script" path="res://ui/rings_label.gd" id="4_rsbg1"]
+[ext_resource type="PackedScene" uid="uid://dxcy6vgx8p71f" path="res://hitboxes/ring.tscn" id="5_ql2sq"]
 
 [sub_resource type="GDScript" id="GDScript_43165"]
 script/source = "extends Node
@@ -38,7 +40,7 @@ layer_0/tile_data = PackedInt32Array(393216, 0, 6, 458752, 0, 7, 524288, 0, 8, 5
 
 [node name="Character" parent="." instance=ExtResource("1_dsfe8")]
 velocity = Vector2(0, 5.6875)
-position = Vector2(549, -397)
+position = Vector2(259, 89)
 
 [node name="Camera2D" type="Camera2D" parent="Character"]
 drag_vertical_enabled = true
@@ -64,3 +66,14 @@ position = Vector2(1920, 89)
 [node name="SetTimeScale" type="Node" parent="."]
 process_mode = 3
 script = SubResource("GDScript_43165")
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="Label" type="Label" parent="UI"]
+offset_right = 40.0
+offset_bottom = 17.0
+text = "Rings: 0"
+script = ExtResource("4_rsbg1")
+
+[node name="Ring" parent="." instance=ExtResource("5_ql2sq")]
+position = Vector2(328, 88)

@@ -3,12 +3,12 @@
 importer="font_data_dynamic"
 type="FontFile"
 uid="uid://bc7o36py1a6ds"
-path="res://.godot/imported/sonic-3.ttf-6edee95f38765d25042069564f10a800.fontdata"
+path="res://.godot/imported/sonic-3.ttf-4548e2590f42c7cf2f3a2585977feb39.fontdata"
 
 [deps]
 
-source_file="res://sonic-3.ttf"
-dest_files=["res://.godot/imported/sonic-3.ttf-6edee95f38765d25042069564f10a800.fontdata"]
+source_file="res://assets/sonic-3.ttf"
+dest_files=["res://.godot/imported/sonic-3.ttf-4548e2590f42c7cf2f3a2585977feb39.fontdata"]
 
 [params]
 

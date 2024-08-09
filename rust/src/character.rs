@@ -3,7 +3,7 @@ mod lifecycle;
 mod setters;
 mod utils;
 
-use godot::engine::{AnimatedSprite2D, CollisionShape2D};
+use godot::engine::{AnimatedSprite2D, Area2D, CollisionShape2D};
 use godot::prelude::*;
 use setters::{Kind, State};
 
@@ -63,6 +63,8 @@ pub struct Character {
     ground_speed: f32,
     #[export]
     sensor_shape: Option<Gd<CollisionShape2D>>,
+    #[export]
+    hitbox_area: Option<Gd<Area2D>>,
     #[export]
     hitbox_shape: Option<Gd<CollisionShape2D>>,
     #[export]

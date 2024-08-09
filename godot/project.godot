@@ -15,6 +15,10 @@ run/main_scene="res://tilemap.tscn"
 config/features=PackedStringArray("4.2", "Forward Plus")
 config/icon="res://icon.svg"
 
+[autoload]
+
+EventBus="*res://autoload/event_bus.gd"
+
 [display]
 
 window/size/viewport_width=640
