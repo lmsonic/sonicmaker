@@ -158,13 +158,6 @@ impl MotionDirection {
     }
 }
 impl Character {
-    pub(super) fn position(&self) -> Vector2 {
-        self.base().get_position()
-    }
-    pub(super) fn set_position(&mut self, value: Vector2) {
-        self.base_mut().set_position(value)
-    }
-
     pub(super) fn global_position(&self) -> Vector2 {
         self.base().get_global_position()
     }

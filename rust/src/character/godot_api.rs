@@ -56,6 +56,23 @@ use crate::{character::Character, sensor::DetectionResult};
 #[godot_api]
 impl Character {
     #[func]
+    fn on_attacking(&mut self, badnik: Gd<Node2D>, is_boss: bool) {
+        if self.is_grounded {
+            return;
+        }
+        let position = self.global_position();
+        let badnik_position = badnik.get_global_position();
+        if is_boss {
+            self.velocity *= -0.5;
+        } else if position.y > badnik_position.y || self.velocity.y < 0.0 {
+            // No rebound
+            self.velocity.y -= self.velocity.y.signum();
+        } else {
+            // Rebound
+            self.velocity.y *= -1.0;
+        }
+    }
+    #[func]
     fn on_hurt(&mut self, hazard: Gd<Node2D>) {
         if self.rings <= 0 {
             // Death
@@ -65,7 +82,7 @@ impl Character {
             }
         }
         let hazard_position = hazard.get_global_position();
-        let sign = (self.position().x - hazard_position.x).signum();
+        let sign = (self.global_position().x - hazard_position.x).signum();
         self.rings = 0;
         self.velocity = Vector2::new(self.hurt_x_force * sign, self.hurt_y_force);
         self.set_state(State::Hurt);

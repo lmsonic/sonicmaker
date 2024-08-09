@@ -92,6 +92,7 @@ pub struct Character {
     #[var(get, set = set_collision_layer)]
     collision_layer: u32,
     #[export]
+    #[var(set, get)]
     velocity: Vector2,
     #[export]
     #[var(set, get)]

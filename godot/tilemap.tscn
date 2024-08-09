@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://uyn5gaitoc5w"]
+[gd_scene load_steps=9 format=3 uid="uid://uyn5gaitoc5w"]
 
 [ext_resource type="PackedScene" uid="uid://cwy1rw6rmm00c" path="res://player/character.tscn" id="1_dsfe8"]
 [ext_resource type="TileSet" uid="uid://cqlsdl65vv0s2" path="res://assets/green_hill/tilemap.tres" id="1_euhdp"]
@@ -6,6 +6,7 @@
 [ext_resource type="Script" path="res://ui/rings_label.gd" id="4_rsbg1"]
 [ext_resource type="PackedScene" uid="uid://dxcy6vgx8p71f" path="res://hitboxes/ring.tscn" id="5_ql2sq"]
 [ext_resource type="PackedScene" uid="uid://dbhv1yqwt7kaj" path="res://hitboxes/spike.tscn" id="6_1xblc"]
+[ext_resource type="PackedScene" uid="uid://dlct42b7w52pd" path="res://hitboxes/badnik.tscn" id="7_04scq"]
 
 [sub_resource type="GDScript" id="GDScript_43165"]
 script/source = "extends Node
@@ -82,3 +83,6 @@ position = Vector2(328, 88)
 
 [node name="Spike" parent="." instance=ExtResource("6_1xblc")]
 position = Vector2(510, 181)
+
+[node name="Badnik" parent="." instance=ExtResource("7_04scq")]
+position = Vector2(101, 168)
