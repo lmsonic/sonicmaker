@@ -8,6 +8,7 @@ use godot::prelude::*;
 use godot_api::{Kind, State};
 
 use crate::sensor::Sensor;
+use crate::sloped_solid_object::SlopedSolidObject;
 use crate::solid_object::SolidObject;
 
 #[derive(GodotClass)]
@@ -62,6 +63,7 @@ pub struct Character {
     roll_top_speed: f32,
     #[export]
     ground_speed: f32,
+
     #[export]
     sensor_shape: Option<Gd<CollisionShape2D>>,
     #[export]
@@ -108,8 +110,9 @@ pub struct Character {
 
     #[export]
     #[init(default = true)]
-    pub fix_delta: bool,
+    fix_delta: bool,
 
     object_to_stand_on: Option<Gd<SolidObject>>,
+    sloped_object_to_stand_on: Option<Gd<SlopedSolidObject>>,
     base: Base<Node2D>,
 }

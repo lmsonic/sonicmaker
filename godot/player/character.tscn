@@ -220,6 +220,7 @@ position = Vector2(-10, 0)
 [node name="SensorShape" type="Area2D" parent="Sensors"]
 collision_mask = 0
 monitoring = false
+monitorable = false
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Sensors/SensorShape"]
 shape = SubResource("RectangleShape2D_16psm")

@@ -158,6 +158,10 @@ impl MotionDirection {
     }
 }
 impl Character {
+    pub(super) fn clear_objects(&mut self) {
+        self.object_to_stand_on = None;
+        self.sloped_object_to_stand_on = None;
+    }
     pub(super) fn global_position(&self) -> Vector2 {
         self.base().get_global_position()
     }

@@ -73,7 +73,31 @@ impl Character {
             let x_left_distance =
                 (self.global_position().x - object.get_global_position().x) + combined_x_radius;
             if x_left_distance <= 0.0 || x_left_distance >= combined_x_radius * 2.0 {
-                self.object_to_stand_on.take();
+                self.clear_objects();
+
+                self.set_grounded(false);
+                godot_print!("walk off solid object");
+            }
+        }
+        if let Some(object) = self.sloped_object_to_stand_on.clone() {
+            // Snap player y to object
+            let mut position = self.global_position();
+            let object_position = object.bind().global_center();
+            let obj_width_radius = object.bind().width_radius();
+            let obj_height_radius = object.bind().height_radius();
+
+            let snapped_position = object_position.y - obj_height_radius * 2.0 - 1.0;
+            position.y = snapped_position;
+            self.base_mut().set_global_position(position);
+            self.set_grounded(true);
+            godot_print!("Stand on solid object at y={snapped_position}",);
+
+            // Check if you walked off the edge
+            let combined_x_radius = obj_width_radius + self.push_radius + 1.0;
+            let x_left_distance =
+                (self.global_position().x - object.get_global_position().x) + combined_x_radius;
+            if x_left_distance <= 0.0 || x_left_distance >= combined_x_radius * 2.0 {
+                self.clear_objects();
                 self.set_grounded(false);
                 godot_print!("walk off solid object");
             }
@@ -385,7 +409,7 @@ impl Character {
 
             self.set_grounded(false);
             self.set_state(State::JumpBall);
-            self.object_to_stand_on = None;
+            self.clear_objects();
 
             return true;
         }

@@ -52,12 +52,21 @@ impl State {
         matches!(self, Self::Hurt)
     }
 }
-use crate::{character::Character, sensor::DetectionResult, solid_object::SolidObject};
+use crate::{
+    character::Character, sensor::DetectionResult, sloped_solid_object::SlopedSolidObject,
+    solid_object::SolidObject,
+};
 #[godot_api]
 impl Character {
     #[func]
     pub fn set_stand_on_object(&mut self, object: Gd<SolidObject>) {
         self.object_to_stand_on = Some(object);
+        self.sloped_object_to_stand_on = None;
+    }
+    #[func]
+    pub fn set_stand_on_sloped_object(&mut self, object: Gd<SlopedSolidObject>) {
+        self.sloped_object_to_stand_on = Some(object);
+        self.object_to_stand_on = None;
     }
     #[func]
     fn on_attacking(&mut self, badnik: Gd<Node2D>, is_boss: bool) {
@@ -89,7 +98,7 @@ impl Character {
         self.velocity = Vector2::new(self.hurt_x_force * sign, self.hurt_y_force);
         self.set_state(State::Hurt);
         self.set_grounded(false);
-        self.object_to_stand_on = None;
+        self.clear_objects()
     }
 
     pub fn die(&mut self) {
