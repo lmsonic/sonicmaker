@@ -145,12 +145,12 @@ animations = [{
 }]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_16psm"]
-size = Vector2(18, 38)
+size = Vector2(20, 38)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_j2lx3"]
 size = Vector2(15, 35)
 
-[node name="Character" type="Character" node_paths=PackedStringArray("sprites", "sensor_shape", "hitbox_area", "hitbox_shape", "sensor_floor_left", "sensor_floor_right", "sensor_ceiling_left", "sensor_ceiling_right", "sensor_push_left", "sensor_push_right")]
+[node name="Character" type="Character" node_paths=PackedStringArray("sprites", "sensor_shape", "hitbox_area", "hitbox_shape", "sensor_floor_left", "sensor_floor_right", "sensor_ceiling_left", "sensor_ceiling_right", "sensor_push_left", "sensor_push_right") groups=["player"]]
 sprites = NodePath("AnimatedSprite2D")
 sensor_shape = NodePath("Sensors/SensorShape/CollisionShape2D")
 hitbox_area = NodePath("Sensors/PlayerHitbox")
@@ -163,7 +163,6 @@ sensor_push_left = NodePath("Sensors/SensorPushLeft")
 sensor_push_right = NodePath("Sensors/SensorPushRight")
 debug_draw = true
 collision_layer = 1
-rings = 0
 position = Vector2(0, -19)
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]

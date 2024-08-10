@@ -19,7 +19,7 @@ pub enum Direction {
     Left,
     Right,
 }
-const TILE_SIZE: f32 = 16.0;
+pub const TILE_SIZE: f32 = 16.0;
 
 impl Direction {
     fn target_direction(&self) -> Vector2 {

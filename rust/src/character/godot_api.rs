@@ -52,9 +52,13 @@ impl State {
         matches!(self, Self::Hurt)
     }
 }
-use crate::{character::Character, sensor::DetectionResult};
+use crate::{character::Character, sensor::DetectionResult, solid_object::SolidObject};
 #[godot_api]
 impl Character {
+    #[func]
+    pub fn set_stand_on_object(&mut self, object: Gd<SolidObject>) {
+        self.object_to_stand_on = Some(object);
+    }
     #[func]
     fn on_attacking(&mut self, badnik: Gd<Node2D>, is_boss: bool) {
         if self.is_grounded {
@@ -76,10 +80,8 @@ impl Character {
     fn on_hurt(&mut self, hazard: Gd<Node2D>) {
         if self.rings <= 0 {
             // Death
-            if let Some(mut tree) = self.base().get_tree() {
-                tree.call_deferred("reload_current_scene".into(), &[]);
-                return;
-            }
+            self.die();
+            return;
         }
         let hazard_position = hazard.get_global_position();
         let sign = (self.global_position().x - hazard_position.x).signum();
@@ -87,6 +89,13 @@ impl Character {
         self.velocity = Vector2::new(self.hurt_x_force * sign, self.hurt_y_force);
         self.set_state(State::Hurt);
         self.set_grounded(false);
+        self.object_to_stand_on = None;
+    }
+
+    pub fn die(&mut self) {
+        if let Some(mut tree) = self.base().get_tree() {
+            tree.call_deferred("reload_current_scene".into(), &[]);
+        }
     }
     #[func]
     pub fn set_collision_layer(&mut self, value: u32) {
@@ -111,23 +120,27 @@ impl Character {
         };
     }
     #[func]
-    pub(super) fn set_grounded(&mut self, value: bool) {
+    pub fn set_grounded(&mut self, value: bool) {
         self.is_grounded = value;
         self.update_sensors();
     }
     #[func]
-    pub(super) fn set_ground_angle(&mut self, result: DetectionResult) {
-        let mut angle = if result.snap {
-            (result.angle / FRAC_PI_2).round().rem(4.0) * FRAC_PI_2
-        } else {
-            result.angle
-        };
+    pub fn set_ground_angle(&mut self, mut angle: f32) {
         self.ground_angle = angle;
         if angle < PI {
             angle += TAU;
         }
         self.base_mut().set_rotation(TAU - angle);
         self.update_sensors();
+    }
+    #[func]
+    pub fn set_ground_angle_from_result(&mut self, result: DetectionResult) {
+        let angle = if result.snap {
+            (result.angle / FRAC_PI_2).round().rem(4.0) * FRAC_PI_2
+        } else {
+            result.angle
+        };
+        self.set_ground_angle(angle);
     }
     #[func]
     pub(super) fn set_width_radius(&mut self, value: f32) {
@@ -268,7 +281,7 @@ impl Character {
         self.update_shapes();
     }
     pub(super) fn update_shapes(&mut self) {
-        let width = self.width_radius * 2.0;
+        let width = self.push_radius * 2.0;
         let height = self.height_radius * 2.0;
         let mode = self.current_mode();
         let attacking = self.state.is_ball();

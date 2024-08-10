@@ -45,6 +45,7 @@ impl INode2D for Character {
         } else {
             delta as f32 * FPS
         };
+        self.stand_on_solid_object();
         if self.is_grounded {
             self.grounded(delta)
         } else {
@@ -53,6 +54,31 @@ impl INode2D for Character {
     }
 }
 impl Character {
+    fn stand_on_solid_object(&mut self) {
+        if let Some(object) = self.object_to_stand_on.clone() {
+            // Snap player y to object
+            let mut position = self.global_position();
+            let object_position = object.get_global_position();
+            let obj_width_radius = object.bind().get_width_radius();
+            let obj_heigth_radius = object.bind().get_height_radius();
+
+            let snapped_position = object_position.y - obj_heigth_radius * 2.0 - 1.0;
+            position.y = snapped_position;
+            self.base_mut().set_global_position(position);
+            self.set_grounded(true);
+            godot_print!("Stand on solid object at y={snapped_position}",);
+
+            // Check if you walked off the edge
+            let combined_x_radius = obj_width_radius + self.push_radius + 1.0;
+            let x_left_distance =
+                (self.global_position().x - object.get_global_position().x) + combined_x_radius;
+            if x_left_distance <= 0.0 || x_left_distance >= combined_x_radius * 2.0 {
+                self.object_to_stand_on.take();
+                self.set_grounded(false);
+                godot_print!("walk off solid object");
+            }
+        }
+    }
     fn airborne(&mut self, delta: f32) {
         // Airborne
         let input = Input::singleton();
@@ -101,7 +127,7 @@ impl Character {
                         self.set_global_position(position);
 
                         godot_print!("floor collision dy:{}", result.distance);
-                        self.set_ground_angle(result);
+                        self.set_ground_angle_from_result(result);
                         self.set_grounded(true);
                         if !self.state.is_rolling() {
                             self.update_animation();
@@ -128,7 +154,7 @@ impl Character {
                         godot_print!("ceiling collision dy:{}", -result.distance);
 
                         if self.should_land_on_ceiling() {
-                            self.set_ground_angle(result);
+                            self.set_ground_angle_from_result(result);
                             self.set_grounded(true);
                             self.land_on_ceiling();
                             godot_print!("land on ceiling");
@@ -257,7 +283,9 @@ impl Character {
 
         self.check_walls();
 
-        self.check_floor();
+        if self.object_to_stand_on.is_none() {
+            self.check_floor();
+        }
 
         self.check_rolling(&input);
 
@@ -307,7 +335,7 @@ impl Character {
         if let Some(result) = self.ground_check(false) {
             if self.should_snap_to_floor(result) {
                 self.snap_to_floor(result.distance);
-                self.set_ground_angle(result)
+                self.set_ground_angle_from_result(result)
             } else {
                 godot_print!("Detach from floor: Shouldn't snap");
                 self.set_grounded(false);
@@ -357,6 +385,7 @@ impl Character {
 
             self.set_grounded(false);
             self.set_state(State::JumpBall);
+            self.object_to_stand_on = None;
 
             return true;
         }

@@ -1,10 +1,10 @@
 [gd_scene load_steps=3 format=3 uid="uid://dlct42b7w52pd"]
 
-[ext_resource type="Script" path="res://hitboxes/badnik.gd" id="1_csc15"]
+[ext_resource type="Script" path="res://hitboxes/attackable.gd" id="1_csc15"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_3y0bs"]
 
-[node name="Badnik" type="Area2D"]
+[node name="Attackable" type="Area2D"]
 script = ExtResource("1_csc15")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]

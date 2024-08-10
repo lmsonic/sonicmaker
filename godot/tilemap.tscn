@@ -1,12 +1,13 @@
-[gd_scene load_steps=9 format=3 uid="uid://uyn5gaitoc5w"]
+[gd_scene load_steps=10 format=3 uid="uid://uyn5gaitoc5w"]
 
 [ext_resource type="PackedScene" uid="uid://cwy1rw6rmm00c" path="res://player/character.tscn" id="1_dsfe8"]
 [ext_resource type="TileSet" uid="uid://cqlsdl65vv0s2" path="res://assets/green_hill/tilemap.tres" id="1_euhdp"]
 [ext_resource type="PackedScene" uid="uid://bmf6tr4scfbsw" path="res://hitboxes/layer_switcher.tscn" id="4_iri1k"]
 [ext_resource type="Script" path="res://ui/rings_label.gd" id="4_rsbg1"]
 [ext_resource type="PackedScene" uid="uid://dxcy6vgx8p71f" path="res://hitboxes/ring.tscn" id="5_ql2sq"]
-[ext_resource type="PackedScene" uid="uid://dbhv1yqwt7kaj" path="res://hitboxes/spike.tscn" id="6_1xblc"]
-[ext_resource type="PackedScene" uid="uid://dlct42b7w52pd" path="res://hitboxes/badnik.tscn" id="7_04scq"]
+[ext_resource type="PackedScene" uid="uid://dbhv1yqwt7kaj" path="res://hitboxes/hurt.tscn" id="6_1xblc"]
+[ext_resource type="PackedScene" uid="uid://dlct42b7w52pd" path="res://hitboxes/attackable.tscn" id="7_04scq"]
+[ext_resource type="PackedScene" uid="uid://cejgtrbyx7w4o" path="res://solid_objects/solid_object.tscn" id="8_8a470"]
 
 [sub_resource type="GDScript" id="GDScript_43165"]
 script/source = "extends Node
@@ -42,8 +43,7 @@ layer_0/tile_data = PackedInt32Array(393216, 0, 6, 458752, 0, 7, 524288, 0, 8, 5
 
 [node name="Character" parent="." instance=ExtResource("1_dsfe8")]
 velocity = Vector2(0, 5.6875)
-fix_delta = true
-position = Vector2(259, 89)
+position = Vector2(1371, 78)
 
 [node name="Camera2D" type="Camera2D" parent="Character"]
 drag_vertical_enabled = true
@@ -81,8 +81,11 @@ script = ExtResource("4_rsbg1")
 [node name="Ring" parent="." instance=ExtResource("5_ql2sq")]
 position = Vector2(328, 88)
 
-[node name="Spike" parent="." instance=ExtResource("6_1xblc")]
+[node name="Hurt" parent="." instance=ExtResource("6_1xblc")]
 position = Vector2(510, 181)
 
-[node name="Badnik" parent="." instance=ExtResource("7_04scq")]
+[node name="Attackable" parent="." instance=ExtResource("7_04scq")]
 position = Vector2(101, 168)
+
+[node name="SolidObject" parent="." instance=ExtResource("8_8a470")]
+position = Vector2(1401, 44)

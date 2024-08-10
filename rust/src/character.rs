@@ -8,6 +8,7 @@ use godot::prelude::*;
 use godot_api::{Kind, State};
 
 use crate::sensor::Sensor;
+use crate::solid_object::SolidObject;
 
 #[derive(GodotClass)]
 #[class(init, base=Node2D)]
@@ -81,10 +82,10 @@ pub struct Character {
     sensor_push_right: Option<Gd<Sensor>>,
     #[export]
     #[var(get,set= set_grounded)]
-    pub is_grounded: bool,
+    is_grounded: bool,
     #[export(range = (0.0, 360.0, 0.001, radians_as_degrees))]
     #[var(get,set= set_ground_angle)]
-    pub ground_angle: f32,
+    ground_angle: f32,
     control_lock_timer: i32,
     #[export]
     debug_draw: bool,
@@ -93,7 +94,7 @@ pub struct Character {
     collision_layer: u32,
     #[export]
     #[var(set, get)]
-    velocity: Vector2,
+    pub velocity: Vector2,
     #[export]
     #[var(set, get)]
     rings: i32,
@@ -108,5 +109,7 @@ pub struct Character {
     #[export]
     #[init(default = true)]
     pub fix_delta: bool,
+
+    object_to_stand_on: Option<Gd<SolidObject>>,
     base: Base<Node2D>,
 }
