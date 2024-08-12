@@ -111,7 +111,17 @@ impl SlopedSolidObject {
         let player_position = player.get_global_position();
         let (top, bottom) = self.current_top_bottom(player_position);
 
-        self.solid_object_collision(player, top, bottom);
+        let position = self.global_center();
+        let width_radius = self.width_radius();
+        let position_x = position.x;
+        let position_y = (bottom + top) * 0.5;
+        let height_radius = (bottom - top) * 0.5;
+
+        self.solid_object_collision(
+            player,
+            Vector2::new(position_x, position_y),
+            Vector2::new(width_radius, height_radius),
+        );
     }
 
     pub fn global_center(&self) -> Vector2 {
@@ -124,7 +134,8 @@ impl SlopedSolidObject {
     pub fn current_top_bottom(&self, player_position: Vector2) -> (f32, f32) {
         // Is player on the top or bottom
         let Some(collision_polygon) = &self.collision_polygon else {
-            return (0.0, 0.0);
+            let position = self.base().get_global_position();
+            return (position.y, position.y);
         };
         let position = collision_polygon.get_global_position();
         let global_center = self.global_center();
@@ -132,18 +143,14 @@ impl SlopedSolidObject {
         let polygon = collision_polygon.get_polygon().to_vec();
         let x = player_position.x;
 
-        if x < global_center.x - width_radius {
-            // Calculate y on leftmost vertex
-            if let Some(v) = polygon.iter().min_by(|a, b| a.x.total_cmp(&b.x)) {
-                return (v.y + position.y, v.y + position.y);
-            } else {
-                return (position.y, position.y);
-            }
-        }
-        if x > global_center.x + width_radius {
-            // Calculate y on rightmost vertex
-            if let Some(v) = polygon.iter().max_by(|a, b| a.x.total_cmp(&b.x)) {
-                return (v.y + position.y, v.y + position.y);
+        // Handle edges
+        if x < global_center.x - width_radius || x > global_center.x + width_radius {
+            // Calculate y on closest vertex to player
+            if let Some(v) = polygon.iter().map(|v| *v + position).min_by(|v, u| {
+                v.distance_squared_to(player_position)
+                    .total_cmp(&u.distance_squared_to(player_position))
+            }) {
+                return (v.y, v.y);
             } else {
                 return (position.y, position.y);
             }
@@ -158,22 +165,27 @@ impl SlopedSolidObject {
             // Edge positions in global space
             let mut point = polygon[i] + position;
             let mut next_point = polygon[next_index] + position;
-            if point.x <= x || x <= next_point.x || next_point.x <= x || x <= point.x {
+            if next_point.x < point.x {
+                std::mem::swap(&mut point, &mut next_point);
+            }
+            if point.x <= x && x <= next_point.x {
                 // Edge contains the player x position
-                // Calculate line equation
-                if next_point.x < point.x {
-                    std::mem::swap(&mut point, &mut next_point);
+                // Avoid dividing by zero when line is vertical
+                if (next_point.x - point.x) > 0.1 {
+                    // Calculate line equation
+                    let m = (next_point.y - point.y) / (next_point.x - point.x);
+                    let c = next_point.y - m * next_point.x;
+                    // Calculate height at x;
+                    let y = m * x + c;
+                    min = min.min(y);
+                    max = max.max(y);
+                } else {
+                    min = min.min(point.y).min(next_point.y);
+                    max = max.max(point.y).max(next_point.y);
                 }
-                let m = (next_point.y - point.y) / (next_point.x - point.x);
-                let c = next_point.y - m * next_point.x;
-                // Calculate height at x;
-                let y = m * x + c;
-                min = min.min(y);
-                max = max.max(y);
             }
         }
-
-        godot_print!("top:{min} bottom:{max}");
+        godot_print!("top{min} bottom{max}");
         (min, max)
     }
 
@@ -230,33 +242,27 @@ impl SlopedSolidObject {
         let (min, max) = self.min_max_y();
         (max - min) * 0.5
     }
-
     pub(super) fn solid_object_collision(
         &mut self,
         mut player: Gd<Character>,
-        top: f32,
-        bottom: f32,
+        position: Vector2,
+        radius: Vector2,
     ) {
         // Check overlap
-
-        let position_x = self.global_center().x;
-        let width_radius = self.width_radius();
-        let position_y = (bottom + top) * 0.5;
-        let height_radius = (bottom - top) * 0.5;
-        let combined_x_radius = width_radius + player.bind().get_push_radius() + 1.0;
-        let combined_y_radius = height_radius + player.bind().get_height_radius();
+        let combined_x_radius = radius.x + player.bind().get_push_radius() + 1.0;
+        let combined_y_radius = radius.y + player.bind().get_height_radius();
 
         let mut player_position = player.get_global_position();
 
         let combined_x_diameter = combined_x_radius * 2.0;
-        let left_difference = (player_position.x - position_x) + combined_x_radius;
+        let left_difference = (player_position.x - position.x) + combined_x_radius;
         // the Player is too far to the left to be touching
         // the Player is too far to the right to be touching
         if left_difference < 0.0 || left_difference > combined_x_diameter {
             return;
         }
 
-        let top_difference = (player_position.y - position_y) + 4.0 + combined_y_radius;
+        let top_difference = (player_position.y - position.y) + 4.0 + combined_y_radius;
         let combined_y_diameter = combined_y_radius * 2.0;
 
         // the Player is too far above to be touching
@@ -266,7 +272,7 @@ impl SlopedSolidObject {
         }
 
         // Find which side on the object you are nearest and calculate overlap distance
-        let x_distance = if player_position.x > position_x {
+        let x_distance = if player_position.x > position.x {
             // Right side: x distance is < 0.0
             left_difference - combined_x_diameter
         } else {
@@ -274,7 +280,7 @@ impl SlopedSolidObject {
             left_difference
         };
 
-        let y_distance = if player_position.y > position_y {
+        let y_distance = if player_position.y > position.y {
             // Bottom side:  y distance is < 0.0
             top_difference - combined_y_diameter - 4.0
         } else {
@@ -302,7 +308,7 @@ impl SlopedSolidObject {
                 // Land on object
                 let y_distance = y_distance - 4.0;
                 // Distance to object right edge
-                let x_comparison = position_x - player_position.x + width_radius;
+                let x_comparison = position.x - player_position.x + radius.x;
                 // if the Player is too far to the right
                 // if the Player is too far to the left
                 if x_comparison < 0.0 || x_comparison >= combined_x_diameter {

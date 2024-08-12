@@ -31,7 +31,11 @@ impl IArea2D for SolidObject {
             .and_then(|player| player.try_cast::<Character>().ok())
         {
             let collision_shape_position = self.collision_shape_global_position();
-            self.solid_object_collision(player, collision_shape_position)
+            self.solid_object_collision(
+                player,
+                collision_shape_position,
+                Vector2::new(self.width_radius, self.height_radius),
+            )
         }
     }
 }
@@ -71,10 +75,15 @@ impl SolidObject {
         }
     }
 
-    pub(super) fn solid_object_collision(&mut self, mut player: Gd<Character>, position: Vector2) {
+    pub(super) fn solid_object_collision(
+        &mut self,
+        mut player: Gd<Character>,
+        position: Vector2,
+        radius: Vector2,
+    ) {
         // Check overlap
-        let combined_x_radius = self.width_radius + player.bind().get_push_radius() + 1.0;
-        let combined_y_radius = self.height_radius + player.bind().get_height_radius();
+        let combined_x_radius = radius.x + player.bind().get_push_radius() + 1.0;
+        let combined_y_radius = radius.y + player.bind().get_height_radius();
 
         let mut player_position = player.get_global_position();
 
@@ -132,7 +141,7 @@ impl SolidObject {
                 // Land on object
                 let y_distance = y_distance - 4.0;
                 // Distance to object right edge
-                let x_comparison = position.x - player_position.x + self.width_radius;
+                let x_comparison = position.x - player_position.x + radius.x;
                 // if the Player is too far to the right
                 // if the Player is too far to the left
                 if x_comparison < 0.0 || x_comparison >= combined_x_diameter {

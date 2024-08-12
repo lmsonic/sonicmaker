@@ -92,7 +92,7 @@ position = Vector2(320, 106)
 position = Vector2(715, 100)
 
 [node name="SolidObject" parent="." instance=ExtResource("8_8a470")]
-position = Vector2(1423, 55)
+position = Vector2(1315, 58)
 
 [node name="SlopedSolidObject" parent="." instance=ExtResource("9_58uql")]
 position = Vector2(1545, 59)
