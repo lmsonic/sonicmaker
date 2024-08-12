@@ -1,6 +1,6 @@
 use godot::{
     engine::{Area2D, CollisionShape2D, IArea2D, RectangleShape2D},
-    obj::{self, WithBaseField},
+    obj::WithBaseField,
     prelude::*,
 };
 
@@ -20,6 +20,9 @@ pub struct SolidObject {
     top_solid_only: bool,
     #[export]
     collision_shape: Option<Gd<CollisionShape2D>>,
+    #[var]
+    velocity: Vector2,
+    position_last_frame: Vector2,
     base: Base<Area2D>,
 }
 
@@ -40,6 +43,9 @@ impl IArea2D for SolidObject {
                 self.solid_object_collision(player, collision_shape_position, radius)
             }
         }
+        let position = self.base().get_global_position();
+        self.velocity = position - self.position_last_frame;
+        self.position_last_frame = position;
     }
 }
 
@@ -180,7 +186,7 @@ impl SolidObject {
             // Collide vertically
             if y_distance < 0.0 {
                 // Downwards collision
-                if velocity.y != 0.0 && is_grounded {
+                if velocity.y.is_zero_approx() && is_grounded {
                     // Die from getting crushed
                     player.bind_mut().die();
                 } else if velocity.y < 0.0 && y_distance < 0.0 {

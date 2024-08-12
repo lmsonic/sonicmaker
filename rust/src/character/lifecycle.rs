@@ -62,25 +62,40 @@ impl Character {
         };
         let mut position = self.global_position();
 
-        let (object_position, obj_width_radius, object_top_position) = match solid_object {
+        let (object_position, obj_width_radius, object_top_position, velocity) = match solid_object
+        {
             SolidObjectKind::Simple(object) => {
-                let object_position = object.bind().collision_shape_global_position();
+                let velocity = object.bind().get_velocity();
+                let object_position = object.bind().collision_shape_global_position() + velocity;
                 let obj_width_radius = object.bind().get_width_radius();
                 let obj_height_radius = object.bind().get_height_radius();
                 let object_top_position =
                     object_position.y - obj_height_radius - self.height_radius - 1.0;
-                (object_position, obj_width_radius, object_top_position)
+                (
+                    object_position,
+                    obj_width_radius,
+                    object_top_position,
+                    velocity,
+                )
             }
             SolidObjectKind::Sloped(object) => {
-                let object_position = object.bind().global_center();
+                let velocity = object.bind().get_velocity();
+
+                let object_position = object.bind().global_center() + velocity;
                 let obj_width_radius = object.bind().width_radius();
 
                 let (top, _) = object.bind().current_top_bottom(position);
                 let object_top_position = top - self.height_radius - 1.0;
-                (object_position, obj_width_radius, object_top_position)
+                (
+                    object_position,
+                    obj_width_radius,
+                    object_top_position,
+                    velocity,
+                )
             }
         };
 
+        position.x += velocity.x;
         position.y = object_top_position;
         self.base_mut().set_global_position(position);
         self.set_grounded(true);

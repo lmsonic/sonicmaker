@@ -14,6 +14,9 @@ pub struct SlopedSolidObject {
     top_solid_only: bool,
     #[export]
     collision_polygon: Option<Gd<CollisionPolygon2D>>,
+    #[var]
+    velocity: Vector2,
+    position_last_frame: Vector2,
     base: Base<Area2D>,
 }
 
@@ -67,6 +70,9 @@ impl IArea2D for SlopedSolidObject {
             self.sloped_solid_object_collision(player);
         }
         self.base_mut().queue_redraw();
+        let position = self.base().get_global_position();
+        self.velocity = position - self.position_last_frame;
+        self.position_last_frame = position;
     }
     fn draw(&mut self) {
         let center = self.global_center();
@@ -364,6 +370,7 @@ impl SlopedSolidObject {
 
         let combined_x_diameter = combined_x_radius * 2.0;
         let left_difference = (player_position.x - position.x) + combined_x_radius;
+
         // the Player is too far to the left to be touching
         // the Player is too far to the right to be touching
         if left_difference < 0.0 || left_difference > combined_x_diameter {
@@ -402,7 +409,7 @@ impl SlopedSolidObject {
             // Collide vertically
             if y_distance < 0.0 {
                 // Downwards collision
-                if velocity.y != 0.0 && is_grounded {
+                if velocity.y >= 0.0 && is_grounded {
                     // Die from getting crushed
                     player.bind_mut().die();
                 } else if velocity.y < 0.0 && y_distance < 0.0 {

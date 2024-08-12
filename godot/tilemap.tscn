@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://uyn5gaitoc5w"]
+[gd_scene load_steps=12 format=3 uid="uid://uyn5gaitoc5w"]
 
 [ext_resource type="PackedScene" uid="uid://cwy1rw6rmm00c" path="res://player/character.tscn" id="1_dsfe8"]
 [ext_resource type="TileSet" uid="uid://cqlsdl65vv0s2" path="res://assets/green_hill/tilemap.tres" id="1_euhdp"]
@@ -8,6 +8,7 @@
 [ext_resource type="PackedScene" uid="uid://dbhv1yqwt7kaj" path="res://hitboxes/hurt.tscn" id="6_1xblc"]
 [ext_resource type="PackedScene" uid="uid://dlct42b7w52pd" path="res://hitboxes/attackable.tscn" id="7_04scq"]
 [ext_resource type="PackedScene" uid="uid://cejgtrbyx7w4o" path="res://solid_objects/solid_object.tscn" id="8_8a470"]
+[ext_resource type="Script" path="res://solid_objects/moving_object.gd" id="9_7urwl"]
 [ext_resource type="PackedScene" uid="uid://fyumun0gvc66" path="res://solid_objects/sloped_solid_object.tscn" id="9_58uql"]
 
 [sub_resource type="GDScript" id="GDScript_43165"]
@@ -92,9 +93,8 @@ position = Vector2(320, 106)
 position = Vector2(715, 100)
 
 [node name="SolidObject" parent="." instance=ExtResource("8_8a470")]
-top_solid_only = true
 position = Vector2(1315, 58)
+script = ExtResource("9_7urwl")
 
 [node name="SlopedSolidObject" parent="." instance=ExtResource("9_58uql")]
-top_solid_only = false
 position = Vector2(1545, 59)
