@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://fyumun0gvc66"]
 
 [node name="SlopedSolidObject" type="SlopedSolidObject" node_paths=PackedStringArray("collision_polygon")]
+top_solid_only = false
 collision_polygon = NodePath("CollisionPolygon2D")
 process_physics_priority = 1
 collision_mask = 0

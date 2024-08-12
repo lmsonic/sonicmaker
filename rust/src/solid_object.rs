@@ -1,6 +1,6 @@
 use godot::{
     engine::{Area2D, CollisionShape2D, IArea2D, RectangleShape2D},
-    obj::WithBaseField,
+    obj::{self, WithBaseField},
     prelude::*,
 };
 
@@ -17,6 +17,8 @@ pub struct SolidObject {
     #[init(default = 8.0)]
     height_radius: f32,
     #[export]
+    top_solid_only: bool,
+    #[export]
     collision_shape: Option<Gd<CollisionShape2D>>,
     base: Base<Area2D>,
 }
@@ -31,11 +33,12 @@ impl IArea2D for SolidObject {
             .and_then(|player| player.try_cast::<Character>().ok())
         {
             let collision_shape_position = self.collision_shape_global_position();
-            self.solid_object_collision(
-                player,
-                collision_shape_position,
-                Vector2::new(self.width_radius, self.height_radius),
-            )
+            let radius = Vector2::new(self.width_radius, self.height_radius);
+            if self.top_solid_only {
+                self.solid_object_collision_top_solid(player, collision_shape_position, radius)
+            } else {
+                self.solid_object_collision(player, collision_shape_position, radius)
+            }
         }
     }
 }
@@ -74,6 +77,55 @@ impl SolidObject {
             ))
         }
     }
+    pub(super) fn solid_object_collision_top_solid(
+        &mut self,
+        mut player: Gd<Character>,
+        position: Vector2,
+        radius: Vector2,
+    ) {
+        let velocity = player.bind().get_velocity();
+        if self.top_solid_only && velocity.y < 0.0 {
+            return;
+        }
+        // Check overlap
+        let combined_x_radius = radius.x + player.bind().get_push_radius() + 1.0;
+        let player_height_radius = player.bind().get_height_radius();
+
+        let mut player_position = player.get_global_position();
+
+        let combined_x_diameter = combined_x_radius * 2.0;
+        let left_difference = (player_position.x - position.x) + combined_x_radius;
+        // the Player is too far to the left to be touching
+        // the Player is too far to the right to be touching
+        if left_difference < 0.0 || left_difference > combined_x_diameter {
+            return;
+        }
+
+        let object_surface_y = position.y - radius.y;
+        let player_bottom_y = player_position.y + player_height_radius + 4.0;
+        if object_surface_y > player_bottom_y {
+            // Platform is too low
+            return;
+        }
+        let y_distance = object_surface_y - player_bottom_y;
+        if !(-16.0..0.0).contains(&y_distance) {
+            // Platform is too low
+            return;
+        }
+        player_position.y += y_distance + 3.0;
+        player.set_global_position(player_position);
+
+        player.bind_mut().set_grounded(false);
+        player.bind_mut().set_ground_angle(0.0);
+        player.bind_mut().set_ground_speed(velocity.x);
+        player
+            .bind_mut()
+            .set_stand_on_object(self.base().clone().cast::<SolidObject>());
+        godot_print!(
+            "upwards land on top solid collision dy : {}",
+            -y_distance - 1.0
+        );
+    }
 
     pub(super) fn solid_object_collision(
         &mut self,
@@ -83,7 +135,8 @@ impl SolidObject {
     ) {
         // Check overlap
         let combined_x_radius = radius.x + player.bind().get_push_radius() + 1.0;
-        let combined_y_radius = radius.y + player.bind().get_height_radius();
+        let player_height_radius = player.bind().get_height_radius();
+        let combined_y_radius = radius.y + player_height_radius;
 
         let mut player_position = player.get_global_position();
 
