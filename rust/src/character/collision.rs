@@ -2,7 +2,7 @@ use godot::prelude::*;
 
 use crate::{
     character::Character,
-    sensor::{DetectionResult, Sensor},
+    sensor::{DetectionResult, Sensor, Solidity},
 };
 
 impl Character {
@@ -114,6 +114,7 @@ impl Character {
     pub(super) fn ceiling_check(&mut self, apply_velocity: bool) -> Option<DetectionResult> {
         self.ceiling_sensor_results(apply_velocity)
             .into_iter()
+            .filter(|r| r.solidity != Solidity::Fully)
             .min_by(|a, b| a.distance.total_cmp(&b.distance))
     }
 
@@ -128,11 +129,13 @@ impl Character {
         apply_velocity: bool,
     ) -> Option<DetectionResult> {
         self.sensor_result(&mut self.sensor_push_left.clone(), apply_velocity)
+            .filter(|r| r.solidity != Solidity::Fully)
     }
     pub(super) fn wall_right_sensor_check(
         &mut self,
         apply_velocity: bool,
     ) -> Option<DetectionResult> {
         self.sensor_result(&mut self.sensor_push_right.clone(), apply_velocity)
+            .filter(|r| r.solidity != Solidity::Fully)
     }
 }
