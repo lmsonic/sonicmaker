@@ -80,16 +80,19 @@ text = "Rings: 0"
 script = ExtResource("4_rsbg1")
 
 [node name="Ring" parent="." instance=ExtResource("5_ql2sq")]
-position = Vector2(328, 88)
+position = Vector2(903, 71)
+
+[node name="Ring2" parent="." instance=ExtResource("5_ql2sq")]
+position = Vector2(850, 69)
 
 [node name="Hurt" parent="." instance=ExtResource("6_1xblc")]
-position = Vector2(510, 181)
-
-[node name="Attackable" parent="." instance=ExtResource("7_04scq")]
-position = Vector2(101, 168)
-
-[node name="SolidObject" parent="." instance=ExtResource("8_8a470")]
-position = Vector2(1401, 44)
+position = Vector2(320, 106)
 
 [node name="SlopedSolidObject" parent="." instance=ExtResource("9_58uql")]
-position = Vector2(1257, 45)
+position = Vector2(1269, 78)
+
+[node name="Attackable" parent="." instance=ExtResource("7_04scq")]
+position = Vector2(715, 100)
+
+[node name="SolidObject" parent="." instance=ExtResource("8_8a470")]
+position = Vector2(1423, 55)

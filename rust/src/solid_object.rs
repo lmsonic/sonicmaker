@@ -30,7 +30,8 @@ impl IArea2D for SolidObject {
             .and_then(|mut tree| tree.get_first_node_in_group(c"player".into()))
             .and_then(|player| player.try_cast::<Character>().ok())
         {
-            self.solid_object_collision(player)
+            let collision_shape_position = self.collision_shape_global_position();
+            self.solid_object_collision(player, collision_shape_position)
         }
     }
 }
@@ -46,6 +47,13 @@ impl SolidObject {
     fn set_height_radius(&mut self, value: f32) {
         self.height_radius = value;
         self.update_shape();
+    }
+    #[func]
+    pub fn collision_shape_global_position(&self) -> Vector2 {
+        if let Some(collision_shape) = &self.collision_shape {
+            return collision_shape.get_global_position();
+        }
+        self.base().get_global_position()
     }
 }
 
@@ -64,12 +72,11 @@ impl SolidObject {
         }
     }
 
-    pub(super) fn solid_object_collision(&mut self, mut player: Gd<Character>) {
+    pub(super) fn solid_object_collision(&mut self, mut player: Gd<Character>, position: Vector2) {
         // Check overlap
         let combined_x_radius = self.width_radius + player.bind().get_push_radius() + 1.0;
         let combined_y_radius = self.height_radius + player.bind().get_height_radius();
 
-        let position = self.base().get_global_position();
         let mut player_position = player.get_global_position();
 
         let combined_x_diameter = combined_x_radius * 2.0;

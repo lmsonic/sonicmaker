@@ -58,7 +58,7 @@ impl Character {
         if let Some(object) = self.object_to_stand_on.clone() {
             // Snap player y to object
             let mut position = self.global_position();
-            let object_position = object.get_global_position();
+            let object_position = object.bind().collision_shape_global_position();
             let obj_width_radius = object.bind().get_width_radius();
             let obj_heigth_radius = object.bind().get_height_radius();
 
@@ -71,7 +71,7 @@ impl Character {
             // Check if you walked off the edge
             let combined_x_radius = obj_width_radius + self.push_radius + 1.0;
             let x_left_distance =
-                (self.global_position().x - object.get_global_position().x) + combined_x_radius;
+                (self.global_position().x - object_position.x) + combined_x_radius;
             if x_left_distance <= 0.0 || x_left_distance >= combined_x_radius * 2.0 {
                 self.clear_objects();
 
@@ -95,7 +95,7 @@ impl Character {
             // Check if you walked off the edge
             let combined_x_radius = obj_width_radius + self.push_radius + 1.0;
             let x_left_distance =
-                (self.global_position().x - object.get_global_position().x) + combined_x_radius;
+                (self.global_position().x - object_position.x) + combined_x_radius;
             if x_left_distance <= 0.0 || x_left_distance >= combined_x_radius * 2.0 {
                 self.clear_objects();
                 self.set_grounded(false);
