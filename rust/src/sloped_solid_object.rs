@@ -144,13 +144,66 @@ impl SlopedSolidObject {
         let x = player_position.x;
 
         // Handle edges
-        if x < global_center.x - width_radius || x > global_center.x + width_radius {
-            // Calculate y on closest vertex to player
-            if let Some(v) = polygon.iter().map(|v| *v + position).min_by(|v, u| {
-                v.distance_squared_to(player_position)
-                    .total_cmp(&u.distance_squared_to(player_position))
-            }) {
-                return (v.y, v.y);
+        if x < global_center.x - width_radius {
+            // Calculate leftmost vertex
+            if let Some((i, v)) = polygon
+                .iter()
+                .enumerate()
+                .map(|(i, v)| (i, *v + position))
+                .min_by(|(_, a), (_, b)| a.x.total_cmp(&b.x))
+            {
+                let prev = {
+                    if i == 0 {
+                        polygon[polygon.len() - 1]
+                    } else {
+                        polygon[(i - 1) % polygon.len()]
+                    }
+                } + position;
+                let next = polygon[(i + 1) % polygon.len()] + position;
+                let closest = if (prev.x - v.x).abs() < (next.x - v.x).abs() {
+                    prev
+                } else {
+                    next
+                };
+                if (closest.x - v.x).abs() < 0.1 {
+                    let bottom = v.y.max(closest.y);
+                    let top = v.y.min(closest.y);
+                    return (top, bottom);
+                } else {
+                    return (v.y, v.y);
+                }
+            } else {
+                return (position.y, position.y);
+            }
+        }
+        if x > global_center.x + width_radius {
+            // Calculate rightmost vertex
+            if let Some((i, v)) = polygon
+                .iter()
+                .enumerate()
+                .map(|(i, v)| (i, *v + position))
+                .max_by(|(_, a), (_, b)| a.x.total_cmp(&b.x))
+            {
+                let prev = {
+                    if i == 0 {
+                        polygon[polygon.len() - 1]
+                    } else {
+                        polygon[(i - 1) % polygon.len()]
+                    }
+                } + position;
+                let next = polygon[(i + 1) % polygon.len()] + position;
+                let closest = if (prev.x - v.x).abs() < (next.x - v.x).abs() {
+                    prev
+                } else {
+                    next
+                };
+                if (closest.x - v.x).abs() < 0.1 {
+                    let bottom = v.y.max(closest.y);
+                    let top = v.y.min(closest.y);
+                    return (top, bottom);
+                } else {
+                    return (v.y, v.y);
+                }
             } else {
                 return (position.y, position.y);
             }
@@ -267,6 +320,7 @@ impl SlopedSolidObject {
 
         // the Player is too far above to be touching
         // the Player is too far down to be touching
+
         if top_difference < 0.0 || top_difference > combined_y_diameter {
             return;
         }
@@ -323,6 +377,7 @@ impl SlopedSolidObject {
                 player_position.y -= 1.0;
                 player.set_global_position(player_position);
                 player.bind_mut().set_grounded(false);
+                // TODO: what if i wanted to calculate the angle?
                 player.bind_mut().set_ground_angle(0.0);
                 player.bind_mut().set_ground_speed(velocity.x);
                 player
