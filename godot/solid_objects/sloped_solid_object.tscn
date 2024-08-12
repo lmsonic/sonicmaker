@@ -8,4 +8,4 @@ monitoring = false
 
 [node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="."]
 process_physics_priority = 1
-polygon = PackedVector2Array(77, -84, -60, -10, -48, 16, 56, 16)
+polygon = PackedVector2Array(-48, 16, 56, 16, 77, -84, -59, -8)

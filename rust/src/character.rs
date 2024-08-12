@@ -5,11 +5,9 @@ mod utils;
 
 use godot::engine::{AnimatedSprite2D, Area2D, CollisionShape2D};
 use godot::prelude::*;
-use godot_api::{Kind, State};
+use godot_api::{Kind, SolidObjectKind, State};
 
 use crate::sensor::Sensor;
-use crate::sloped_solid_object::SlopedSolidObject;
-use crate::solid_object::SolidObject;
 
 #[derive(GodotClass)]
 #[class(init, base=Node2D)]
@@ -112,7 +110,6 @@ pub struct Character {
     #[init(default = true)]
     fix_delta: bool,
 
-    object_to_stand_on: Option<Gd<SolidObject>>,
-    sloped_object_to_stand_on: Option<Gd<SlopedSolidObject>>,
+    solid_object_to_stand_on: Option<SolidObjectKind>,
     base: Base<Node2D>,
 }

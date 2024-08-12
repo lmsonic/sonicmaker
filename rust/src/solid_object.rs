@@ -48,16 +48,15 @@ impl SolidObject {
         self.height_radius = value;
         self.update_shape();
     }
-    #[func]
+}
+
+impl SolidObject {
     pub fn collision_shape_global_position(&self) -> Vector2 {
         if let Some(collision_shape) = &self.collision_shape {
             return collision_shape.get_global_position();
         }
         self.base().get_global_position()
     }
-}
-
-impl SolidObject {
     fn update_shape(&mut self) {
         if let Some(mut rect) = self
             .collision_shape
@@ -83,7 +82,7 @@ impl SolidObject {
         let left_difference = (player_position.x - position.x) + combined_x_radius;
         // the Player is too far to the left to be touching
         // the Player is too far to the right to be touching
-        if left_difference <= 0.0 || left_difference > combined_x_diameter {
+        if left_difference < 0.0 || left_difference > combined_x_diameter {
             return;
         }
 
@@ -92,7 +91,7 @@ impl SolidObject {
 
         // the Player is too far above to be touching
         // the Player is too far down to be touching
-        if top_difference <= 0.0 || top_difference > combined_y_diameter {
+        if top_difference < 0.0 || top_difference > combined_y_diameter {
             return;
         }
 

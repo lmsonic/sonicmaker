@@ -7,6 +7,8 @@ use crate::character::{
     Character,
 };
 
+use super::godot_api::SolidObjectKind;
+
 // Genesis runs at 60 fps
 const FPS: f32 = 60.0;
 #[godot_api]
@@ -55,52 +57,43 @@ impl INode2D for Character {
 }
 impl Character {
     fn stand_on_solid_object(&mut self) {
-        if let Some(object) = self.object_to_stand_on.clone() {
-            // Snap player y to object
-            let mut position = self.global_position();
-            let object_position = object.bind().collision_shape_global_position();
-            let obj_width_radius = object.bind().get_width_radius();
-            let obj_heigth_radius = object.bind().get_height_radius();
+        let Some(solid_object) = &self.solid_object_to_stand_on else {
+            return;
+        };
+        let mut position = self.global_position();
 
-            let snapped_position = object_position.y - obj_heigth_radius * 2.0 - 1.0;
-            position.y = snapped_position;
-            self.base_mut().set_global_position(position);
-            self.set_grounded(true);
-            godot_print!("Stand on solid object at y={snapped_position}",);
-
-            // Check if you walked off the edge
-            let combined_x_radius = obj_width_radius + self.push_radius + 1.0;
-            let x_left_distance =
-                (self.global_position().x - object_position.x) + combined_x_radius;
-            if x_left_distance <= 0.0 || x_left_distance >= combined_x_radius * 2.0 {
-                self.clear_objects();
-
-                self.set_grounded(false);
-                godot_print!("walk off solid object");
+        let (object_position, obj_width_radius, object_top_position) = match solid_object {
+            SolidObjectKind::Simple(object) => {
+                let object_position = object.bind().collision_shape_global_position();
+                let obj_width_radius = object.bind().get_width_radius();
+                let obj_height_radius = object.bind().get_height_radius();
+                let object_top_position =
+                    object_position.y - obj_height_radius - self.height_radius - 1.0;
+                (object_position, obj_width_radius, object_top_position)
             }
-        }
-        if let Some(object) = self.sloped_object_to_stand_on.clone() {
-            // Snap player y to object
-            let mut position = self.global_position();
-            let object_position = object.bind().global_center();
-            let obj_width_radius = object.bind().width_radius();
-            let obj_height_radius = object.bind().height_radius();
+            SolidObjectKind::Sloped(object) => {
+                let object_position = object.bind().global_center();
+                let obj_width_radius = object.bind().width_radius();
 
-            let snapped_position = object_position.y - obj_height_radius * 2.0 - 1.0;
-            position.y = snapped_position;
-            self.base_mut().set_global_position(position);
-            self.set_grounded(true);
-            godot_print!("Stand on solid object at y={snapped_position}",);
-
-            // Check if you walked off the edge
-            let combined_x_radius = obj_width_radius + self.push_radius + 1.0;
-            let x_left_distance =
-                (self.global_position().x - object_position.x) + combined_x_radius;
-            if x_left_distance <= 0.0 || x_left_distance >= combined_x_radius * 2.0 {
-                self.clear_objects();
-                self.set_grounded(false);
-                godot_print!("walk off solid object");
+                let (top, _) = object.bind().current_top_bottom(position);
+                let object_top_position = top - self.height_radius - 1.0;
+                (object_position, obj_width_radius, object_top_position)
             }
+        };
+
+        position.y = object_top_position;
+        self.base_mut().set_global_position(position);
+        self.set_grounded(true);
+        godot_print!("Stand on solid object at y={object_top_position}");
+
+        // Check if you walked off the edge
+        let combined_x_radius = obj_width_radius + self.push_radius + 1.0;
+        let x_left_distance = (position.x - object_position.x) + combined_x_radius;
+        if x_left_distance <= 0.0 || x_left_distance >= combined_x_radius * 2.0 {
+            self.clear_objects();
+
+            self.set_grounded(false);
+            godot_print!("walk off solid object");
         }
     }
     fn airborne(&mut self, delta: f32) {
@@ -307,7 +300,7 @@ impl Character {
 
         self.check_walls();
 
-        if self.object_to_stand_on.is_none() {
+        if self.solid_object_to_stand_on.is_none() {
             self.check_floor();
         }
 

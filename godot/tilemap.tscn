@@ -88,11 +88,11 @@ position = Vector2(850, 69)
 [node name="Hurt" parent="." instance=ExtResource("6_1xblc")]
 position = Vector2(320, 106)
 
-[node name="SlopedSolidObject" parent="." instance=ExtResource("9_58uql")]
-position = Vector2(1269, 78)
-
 [node name="Attackable" parent="." instance=ExtResource("7_04scq")]
 position = Vector2(715, 100)
 
 [node name="SolidObject" parent="." instance=ExtResource("8_8a470")]
 position = Vector2(1423, 55)
+
+[node name="SlopedSolidObject" parent="." instance=ExtResource("9_58uql")]
+position = Vector2(1545, 59)

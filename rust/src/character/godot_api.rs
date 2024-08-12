@@ -56,17 +56,21 @@ use crate::{
     character::Character, sensor::DetectionResult, sloped_solid_object::SlopedSolidObject,
     solid_object::SolidObject,
 };
+
+pub enum SolidObjectKind {
+    Simple(Gd<SolidObject>),
+    Sloped(Gd<SlopedSolidObject>),
+}
+
 #[godot_api]
 impl Character {
     #[func]
     pub fn set_stand_on_object(&mut self, object: Gd<SolidObject>) {
-        self.object_to_stand_on = Some(object);
-        self.sloped_object_to_stand_on = None;
+        self.solid_object_to_stand_on = Some(SolidObjectKind::Simple(object));
     }
     #[func]
     pub fn set_stand_on_sloped_object(&mut self, object: Gd<SlopedSolidObject>) {
-        self.sloped_object_to_stand_on = Some(object);
-        self.object_to_stand_on = None;
+        self.solid_object_to_stand_on = Some(SolidObjectKind::Sloped(object));
     }
     #[func]
     fn on_attacking(&mut self, badnik: Gd<Node2D>, is_boss: bool) {
