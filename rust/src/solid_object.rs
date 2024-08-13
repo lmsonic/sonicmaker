@@ -62,7 +62,6 @@ impl SolidObject {
                 .bind_mut()
                 .set_stand_on_object(self.base().clone().cast::<Self>());
         }
-        godot_print!("{:?}", self.collision);
 
         let position = self.base().get_global_position();
         self.velocity = position - self.position_last_frame;

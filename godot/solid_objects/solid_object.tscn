@@ -6,8 +6,8 @@ size = Vector2(64, 32)
 [node name="SolidObject" type="SolidObject" node_paths=PackedStringArray("collision_shape")]
 width_radius = 32.0
 height_radius = 16.0
-top_solid_only = false
 collision_shape = NodePath("CollisionShape2D")
+collision = "None"
 process_physics_priority = 1
 monitoring = false
 monitorable = false

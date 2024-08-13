@@ -8,7 +8,10 @@ use godot::{
 
 use crate::{character::Character, sensor::TILE_SIZE};
 
-use super::{solid_object_collision_fully_solid, solid_object_collision_top_solid, Collision};
+use super::{
+    solid_object_collision, solid_object_collision_fully_solid, solid_object_collision_top_solid,
+    Collision,
+};
 #[derive(GodotClass)]
 #[class(init, base=Area2D)]
 pub struct SlopedSolidObject {
@@ -16,6 +19,8 @@ pub struct SlopedSolidObject {
     top_solid_only: bool,
     #[export]
     collision_polygon: Option<Gd<CollisionPolygon2D>>,
+    #[var(get)]
+    collision: Collision,
     #[var]
     velocity: Vector2,
     position_last_frame: Vector2,
@@ -87,24 +92,11 @@ impl SlopedSolidObject {
         position.y = (bottom + top) * 0.5;
         let radius = Vector2::new(self.width_radius(), (bottom - top) * 0.5);
 
-        if self.top_solid_only {
-            let collision = solid_object_collision_top_solid(&mut player, position, radius);
-            if !collision.is_none() {
-                player
-                    .bind_mut()
-                    .set_stand_on_sloped_object(self.base().clone().cast::<Self>());
-            }
-        } else {
-            let collision = solid_object_collision_fully_solid(&mut player, position, radius);
-            if collision.is_none() {
-                return;
-            }
-
-            if collision == Collision::Up {
-                player
-                    .bind_mut()
-                    .set_stand_on_sloped_object(self.base().clone().cast::<Self>())
-            }
+        self.collision = solid_object_collision(&mut player, position, radius, self.top_solid_only);
+        if self.collision == Collision::Up {
+            player
+                .bind_mut()
+                .set_stand_on_sloped_object(self.base().clone().cast::<Self>());
         }
     }
 
