@@ -147,7 +147,7 @@ impl Character {
         self.base_mut().set_rotation(TAU - angle);
         self.update_sensors();
     }
-    #[func]
+
     pub fn set_ground_angle_from_result(&mut self, result: DetectionResult) {
         let angle = if result.snap {
             (result.angle / FRAC_PI_2).round().rem(4.0) * FRAC_PI_2

@@ -1,10 +1,7 @@
 use std::f32::consts::FRAC_PI_2;
 
 use godot::{
-    engine::{
-        CollisionObject2D, CollisionShape2D, Engine, PhysicsRayQueryParameters2D, ThemeDb,
-        TileData, TileMap,
-    },
+    engine::{Engine, PhysicsRayQueryParameters2D, ThemeDb, TileData, TileMap},
     prelude::*,
 };
 
@@ -98,7 +95,6 @@ pub enum Solidity {
     #[default]
     Fully,
     Top,
-    SidesAndBottom,
 }
 #[derive(Debug, Clone, Copy)]
 pub struct DetectionResult {
@@ -106,35 +102,6 @@ pub struct DetectionResult {
     pub angle: f32,
     pub solidity: Solidity,
     pub snap: bool,
-}
-
-impl GodotConvert for DetectionResult {
-    type Via = Dictionary;
-}
-impl ToGodot for DetectionResult {
-    fn to_godot(&self) -> Self::Via {
-        dict! {"distance":self.distance,"angle":self.angle,"solidity":self.solidity,"snap":self.snap}
-    }
-}
-impl FromGodot for DetectionResult {
-    fn try_from_godot(dict: Self::Via) -> Result<Self, ConvertError> {
-        let distance = dict
-            .get("distance")
-            .ok_or(ConvertError::default())?
-            .try_to()?;
-        let angle = dict.get("angle").ok_or(ConvertError::default())?.try_to()?;
-        let solidity = dict
-            .get("solidity")
-            .ok_or(ConvertError::default())?
-            .try_to()?;
-        let snap = dict.get("snap").ok_or(ConvertError::default())?.try_to()?;
-        Ok(Self {
-            distance,
-            angle,
-            solidity,
-            snap,
-        })
-    }
 }
 
 impl DetectionResult {
@@ -151,7 +118,7 @@ impl DetectionResult {
 impl INode2D for Sensor {
     fn physics_process(&mut self, _delta: f64) {
         if Engine::singleton().is_editor_hint() && self.update_in_editor {
-            self._sense();
+            self.sense();
         }
         self.base_mut().queue_redraw();
     }
@@ -167,14 +134,6 @@ impl Sensor {
     #[func]
     pub fn set_direction(&mut self, value: Direction) {
         self.direction = value;
-    }
-
-    #[func]
-    pub fn sense(&mut self) -> Variant {
-        match self._sense() {
-            Some(result) => result.into_godot().to_variant(),
-            None => Variant::nil(),
-        }
     }
 }
 
@@ -238,7 +197,7 @@ impl Sensor {
         }
     }
 
-    pub fn _sense(&mut self) -> Option<DetectionResult> {
+    pub fn sense(&mut self) -> Option<DetectionResult> {
         let target_direction = self.direction.target_direction();
         let snapped_position = self.snapped_position();
         let mut result;
@@ -292,27 +251,29 @@ impl Sensor {
         self.last_collision_point = Some(collision_point);
         let distance = self.get_distance(collision_point);
         let normal = result.normal;
-        let snapped = if let Some((layer, tile_data)) = self.get_collided_tile_data(result) {
-            let polygon_full = if tile_data.get_collision_polygons_count(layer) > 0 {
-                let collision_data = tile_data.get_collision_polygon_points(layer, 0);
-                is_polygon_full(collision_data)
+        let (solidity, snapped) =
+            if let Some((layer, tile_data)) = self.get_collided_tile_data(result) {
+                let polygon_full = if tile_data.get_collision_polygons_count(layer) > 0 {
+                    let collision_data = tile_data.get_collision_polygon_points(layer, 0);
+                    is_polygon_full(collision_data)
+                } else {
+                    false
+                };
+                let snapped =
+                    polygon_full || tile_data.get_custom_data("snap".into_godot()).booleanize();
+                let solidity = if tile_data.get_collision_polygons_count(layer) > 0
+                    && tile_data.is_collision_polygon_one_way(layer, 0)
+                {
+                    Solidity::Top
+                } else {
+                    Solidity::Fully
+                };
+                (solidity, snapped)
             } else {
-                false
+                (Solidity::Fully, false)
             };
-            polygon_full || tile_data.get_custom_data("snap".into_godot()).booleanize()
-        } else {
-            false
-        };
         let angle = normal.plane_angle();
-        let solidity = if let Some(shape) = self.get_collider_shape(result) {
-            if shape.is_one_way_collision_enabled() {
-                Solidity::Top
-            } else {
-                Solidity::Fully
-            }
-        } else {
-            Solidity::Fully
-        };
+
         DetectionResult::new(
             distance,
             angle,
@@ -321,19 +282,6 @@ impl Sensor {
         )
     }
 
-    fn get_collider_shape(&self, result: &RaycastResult) -> Option<Gd<CollisionShape2D>> {
-        let target = result
-            .collider
-            .clone()
-            .try_cast::<CollisionObject2D>()
-            .ok()?;
-        let shape_id = result.shape;
-        let owner_id = target.shape_find_owner(shape_id);
-        target
-            .shape_owner_get_owner(owner_id)?
-            .try_cast::<CollisionShape2D>()
-            .ok()
-    }
     fn get_collided_tile_data(
         &self,
         raycast_result: &RaycastResult,
