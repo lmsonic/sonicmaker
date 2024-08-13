@@ -8,7 +8,7 @@
 [ext_resource type="PackedScene" uid="uid://dbhv1yqwt7kaj" path="res://hitboxes/hurt.tscn" id="6_1xblc"]
 [ext_resource type="PackedScene" uid="uid://dlct42b7w52pd" path="res://hitboxes/attackable.tscn" id="7_04scq"]
 [ext_resource type="PackedScene" uid="uid://cejgtrbyx7w4o" path="res://solid_objects/solid_object.tscn" id="8_8a470"]
-[ext_resource type="Script" path="res://solid_objects/moving_object.gd" id="9_7urwl"]
+[ext_resource type="PackedScene" uid="uid://tud7ojs66mkf" path="res://solid_objects/pushable_block.tscn" id="8_8ajht"]
 [ext_resource type="PackedScene" uid="uid://fyumun0gvc66" path="res://solid_objects/sloped_solid_object.tscn" id="9_58uql"]
 
 [sub_resource type="GDScript" id="GDScript_43165"]
@@ -92,9 +92,17 @@ position = Vector2(320, 106)
 [node name="Attackable" parent="." instance=ExtResource("7_04scq")]
 position = Vector2(715, 100)
 
+[node name="PushableBlock" parent="." instance=ExtResource("8_8ajht")]
+pushable_block_gravity = 2.5
+velocity = Vector2(0, 0)
+state = "Normal"
+position = Vector2(957, 42)
+
 [node name="SolidObject" parent="." instance=ExtResource("8_8a470")]
+pushable_block_gravity = 2.5
+velocity = Vector2(0, 0)
+state = "Normal"
 position = Vector2(1315, 58)
-script = ExtResource("9_7urwl")
 
 [node name="SlopedSolidObject" parent="." instance=ExtResource("9_58uql")]
 position = Vector2(1545, 59)
