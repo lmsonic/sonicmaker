@@ -31,6 +31,12 @@ pub struct SolidObject {
     #[init(default = 2.5)]
     pushable_block_gravity: f32,
     #[export]
+    #[init(default = 0.3333)]
+    push_speed: f32,
+    #[export]
+    #[init(default = 4.0)]
+    slide_off_speed: f32,
+    #[export]
     floor_sensor: Option<Gd<Sensor>>,
     #[export]
     #[var]
@@ -90,46 +96,46 @@ impl IArea2D for SolidObject {
                     let mut player_position = player.get_global_position();
                     match collision_direction {
                         CollisionDirection::Left => {
-                            player_position.x += 0.5;
+                            player_position.x += self.push_speed;
                             player.bind_mut().velocity.x = 0.0;
                             player.bind_mut().set_ground_speed(0.25);
                             player.set_global_position(player_position);
 
-                            position.x += 0.5;
+                            position.x += self.push_speed;
                             self.base_mut().set_global_position(position);
                             if let Some(floor_sensor) = &mut self.floor_sensor {
                                 if let Some(result) = floor_sensor.bind_mut().sense() {
                                     if result.distance > 0.0 {
-                                        self.pixels_moved = 4.0;
-                                        position.x += 4.0;
+                                        self.pixels_moved = self.slide_off_speed;
+                                        position.x += self.slide_off_speed;
 
                                         self.state = State::Falling;
                                     }
                                 } else {
-                                    self.pixels_moved = 4.0;
-                                    position.x += 4.0;
+                                    self.pixels_moved = self.slide_off_speed;
+                                    position.x += self.slide_off_speed;
                                     self.state = State::Falling;
                                 }
                             }
                         }
                         CollisionDirection::Right => {
-                            player_position.x -= 0.5;
+                            player_position.x -= self.push_speed;
                             player.bind_mut().velocity.x = 0.0;
                             player.bind_mut().set_ground_speed(-0.25);
                             player.set_global_position(player_position);
 
-                            position.x -= 0.5;
+                            position.x -= self.push_speed;
                             self.base_mut().set_global_position(position);
                             if let Some(floor_sensor) = &mut self.floor_sensor {
                                 if let Some(result) = floor_sensor.bind_mut().sense() {
                                     if result.distance > 0.0 {
-                                        position.x -= 4.0;
-                                        self.pixels_moved = -4.0;
+                                        position.x -= self.slide_off_speed;
+                                        self.pixels_moved = -self.slide_off_speed;
                                         self.state = State::Falling;
                                     }
                                 } else {
-                                    position.x -= 4.0;
-                                    self.pixels_moved = -4.0;
+                                    position.x -= self.slide_off_speed;
+                                    self.pixels_moved = -self.slide_off_speed;
                                 }
                             }
                         }
@@ -174,8 +180,13 @@ impl IArea2D for SolidObject {
             } else {
                 // Move to the push direction at speed = 4 until you moved 16 px
                 let moving_right = self.pixels_moved.signum() > 0.0;
-                self.pixels_moved += if moving_right { 4.0 } else { -4.0 };
-                position.x += if moving_right { 4.0 } else { -4.0 };
+                let delta = if moving_right {
+                    self.slide_off_speed
+                } else {
+                    -self.slide_off_speed
+                };
+                self.pixels_moved += delta;
+                position.x += delta;
                 self.base_mut().set_global_position(position);
             }
         }

@@ -94,12 +94,16 @@ position = Vector2(715, 100)
 
 [node name="PushableBlock" parent="." instance=ExtResource("8_8ajht")]
 pushable_block_gravity = 2.5
+push_speed = 0.3333
+slide_off_speed = 4.0
 velocity = Vector2(0, 0)
 state = "Normal"
 position = Vector2(957, 42)
 
 [node name="SolidObject" parent="." instance=ExtResource("8_8a470")]
 pushable_block_gravity = 2.5
+push_speed = 0.3333
+slide_off_speed = 4.0
 velocity = Vector2(0, 0)
 state = "Normal"
 position = Vector2(1315, 58)
