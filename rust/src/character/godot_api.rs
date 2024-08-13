@@ -1,6 +1,7 @@
+#![allow(clippy::needless_pass_by_value)]
 use std::{f32::consts::FRAC_PI_2, ops::Rem};
 
-use godot::{engine::RectangleShape2D, prelude::*};
+use godot::{builtin::math::ApproxEq, engine::RectangleShape2D, prelude::*};
 use real_consts::{PI, TAU};
 
 #[derive(GodotConvert, Var, Export, Default, Debug, PartialEq, Eq, Clone, Copy)]
@@ -24,15 +25,15 @@ pub(super) enum State {
 }
 
 impl State {
-    pub(super) fn is_ball(&self) -> bool {
-        *self == Self::JumpBall || *self == Self::RollingBall
+    pub(super) fn is_ball(self) -> bool {
+        self == Self::JumpBall || self == Self::RollingBall
     }
 
     /// Returns `true` if the state is [`JumpBall`].
     ///
     /// [`JumpBall`]: State::JumpBall
     #[must_use]
-    pub(super) fn is_jumping(&self) -> bool {
+    pub(super) const fn is_jumping(self) -> bool {
         matches!(self, Self::JumpBall)
     }
 
@@ -40,7 +41,7 @@ impl State {
     ///
     /// [`RollingBall`]: State::RollingBall
     #[must_use]
-    pub(super) fn is_rolling(&self) -> bool {
+    pub(super) const fn is_rolling(self) -> bool {
         matches!(self, Self::RollingBall)
     }
 
@@ -48,7 +49,7 @@ impl State {
     ///
     /// [`Hurt`]: State::Hurt
     #[must_use]
-    pub(super) fn is_hurt(&self) -> bool {
+    pub(super) const fn is_hurt(self) -> bool {
         matches!(self, Self::Hurt)
     }
 }
@@ -103,10 +104,10 @@ impl Character {
         self.velocity = Vector2::new(self.hurt_x_force * sign, self.hurt_y_force);
         self.set_state(State::Hurt);
         self.set_grounded(false);
-        self.clear_objects()
+        self.clear_objects();
     }
 
-    pub fn die(&mut self) {
+    pub fn die(&self) {
         if let Some(mut tree) = self.base().get_tree() {
             tree.call_deferred("reload_current_scene".into(), &[]);
         }
@@ -172,6 +173,7 @@ impl Character {
         self.push_radius = value;
         self.update_sensors();
     }
+    #[allow(dead_code)]
     fn update_y_position(&mut self, delta: f32) {
         let mut position = self.global_position();
         let down = self.current_mode().down();
@@ -215,14 +217,13 @@ impl Character {
         }
         if let Some(sprites) = &mut self.sprites {
             match self.state {
-                State::Idle => sprites.play_ex().name(c"idle".into()).done(),
+                State::Idle | State::Hurt => sprites.play_ex().name(c"idle".into()).done(),
                 State::StartMotion => sprites.play_ex().name(c"start_motion".into()).done(),
                 State::FullMotion => sprites.play_ex().name(c"full_motion".into()).done(),
                 State::JumpBall | State::RollingBall => {
-                    sprites.play_ex().name(c"rolling".into()).done()
-                }
-                // TODO: add the hurt animation
-                State::Hurt => sprites.play_ex().name(c"idle".into()).done(),
+                    sprites.play_ex().name(c"rolling".into()).done();
+                } // TODO: add the hurt animation
+                  // State::Idle => sprites.play_ex().name(c"idle".into()).done(),
             }
         }
     }
@@ -271,12 +272,13 @@ impl Character {
             // Push Sensors
             let half_width = self.push_radius;
             let mode = self.current_mode_walls();
-            let half_height =
-                if self.is_grounded && (self.ground_angle == 0.0 || self.ground_angle == TAU) {
-                    8.0
-                } else {
-                    0.0
-                };
+            let half_height = if self.is_grounded
+                && (self.ground_angle == 0.0 || self.ground_angle.approx_eq(&TAU))
+            {
+                8.0
+            } else {
+                0.0
+            };
             let right_direction = mode.right_direction();
             let left_direction = mode.left_direction();
             let angle = mode.angle();
@@ -327,7 +329,7 @@ impl Character {
                 Color::RED.with_alpha(0.2)
             } else {
                 Color::BLUE.with_alpha(0.2)
-            })
+            });
         }
     }
 }

@@ -142,12 +142,10 @@ impl SlopedSolidObject {
                     let bottom = v.y.max(closest.y);
                     let top = v.y.min(closest.y);
                     return (top, bottom);
-                } else {
-                    return (v.y, v.y);
                 }
-            } else {
-                return (position.y, position.y);
+                return (v.y, v.y);
             }
+            return (position.y, position.y);
         }
         if x > global_center.x + width_radius {
             // Calculate rightmost vertex
@@ -174,12 +172,10 @@ impl SlopedSolidObject {
                     let bottom = v.y.max(closest.y);
                     let top = v.y.min(closest.y);
                     return (top, bottom);
-                } else {
-                    return (v.y, v.y);
                 }
-            } else {
-                return (position.y, position.y);
+                return (v.y, v.y);
             }
+            return (position.y, position.y);
         }
 
         // Calculate the lowest y on an edge containing player position x
@@ -226,13 +222,13 @@ impl SlopedSolidObject {
             let min = polygon
                 .iter()
                 .map(|a| a.y)
-                .min_by(|a, b| a.total_cmp(b))
+                .min_by(f32::total_cmp)
                 .unwrap_or_default();
 
             let max = polygon
                 .iter()
                 .map(|a| a.y)
-                .max_by(|a, b| a.total_cmp(b))
+                .max_by(f32::total_cmp)
                 .unwrap_or_default();
 
             return (min, max);
@@ -246,13 +242,13 @@ impl SlopedSolidObject {
             let min = polygon
                 .iter()
                 .map(|a| a.x)
-                .min_by(|a, b| a.total_cmp(b))
+                .min_by(f32::total_cmp)
                 .unwrap_or_default();
 
             let max = polygon
                 .iter()
                 .map(|a| a.x)
-                .max_by(|a, b| a.total_cmp(b))
+                .max_by(f32::total_cmp)
                 .unwrap_or_default();
 
             return (min, max);

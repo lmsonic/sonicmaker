@@ -19,12 +19,12 @@ pub enum Direction {
 pub const TILE_SIZE: f32 = 16.0;
 
 impl Direction {
-    fn target_direction(&self) -> Vector2 {
-        match *self {
-            Direction::Left => Vector2::LEFT * TILE_SIZE,
-            Direction::Up => Vector2::UP * TILE_SIZE,
-            Direction::Right => Vector2::RIGHT * TILE_SIZE,
-            Direction::Down => Vector2::DOWN * TILE_SIZE,
+    fn target_direction(self) -> Vector2 {
+        match self {
+            Self::Left => Vector2::LEFT * TILE_SIZE,
+            Self::Up => Vector2::UP * TILE_SIZE,
+            Self::Right => Vector2::RIGHT * TILE_SIZE,
+            Self::Down => Vector2::DOWN * TILE_SIZE,
         }
     }
 }
@@ -46,18 +46,24 @@ impl FromGodot for RaycastResult {
     fn try_from_godot(dict: Self::Via) -> Result<Self, ConvertError> {
         let position = dict
             .get("position")
-            .ok_or(ConvertError::default())?
+            .ok_or_else(ConvertError::default)?
             .try_to()?;
         let normal = dict
             .get("normal")
-            .ok_or(ConvertError::default())?
+            .ok_or_else(ConvertError::default)?
             .try_to()?;
         let collider = dict
             .get("collider")
-            .ok_or(ConvertError::default())?
+            .ok_or_else(ConvertError::default)?
             .try_to()?;
-        let rid = dict.get("rid").ok_or(ConvertError::default())?.try_to()?;
-        let shape = dict.get("shape").ok_or(ConvertError::default())?.try_to()?;
+        let rid = dict
+            .get("rid")
+            .ok_or_else(ConvertError::default)?
+            .try_to()?;
+        let shape = dict
+            .get("shape")
+            .ok_or_else(ConvertError::default)?
+            .try_to()?;
 
         Ok(Self {
             position,
@@ -117,14 +123,20 @@ impl FromGodot for DetectionResult {
     fn try_from_godot(dict: Self::Via) -> Result<Self, ConvertError> {
         let distance = dict
             .get("distance")
-            .ok_or(ConvertError::default())?
+            .ok_or_else(ConvertError::default)?
             .try_to()?;
-        let angle = dict.get("angle").ok_or(ConvertError::default())?.try_to()?;
+        let angle = dict
+            .get("angle")
+            .ok_or_else(ConvertError::default)?
+            .try_to()?;
         let solidity = dict
             .get("solidity")
-            .ok_or(ConvertError::default())?
+            .ok_or_else(ConvertError::default)?
             .try_to()?;
-        let snap = dict.get("snap").ok_or(ConvertError::default())?.try_to()?;
+        let snap = dict
+            .get("snap")
+            .ok_or_else(ConvertError::default)?
+            .try_to()?;
         Ok(Self {
             distance,
             angle,
@@ -135,7 +147,7 @@ impl FromGodot for DetectionResult {
 }
 
 impl DetectionResult {
-    fn new(distance: f32, angle: f32, solidity: Solidity, snap: bool) -> Self {
+    const fn new(distance: f32, angle: f32, solidity: Solidity, snap: bool) -> Self {
         Self {
             distance,
             angle,
@@ -168,21 +180,19 @@ impl Sensor {
 
     #[func]
     pub fn sense_godot(&mut self) -> Variant {
-        match self.sense() {
-            Some(result) => result.into_godot().to_variant(),
-            None => Variant::nil(),
-        }
+        self.sense()
+            .map_or_else(Variant::nil, |result| result.into_godot().to_variant())
     }
 }
 
-fn is_polygon_full(array: PackedVector2Array) -> bool {
+fn is_polygon_full(array: &PackedVector2Array) -> bool {
     let full_polygon = PackedVector2Array::from(&[
         Vector2::new(-8.0, -8.0),
         Vector2::new(8.0, -8.0),
         Vector2::new(8.0, 8.0),
         Vector2::new(-8.0, 8.0),
     ]);
-    array == full_polygon
+    *array == full_polygon
 }
 
 impl Sensor {
@@ -277,10 +287,10 @@ impl Sensor {
         query.set_collide_with_areas(false);
         query.set_hit_from_inside(true);
         let result = space_state.intersect_ray(query);
-        if !result.is_empty() {
-            RaycastResult::try_from_godot(result).ok()
-        } else {
+        if result.is_empty() {
             None
+        } else {
+            RaycastResult::try_from_godot(result).ok()
         }
     }
 
@@ -289,27 +299,26 @@ impl Sensor {
         self.last_collision_point = Some(collision_point);
         let distance = self.get_distance(collision_point);
         let normal = result.normal;
-        let (solidity, snapped) =
-            if let Some((layer, tile_data)) = self.get_collided_tile_data(result) {
-                let polygon_full = if tile_data.get_collision_polygons_count(layer) > 0 {
-                    let collision_data = tile_data.get_collision_polygon_points(layer, 0);
-                    is_polygon_full(collision_data)
-                } else {
-                    false
-                };
-                let snapped =
-                    polygon_full || tile_data.get_custom_data("snap".into_godot()).booleanize();
-                let solidity = if tile_data.get_collision_polygons_count(layer) > 0
-                    && tile_data.is_collision_polygon_one_way(layer, 0)
-                {
-                    Solidity::Top
-                } else {
-                    Solidity::Fully
-                };
-                (solidity, snapped)
+        let (solidity, snapped) = if let Some((layer, tile_data)) = get_collided_tile_data(result) {
+            let polygon_full = if tile_data.get_collision_polygons_count(layer) > 0 {
+                let collision_data = tile_data.get_collision_polygon_points(layer, 0);
+                is_polygon_full(&collision_data)
             } else {
-                (Solidity::Fully, false)
+                false
             };
+            let snapped =
+                polygon_full || tile_data.get_custom_data("snap".into_godot()).booleanize();
+            let solidity = if tile_data.get_collision_polygons_count(layer) > 0
+                && tile_data.is_collision_polygon_one_way(layer, 0)
+            {
+                Solidity::Top
+            } else {
+                Solidity::Fully
+            };
+            (solidity, snapped)
+        } else {
+            (Solidity::Fully, false)
+        };
         let angle = normal.plane_angle();
 
         DetectionResult::new(
@@ -318,18 +327,6 @@ impl Sensor {
             solidity,
             normal == Vector2::ZERO || snapped,
         )
-    }
-
-    fn get_collided_tile_data(
-        &self,
-        raycast_result: &RaycastResult,
-    ) -> Option<(i32, Gd<TileData>)> {
-        let collider_rid = raycast_result.rid;
-        let mut tilemap = raycast_result.collider.clone().try_cast::<TileMap>().ok()?;
-        let map_coords = tilemap.get_coords_for_body_rid(collider_rid);
-        let layer = tilemap.get_layer_for_body_rid(collider_rid);
-        let tile_data = tilemap.get_cell_tile_data(layer, map_coords)?;
-        Some((layer, tile_data))
     }
 
     fn get_distance(&self, collision_point: Vector2) -> f32 {
@@ -353,4 +350,13 @@ impl Sensor {
 
         position
     }
+}
+
+fn get_collided_tile_data(raycast_result: &RaycastResult) -> Option<(i32, Gd<TileData>)> {
+    let collider_rid = raycast_result.rid;
+    let mut tilemap = raycast_result.collider.clone().try_cast::<TileMap>().ok()?;
+    let map_coords = tilemap.get_coords_for_body_rid(collider_rid);
+    let layer = tilemap.get_layer_for_body_rid(collider_rid);
+    let tile_data = tilemap.get_cell_tile_data(layer, map_coords)?;
+    Some((layer, tile_data))
 }

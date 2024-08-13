@@ -1,7 +1,8 @@
-pub(crate) mod sloped_solid_object;
+pub mod sloped_solid_object;
 
 use godot::{
-    engine::{Area2D, CollisionShape2D, IArea2D, RectangleShape2D},
+    classes::CollisionShape2D,
+    engine::{Area2D, IArea2D, RectangleShape2D},
     obj::WithBaseField,
     prelude::*,
 };
@@ -36,7 +37,7 @@ pub struct SolidObject {
 #[godot_api]
 impl IArea2D for SolidObject {
     fn physics_process(&mut self, _delta: f64) {
-        self.physics_process(_delta)
+        self.physics_process(_delta);
     }
 }
 
@@ -97,17 +98,17 @@ impl SolidObject {
         }
         self.base().get_global_position()
     }
-    fn update_shape(&mut self) {
+    fn update_shape(&self) {
         if let Some(mut rect) = self
             .collision_shape
             .as_deref()
-            .and_then(|cs| cs.get_shape())
+            .and_then(CollisionShape2D::get_shape)
             .and_then(|shape| shape.try_cast::<RectangleShape2D>().ok())
         {
             rect.set_size(Vector2::new(
                 self.width_radius * 2.0,
                 self.height_radius * 2.0,
-            ))
+            ));
         }
     }
 }

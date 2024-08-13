@@ -16,69 +16,69 @@ pub(super) enum Mode {
 }
 
 impl Mode {
-    pub(super) fn angle(&self) -> f32 {
+    pub(super) fn angle(self) -> f32 {
         match self {
-            Mode::Floor => 0.0,
-            Mode::LeftWall => FRAC_PI_2,
-            Mode::Ceiling => PI,
-            Mode::RightWall => PI + FRAC_PI_2,
+            Self::Floor => 0.0,
+            Self::LeftWall => FRAC_PI_2,
+            Self::Ceiling => PI,
+            Self::RightWall => PI + FRAC_PI_2,
         }
     }
-    pub(super) fn down_direction(&self) -> Direction {
+    pub(super) const fn down_direction(self) -> Direction {
         match self {
-            Mode::Floor => Direction::Down,
-            Mode::RightWall => Direction::Right,
-            Mode::Ceiling => Direction::Up,
-            Mode::LeftWall => Direction::Left,
+            Self::Floor => Direction::Down,
+            Self::RightWall => Direction::Right,
+            Self::Ceiling => Direction::Up,
+            Self::LeftWall => Direction::Left,
         }
     }
-    pub(super) fn right_direction(&self) -> Direction {
+    pub(super) const fn right_direction(self) -> Direction {
         match self {
-            Mode::Floor => Direction::Right,
-            Mode::RightWall => Direction::Up,
-            Mode::Ceiling => Direction::Left,
-            Mode::LeftWall => Direction::Down,
+            Self::Floor => Direction::Right,
+            Self::RightWall => Direction::Up,
+            Self::Ceiling => Direction::Left,
+            Self::LeftWall => Direction::Down,
         }
     }
-    pub(super) fn left_direction(&self) -> Direction {
+    pub(super) const fn left_direction(self) -> Direction {
         match self {
-            Mode::Floor => Direction::Left,
-            Mode::RightWall => Direction::Down,
-            Mode::Ceiling => Direction::Right,
-            Mode::LeftWall => Direction::Up,
+            Self::Floor => Direction::Left,
+            Self::RightWall => Direction::Down,
+            Self::Ceiling => Direction::Right,
+            Self::LeftWall => Direction::Up,
         }
     }
 
-    pub(super) fn up_direction(&self) -> Direction {
+    pub(super) const fn up_direction(self) -> Direction {
         match self {
-            Mode::Floor => Direction::Up,
-            Mode::RightWall => Direction::Left,
-            Mode::Ceiling => Direction::Down,
-            Mode::LeftWall => Direction::Right,
+            Self::Floor => Direction::Up,
+            Self::RightWall => Direction::Left,
+            Self::Ceiling => Direction::Down,
+            Self::LeftWall => Direction::Right,
         }
     }
-    pub(super) fn down(&self) -> Vector2 {
+    pub(super) const fn down(self) -> Vector2 {
         match self {
-            Mode::Floor => Vector2::DOWN,
-            Mode::RightWall => Vector2::RIGHT,
-            Mode::Ceiling => Vector2::UP,
-            Mode::LeftWall => Vector2::LEFT,
+            Self::Floor => Vector2::DOWN,
+            Self::RightWall => Vector2::RIGHT,
+            Self::Ceiling => Vector2::UP,
+            Self::LeftWall => Vector2::LEFT,
         }
     }
-    pub(super) fn left(&self) -> Vector2 {
+    pub(super) const fn left(self) -> Vector2 {
         match self {
-            Mode::Floor => Vector2::LEFT,
-            Mode::RightWall => Vector2::DOWN,
-            Mode::Ceiling => Vector2::RIGHT,
-            Mode::LeftWall => Vector2::UP,
+            Self::Floor => Vector2::LEFT,
+            Self::RightWall => Vector2::DOWN,
+            Self::Ceiling => Vector2::RIGHT,
+            Self::LeftWall => Vector2::UP,
         }
     }
-    pub(super) fn right(&self) -> Vector2 {
+    pub(super) const fn right(self) -> Vector2 {
         match self {
-            Mode::Floor => Vector2::RIGHT,
-            Mode::RightWall => Vector2::UP,
-            Mode::Ceiling => Vector2::LEFT,
-            Mode::LeftWall => Vector2::DOWN,
+            Self::Floor => Vector2::RIGHT,
+            Self::RightWall => Vector2::UP,
+            Self::Ceiling => Vector2::LEFT,
+            Self::LeftWall => Vector2::DOWN,
         }
     }
 }
@@ -126,8 +126,8 @@ impl Mode {
         }
     }
 
-    pub(super) fn is_sideways(&self) -> bool {
-        *self == Self::RightWall || *self == Self::LeftWall
+    pub(super) fn is_sideways(self) -> bool {
+        self == Self::RightWall || self == Self::LeftWall
     }
 }
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
@@ -153,8 +153,8 @@ impl MotionDirection {
         }
     }
 
-    pub(super) fn is_horizontal(&self) -> bool {
-        *self == Self::Right || *self == Self::Left
+    pub(super) fn is_horizontal(self) -> bool {
+        self == Self::Right || self == Self::Left
     }
 }
 impl Character {
@@ -165,12 +165,12 @@ impl Character {
         self.base().get_global_position()
     }
     pub(super) fn set_global_position(&mut self, value: Vector2) {
-        self.base_mut().set_global_position(value)
+        self.base_mut().set_global_position(value);
     }
     pub(super) fn is_uphill(&self) -> bool {
         self.ground_speed.signum() == self.ground_angle.sin().signum()
     }
-    pub(super) fn can_jump(&mut self) -> bool {
+    pub(super) fn can_jump(&self) -> bool {
         if let Some(result) = self.ceiling_check(false) {
             return result.distance >= 6.0;
         }
@@ -211,7 +211,7 @@ impl Character {
             distance <= (self.velocity.x.abs() + 4.0).min(14.0) && distance >= -14.0
         }
     }
-    pub(super) fn is_landed(&mut self, result: DetectionResult) -> bool {
+    pub(super) fn is_landed(&self, result: DetectionResult) -> bool {
         if result.distance >= 0.0 {
             return false;
         }
@@ -253,14 +253,14 @@ impl Character {
             self.slope_factor_normal
         }
     }
-    pub(super) fn current_friction(&self) -> f32 {
+    pub(super) const fn current_friction(&self) -> f32 {
         if self.state.is_rolling() {
             self.roll_friction
         } else {
             self.friction
         }
     }
-    pub(super) fn current_deceleration(&self) -> f32 {
+    pub(super) const fn current_deceleration(&self) -> f32 {
         if self.state.is_rolling() {
             self.roll_deceleration
         } else {

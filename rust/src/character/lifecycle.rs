@@ -34,7 +34,7 @@ impl INode2D for Character {
                 self.base_mut().draw_string(
                     font,
                     Vector2::new(10.0, -30.0),
-                    format!("{:.0}°", angle).into_godot(),
+                    format!("{angle:.0}°").into_godot(),
                 );
             }
         }
@@ -49,9 +49,9 @@ impl INode2D for Character {
         };
         self.stand_on_solid_object();
         if self.is_grounded {
-            self.grounded(delta)
+            self.grounded(delta);
         } else {
-            self.airborne(delta)
+            self.airborne(delta);
         }
     }
 }
@@ -234,7 +234,9 @@ impl Character {
 
     fn rotate_to_zero(&mut self) {
         // Rotate ground angle to 0
-        if !self.state.is_ball() {
+        if self.state.is_ball() {
+            self.base_mut().set_rotation(0.0);
+        } else {
             let mut rotation = self.base().get_rotation();
             let delta = f32::to_radians(2.8125);
             if rotation > 0.0 {
@@ -245,8 +247,6 @@ impl Character {
                 rotation = rotation.min(0.0);
             }
             self.base_mut().set_rotation(rotation);
-        } else {
-            self.base_mut().set_rotation(0.0);
         }
     }
 
@@ -285,11 +285,11 @@ impl Character {
     fn update_animation_air(&mut self) {
         if !(self.state.is_ball() || self.state.is_hurt()) {
             if self.velocity.x.abs() >= self.top_speed {
-                self.set_state(State::FullMotion)
+                self.set_state(State::FullMotion);
             } else if self.velocity.x.abs() > 0.0 {
-                self.set_state(State::StartMotion)
+                self.set_state(State::StartMotion);
             } else {
-                self.set_state(State::Idle)
+                self.set_state(State::Idle);
             };
         }
     }
@@ -367,7 +367,7 @@ impl Character {
         if let Some(result) = self.ground_check(false) {
             if self.should_snap_to_floor(result) {
                 self.snap_to_floor(result.distance);
-                self.set_ground_angle_from_result(result)
+                self.set_ground_angle_from_result(result);
             } else {
                 godot_print!("Detach from floor: Shouldn't snap");
                 self.set_grounded(false);
@@ -493,13 +493,13 @@ impl Character {
     }
 
     fn apply_slope_factor(&mut self, delta: f32) {
+        const STEEP_ANGLE: f32 = 0.05078125;
         // Slow down uphill and speeding up downhill
         if self.current_mode() != Mode::Ceiling {
             let slope_factor = self.current_slope_factor() * self.ground_angle.sin();
             // Forces moving when walking on steep slopes
             let is_moving = self.ground_speed.abs() > 0.0;
             let is_rolling = self.state.is_rolling();
-            const STEEP_ANGLE: f32 = 0.05078125;
             let is_on_steep = slope_factor >= STEEP_ANGLE;
             if is_moving || is_rolling || is_on_steep {
                 godot_print!("Applying slope factor {slope_factor}");

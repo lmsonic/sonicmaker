@@ -47,7 +47,7 @@ impl Character {
     }
 
     fn sensor_results(
-        &mut self,
+        &self,
         sensors: &mut [Option<Gd<Sensor>>],
         apply_velocity: bool,
     ) -> Vec<DetectionResult> {
@@ -68,7 +68,7 @@ impl Character {
         results
     }
     fn sensor_result(
-        &mut self,
+        &self,
         sensor: &mut Option<Gd<Sensor>>,
         apply_velocity: bool,
     ) -> Option<DetectionResult> {
@@ -100,41 +100,35 @@ impl Character {
         godot_print!("Snap to floor dp: {}", down * distance);
     }
 
-    pub(super) fn ground_sensor_results(&mut self, apply_velocity: bool) -> Vec<DetectionResult> {
+    pub(super) fn ground_sensor_results(&self, apply_velocity: bool) -> Vec<DetectionResult> {
         let left = self.sensor_floor_right.clone();
         let right = self.sensor_floor_left.clone();
         self.sensor_results(&mut [left, right], apply_velocity)
     }
 
-    pub(super) fn ground_check(&mut self, apply_velocity: bool) -> Option<DetectionResult> {
+    pub(super) fn ground_check(&self, apply_velocity: bool) -> Option<DetectionResult> {
         self.ground_sensor_results(apply_velocity)
             .into_iter()
             .min_by(|a, b| a.distance.total_cmp(&b.distance))
     }
-    pub(super) fn ceiling_check(&mut self, apply_velocity: bool) -> Option<DetectionResult> {
+    pub(super) fn ceiling_check(&self, apply_velocity: bool) -> Option<DetectionResult> {
         self.ceiling_sensor_results(apply_velocity)
             .into_iter()
             .filter(|r| r.solidity == Solidity::Fully)
             .min_by(|a, b| a.distance.total_cmp(&b.distance))
     }
 
-    fn ceiling_sensor_results(&mut self, apply_velocity: bool) -> Vec<DetectionResult> {
+    fn ceiling_sensor_results(&self, apply_velocity: bool) -> Vec<DetectionResult> {
         let left = self.sensor_ceiling_right.clone();
         let right = self.sensor_ceiling_left.clone();
         self.sensor_results(&mut [left, right], apply_velocity)
     }
 
-    pub(super) fn wall_left_sensor_check(
-        &mut self,
-        apply_velocity: bool,
-    ) -> Option<DetectionResult> {
+    pub(super) fn wall_left_sensor_check(&self, apply_velocity: bool) -> Option<DetectionResult> {
         self.sensor_result(&mut self.sensor_push_left.clone(), apply_velocity)
             .filter(|r| r.solidity == Solidity::Fully)
     }
-    pub(super) fn wall_right_sensor_check(
-        &mut self,
-        apply_velocity: bool,
-    ) -> Option<DetectionResult> {
+    pub(super) fn wall_right_sensor_check(&self, apply_velocity: bool) -> Option<DetectionResult> {
         self.sensor_result(&mut self.sensor_push_right.clone(), apply_velocity)
             .filter(|r| r.solidity == Solidity::Fully)
     }

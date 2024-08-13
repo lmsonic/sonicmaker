@@ -8,7 +8,7 @@ use godot::prelude::*;
 use godot_api::{Kind, SolidObjectKind, State};
 
 use crate::sensor::Sensor;
-
+#[allow(clippy::struct_excessive_bools)]
 #[derive(GodotClass)]
 #[class(init, base=Node2D)]
 pub struct Character {

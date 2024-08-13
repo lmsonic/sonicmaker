@@ -85,7 +85,7 @@ impl INode2D for LayerSwitcher {
                     self.base_mut()
                         .draw_string(font.clone(), Vector2::new(-10.0, 0.0), "A".into());
                     self.base_mut()
-                        .draw_string(font.clone(), Vector2::new(5.0, 0.0), "B".into());
+                        .draw_string(font, Vector2::new(5.0, 0.0), "B".into());
                 }
                 Direction::Horizontal => {
                     self.base_mut()
@@ -147,7 +147,7 @@ impl LayerSwitcher {
             Direction::Vertical => player_position.x >= position.x,
         }
     }
-    fn switch(&mut self, player: &mut Gd<Character>, current_player_side: bool) {
+    fn switch(&self, player: &mut Gd<Character>, current_player_side: bool) {
         let layer = if current_player_side {
             self.positive_side_layer
         } else {
@@ -168,7 +168,7 @@ impl LayerSwitcher {
         }
         player.bind_mut().update_sensors();
     }
-    fn update_segment(&mut self, mut segment: Gd<SegmentShape2D>) {
+    fn update_segment(&self, mut segment: Gd<SegmentShape2D>) {
         match self.direction {
             Direction::Vertical => {
                 segment.set_a(Vector2::new(0.0, -self.length));
