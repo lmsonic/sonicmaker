@@ -93,7 +93,7 @@ position = Vector2(320, 106)
 position = Vector2(715, 100)
 
 [node name="PushableBlock" parent="." instance=ExtResource("8_8ajht")]
-position = Vector2(966, 39)
+position = Vector2(958, 55)
 
 [node name="SolidObject" parent="." instance=ExtResource("8_8a470")]
 collision = "None"

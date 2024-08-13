@@ -68,6 +68,7 @@ impl FromGodot for RaycastResult {
         })
     }
 }
+
 #[derive(GodotClass)]
 #[class(tool,init, base=Node2D)]
 pub struct Sensor {
@@ -104,6 +105,35 @@ pub struct DetectionResult {
     pub snap: bool,
 }
 
+impl GodotConvert for DetectionResult {
+    type Via = Dictionary;
+}
+impl ToGodot for DetectionResult {
+    fn to_godot(&self) -> Self::Via {
+        dict! {"distance":self.distance,"angle":self.angle,"solidity":self.solidity,"snap":self.snap}
+    }
+}
+impl FromGodot for DetectionResult {
+    fn try_from_godot(dict: Self::Via) -> Result<Self, ConvertError> {
+        let distance = dict
+            .get("distance")
+            .ok_or(ConvertError::default())?
+            .try_to()?;
+        let angle = dict.get("angle").ok_or(ConvertError::default())?.try_to()?;
+        let solidity = dict
+            .get("solidity")
+            .ok_or(ConvertError::default())?
+            .try_to()?;
+        let snap = dict.get("snap").ok_or(ConvertError::default())?.try_to()?;
+        Ok(Self {
+            distance,
+            angle,
+            solidity,
+            snap,
+        })
+    }
+}
+
 impl DetectionResult {
     fn new(distance: f32, angle: f32, solidity: Solidity, snap: bool) -> Self {
         Self {
@@ -134,6 +164,14 @@ impl Sensor {
     #[func]
     pub fn set_direction(&mut self, value: Direction) {
         self.direction = value;
+    }
+
+    #[func]
+    pub fn sense_godot(&mut self) -> Variant {
+        match self.sense() {
+            Some(result) => result.into_godot().to_variant(),
+            None => Variant::nil(),
+        }
     }
 }
 

@@ -8,7 +8,7 @@ use godot::{
 
 use crate::{character::Character, sensor::TILE_SIZE};
 
-use super::{solid_object_collision, solid_object_collision_top_solid, CollisionDirection};
+use super::{solid_object_collision_fully_solid, solid_object_collision_top_solid, Collision};
 #[derive(GodotClass)]
 #[class(init, base=Area2D)]
 pub struct SlopedSolidObject {
@@ -88,15 +88,19 @@ impl SlopedSolidObject {
         let radius = Vector2::new(self.width_radius(), (bottom - top) * 0.5);
 
         if self.top_solid_only {
-            if solid_object_collision_top_solid(&mut player, position, radius) {
+            let collision = solid_object_collision_top_solid(&mut player, position, radius);
+            if !collision.is_none() {
                 player
                     .bind_mut()
                     .set_stand_on_sloped_object(self.base().clone().cast::<Self>());
             }
-        } else if let Some(collision_direction) =
-            solid_object_collision(&mut player, position, radius)
-        {
-            if collision_direction == CollisionDirection::Up {
+        } else {
+            let collision = solid_object_collision_fully_solid(&mut player, position, radius);
+            if collision.is_none() {
+                return;
+            }
+
+            if collision == Collision::Up {
                 player
                     .bind_mut()
                     .set_stand_on_sloped_object(self.base().clone().cast::<Self>())

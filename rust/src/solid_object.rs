@@ -6,10 +6,7 @@ use godot::{
     prelude::*,
 };
 
-use crate::{
-    character::Character,
-    sensor::{Sensor, TILE_SIZE},
-};
+use crate::{character::Character, sensor::TILE_SIZE};
 #[derive(GodotClass)]
 #[class(init, base=Area2D)]
 pub struct SolidObject {
@@ -25,179 +22,52 @@ pub struct SolidObject {
     top_solid_only: bool,
     #[export]
     collision_shape: Option<Gd<CollisionShape2D>>,
+
     #[export]
-    is_pushable: bool,
-    #[export]
-    #[init(default = 2.5)]
-    pushable_block_gravity: f32,
-    #[export]
-    #[init(default = 0.3333)]
-    push_speed: f32,
-    #[export]
-    #[init(default = 4.0)]
-    slide_off_speed: f32,
-    #[export]
-    floor_sensor: Option<Gd<Sensor>>,
+    #[var(get)]
+    collision: Collision,
     #[export]
     #[var]
     velocity: Vector2,
-
     position_last_frame: Vector2,
-    #[export]
-    state: State,
-    pixels_moved: f32,
-    base: Base<Area2D>,
-}
-#[derive(GodotConvert, Var, Export, Default, Debug, PartialEq, Eq, Clone, Copy)]
-#[godot(via = GString)]
-enum State {
-    #[default]
-    Normal,
-    Falling,
-}
 
-impl State {
-    /// Returns `true` if the state is [`Falling`].
-    ///
-    /// [`Falling`]: State::Falling
-    #[must_use]
-    fn is_falling(&self) -> bool {
-        matches!(self, Self::Falling)
-    }
+    base: Base<Area2D>,
 }
 
 #[godot_api]
 impl IArea2D for SolidObject {
     fn physics_process(&mut self, _delta: f64) {
-        if let Some(mut player) = self
-            .base()
-            .get_tree()
-            .and_then(|mut tree| tree.get_first_node_in_group(c"player".into()))
-            .and_then(|player| player.try_cast::<Character>().ok())
-        {
-            let position = self.collision_shape_global_position();
-            let radius = Vector2::new(self.width_radius, self.height_radius);
-            if self.top_solid_only {
-                if solid_object_collision_top_solid(&mut player, position, radius) {
-                    player
-                        .bind_mut()
-                        .set_stand_on_object(self.base().clone().cast::<Self>());
-                }
-            } else if let Some(collision_direction) =
-                solid_object_collision(&mut player, position, radius)
-            {
-                if collision_direction == CollisionDirection::Up {
-                    player
-                        .bind_mut()
-                        .set_stand_on_object(self.base().clone().cast::<Self>())
-                }
-                if self.is_pushable {
-                    let mut position = self.base().get_global_position();
-                    let mut player_position = player.get_global_position();
-                    match collision_direction {
-                        CollisionDirection::Left => {
-                            player_position.x += self.push_speed;
-                            player.bind_mut().velocity.x = 0.0;
-                            player.bind_mut().set_ground_speed(0.25);
-                            player.set_global_position(player_position);
-
-                            position.x += self.push_speed;
-                            self.base_mut().set_global_position(position);
-                            if let Some(floor_sensor) = &mut self.floor_sensor {
-                                if let Some(result) = floor_sensor.bind_mut().sense() {
-                                    if result.distance > 0.0 {
-                                        self.pixels_moved = self.slide_off_speed;
-                                        position.x += self.slide_off_speed;
-
-                                        self.state = State::Falling;
-                                    }
-                                } else {
-                                    self.pixels_moved = self.slide_off_speed;
-                                    position.x += self.slide_off_speed;
-                                    self.state = State::Falling;
-                                }
-                            }
-                        }
-                        CollisionDirection::Right => {
-                            player_position.x -= self.push_speed;
-                            player.bind_mut().velocity.x = 0.0;
-                            player.bind_mut().set_ground_speed(-0.25);
-                            player.set_global_position(player_position);
-
-                            position.x -= self.push_speed;
-                            self.base_mut().set_global_position(position);
-                            if let Some(floor_sensor) = &mut self.floor_sensor {
-                                if let Some(result) = floor_sensor.bind_mut().sense() {
-                                    if result.distance > 0.0 {
-                                        position.x -= self.slide_off_speed;
-                                        self.pixels_moved = -self.slide_off_speed;
-                                        self.state = State::Falling;
-                                    }
-                                } else {
-                                    position.x -= self.slide_off_speed;
-                                    self.pixels_moved = -self.slide_off_speed;
-                                }
-                            }
-                        }
-                        _ => {}
-                    }
-                    self.base_mut().set_global_position(position);
-                }
-            }
-        }
-        let mut position = self.base().get_global_position();
-
-        if let Some(floor_sensor) = &mut self.floor_sensor {
-            if let Some(result) = floor_sensor.bind_mut().sense() {
-                if result.distance > 0.0 {
-                    self.state = State::Falling;
-                } else {
-                    if self.state.is_falling() {
-                        position.y -= result.distance;
-                    }
-                    self.state = State::Normal;
-                }
-            } else {
-                self.state = State::Falling;
-            }
-        }
-
-        if self.state.is_falling() {
-            if self.pixels_moved.abs() > 16.0 || self.pixels_moved == 0.0 {
-                // Start to actually fall
-                self.pixels_moved = 0.0;
-                position.y += self.pushable_block_gravity;
-                self.base_mut().set_global_position(position);
-                if let Some(floor_sensor) = &mut self.floor_sensor {
-                    if let Some(result) = floor_sensor.bind_mut().sense() {
-                        if result.distance <= 0.0 {
-                            self.state = State::Normal;
-                            position.y -= result.distance + self.pushable_block_gravity;
-                        }
-                    }
-                }
-                self.base_mut().set_global_position(position);
-            } else {
-                // Move to the push direction at speed = 4 until you moved 16 px
-                let moving_right = self.pixels_moved.signum() > 0.0;
-                let delta = if moving_right {
-                    self.slide_off_speed
-                } else {
-                    -self.slide_off_speed
-                };
-                self.pixels_moved += delta;
-                position.x += delta;
-                self.base_mut().set_global_position(position);
-            }
-        }
-        let position = self.base().get_global_position();
-        self.velocity = position - self.position_last_frame;
-        self.position_last_frame = position;
+        self.physics_process(_delta)
     }
 }
 
 #[godot_api]
 impl SolidObject {
+    #[func]
+    fn physics_process(&mut self, _delta: f64) {
+        let Some(mut player) = self
+            .base()
+            .get_tree()
+            .and_then(|mut tree| tree.get_first_node_in_group(c"player".into()))
+            .and_then(|player| player.try_cast::<Character>().ok())
+        else {
+            return;
+        };
+
+        let position = self.collision_shape_global_position();
+        let radius = Vector2::new(self.width_radius, self.height_radius);
+        self.collision = solid_object_collision(&mut player, position, radius, self.top_solid_only);
+        if self.collision == Collision::Up {
+            player
+                .bind_mut()
+                .set_stand_on_object(self.base().clone().cast::<Self>());
+        }
+        godot_print!("{:?}", self.collision);
+
+        let position = self.base().get_global_position();
+        self.velocity = position - self.position_last_frame;
+        self.position_last_frame = position;
+    }
     #[func]
     fn set_width_radius(&mut self, value: f32) {
         self.width_radius = value;
@@ -231,15 +101,50 @@ impl SolidObject {
         }
     }
 }
+
+#[derive(GodotConvert, Var, Export, Debug, PartialEq, Eq, Clone, Copy, Default)]
+#[godot(via = GString)]
+enum Collision {
+    #[default]
+    None,
+    Left,
+    Right,
+    Up,
+    Down,
+}
+
+impl Collision {
+    /// Returns `true` if the collision is [`None`].
+    ///
+    /// [`None`]: Collision::None
+    #[must_use]
+    fn is_none(&self) -> bool {
+        matches!(self, Self::None)
+    }
+}
+
+fn solid_object_collision(
+    player: &mut Gd<Character>,
+    position: Vector2,
+    radius: Vector2,
+    top_solid_only: bool,
+) -> Collision {
+    if top_solid_only {
+        solid_object_collision_top_solid(player, position, radius)
+    } else {
+        solid_object_collision_fully_solid(player, position, radius)
+    }
+}
+
 /// Returns true when player needs to snap on top
 fn solid_object_collision_top_solid(
     player: &mut Gd<Character>,
     position: Vector2,
     radius: Vector2,
-) -> bool {
+) -> Collision {
     let velocity = player.bind().get_velocity();
     if velocity.y < 0.0 {
-        return false;
+        return Collision::None;
     }
     // Check overlap
     let combined_x_radius = radius.x + player.bind().get_push_radius() + 1.0;
@@ -252,19 +157,19 @@ fn solid_object_collision_top_solid(
     // the Player is too far to the left to be touching
     // the Player is too far to the right to be touching
     if left_difference < 0.0 || left_difference > combined_x_diameter {
-        return false;
+        return Collision::None;
     }
 
     let object_surface_y = position.y - radius.y;
     let player_bottom_y = player_position.y + player_height_radius + 4.0;
     if object_surface_y > player_bottom_y {
         // Platform is too low
-        return false;
+        return Collision::None;
     }
     let y_distance = object_surface_y - player_bottom_y;
     if !(-16.0..0.0).contains(&y_distance) {
         // Platform is too low
-        return false;
+        return Collision::None;
     }
     player_position.y += y_distance + 3.0;
     player.set_global_position(player_position);
@@ -276,23 +181,15 @@ fn solid_object_collision_top_solid(
         "upwards land on top solid collision dy : {}",
         -y_distance - 1.0
     );
-    true
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum CollisionDirection {
-    Left,
-    Right,
-    Up,
-    Down,
+    Collision::Up
 }
 
 /// Returns true when player needs to snap on top
-fn solid_object_collision(
+fn solid_object_collision_fully_solid(
     player: &mut Gd<Character>,
     position: Vector2,
     radius: Vector2,
-) -> Option<CollisionDirection> {
+) -> Collision {
     // Check overlap
     let combined_x_radius = radius.x + player.bind().get_push_radius() + 1.0;
     let player_height_radius = player.bind().get_height_radius();
@@ -305,7 +202,7 @@ fn solid_object_collision(
     // the Player is too far to the left to be touching
     // the Player is too far to the right to be touching
     if left_difference < 0.0 || left_difference > combined_x_diameter {
-        return None;
+        return Collision::None;
     }
 
     let top_difference = (player_position.y - position.y) + 4.0 + combined_y_radius;
@@ -314,7 +211,7 @@ fn solid_object_collision(
     // the Player is too far above to be touching
     // the Player is too far down to be touching
     if top_difference < 0.0 || top_difference > combined_y_diameter {
-        return None;
+        return Collision::None;
     }
 
     // Find which side on the object you are nearest and calculate overlap distance
@@ -343,16 +240,16 @@ fn solid_object_collision(
             if velocity.y.is_zero_approx() && is_grounded {
                 // Die from getting crushed
                 player.bind_mut().die();
-                Some(CollisionDirection::Down)
+                Collision::Down
             } else if velocity.y < 0.0 && y_distance < 0.0 {
                 player_position.y -= y_distance;
                 player.set_global_position(player_position);
                 velocity.y = 0.0;
                 player.bind_mut().set_velocity(velocity);
                 godot_print!("downwards solid collision dy : {}", -y_distance);
-                Some(CollisionDirection::Down)
+                Collision::Down
             } else {
-                None
+                Collision::None
             }
         } else if y_distance < TILE_SIZE {
             // Land on object
@@ -362,11 +259,11 @@ fn solid_object_collision(
             // if the Player is too far to the right
             // if the Player is too far to the left
             if x_comparison < 0.0 || x_comparison >= combined_x_diameter {
-                return None;
+                return Collision::None;
             }
             // Going up and not landing
             if velocity.y < 0.0 {
-                return None;
+                return Collision::None;
             }
 
             player_position.y -= y_distance;
@@ -377,9 +274,9 @@ fn solid_object_collision(
             player.bind_mut().set_ground_speed(velocity.x);
 
             godot_print!("upwards land on solid collision dy : {}", -y_distance - 1.0);
-            Some(CollisionDirection::Up)
+            Collision::Up
         } else {
-            None
+            Collision::None
         }
     } else {
         // Collide horizontally
@@ -399,9 +296,9 @@ fn solid_object_collision(
         player.set_global_position(player_position);
 
         if x_distance < 0.0 {
-            Some(CollisionDirection::Right)
+            Collision::Right
         } else {
-            Some(CollisionDirection::Left)
+            Collision::Left
         }
     }
 }
