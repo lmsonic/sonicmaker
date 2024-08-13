@@ -53,8 +53,9 @@ impl State {
     }
 }
 use crate::{
-    character::Character, sensor::DetectionResult, sloped_solid_object::SlopedSolidObject,
-    solid_object::SolidObject,
+    character::Character,
+    sensor::DetectionResult,
+    solid_object::{sloped_solid_object::SlopedSolidObject, SolidObject},
 };
 
 pub enum SolidObjectKind {

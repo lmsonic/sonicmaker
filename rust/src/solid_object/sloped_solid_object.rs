@@ -7,6 +7,8 @@ use godot::{
 };
 
 use crate::{character::Character, sensor::TILE_SIZE};
+
+use super::{solid_object_collision, solid_object_collision_top_solid, Collision};
 #[derive(GodotClass)]
 #[class(init, base=Area2D)]
 pub struct SlopedSolidObject {
@@ -20,44 +22,6 @@ pub struct SlopedSolidObject {
     base: Base<Area2D>,
 }
 
-#[derive(Debug, Clone)]
-pub struct RaycastResult {
-    position: Vector2,
-    normal: Vector2,
-    collider: Gd<Object>,
-    rid: Rid,
-    shape: i32,
-}
-impl GodotConvert for RaycastResult {
-    type Via = Dictionary;
-}
-
-impl FromGodot for RaycastResult {
-    fn try_from_godot(dict: Self::Via) -> Result<Self, ConvertError> {
-        let position = dict
-            .get("position")
-            .ok_or(ConvertError::default())?
-            .try_to()?;
-        let normal = dict
-            .get("normal")
-            .ok_or(ConvertError::default())?
-            .try_to()?;
-        let collider = dict
-            .get("collider")
-            .ok_or(ConvertError::default())?
-            .try_to()?;
-        let rid = dict.get("rid").ok_or(ConvertError::default())?.try_to()?;
-        let shape = dict.get("shape").ok_or(ConvertError::default())?.try_to()?;
-
-        Ok(Self {
-            position,
-            normal,
-            collider,
-            rid,
-            shape,
-        })
-    }
-}
 #[godot_api]
 impl IArea2D for SlopedSolidObject {
     fn physics_process(&mut self, _delta: f64) {
@@ -115,7 +79,7 @@ impl IArea2D for SlopedSolidObject {
 }
 
 impl SlopedSolidObject {
-    pub(super) fn sloped_solid_object_collision(&mut self, player: Gd<Character>) {
+    pub(super) fn sloped_solid_object_collision(&mut self, mut player: Gd<Character>) {
         let player_position = player.get_global_position();
         let (top, bottom) = self.current_top_bottom(player_position);
 
@@ -124,9 +88,19 @@ impl SlopedSolidObject {
         let radius = Vector2::new(self.width_radius(), (bottom - top) * 0.5);
 
         if self.top_solid_only {
-            self.solid_object_collision_top_solid(player, position, radius)
-        } else {
-            self.solid_object_collision(player, position, radius)
+            if solid_object_collision_top_solid(&mut player, position, radius) {
+                player
+                    .bind_mut()
+                    .set_stand_on_sloped_object(self.base().clone().cast::<Self>());
+            }
+        } else if let Some(collision_direction) =
+            solid_object_collision(&mut player, position, radius)
+        {
+            if collision_direction == Collision::Up {
+                player
+                    .bind_mut()
+                    .set_stand_on_sloped_object(self.base().clone().cast::<Self>())
+            }
         }
     }
 
@@ -300,170 +274,5 @@ impl SlopedSolidObject {
     pub fn height_radius(&self) -> f32 {
         let (min, max) = self.min_max_y();
         (max - min) * 0.5
-    }
-
-    pub(super) fn solid_object_collision_top_solid(
-        &mut self,
-        mut player: Gd<Character>,
-        position: Vector2,
-        radius: Vector2,
-    ) {
-        let velocity = player.bind().get_velocity();
-        if self.top_solid_only && velocity.y < 0.0 {
-            return;
-        }
-        // Check overlap
-        let combined_x_radius = radius.x + player.bind().get_push_radius() + 1.0;
-        let player_height_radius = player.bind().get_height_radius();
-
-        let mut player_position = player.get_global_position();
-
-        let combined_x_diameter = combined_x_radius * 2.0;
-        let left_difference = (player_position.x - position.x) + combined_x_radius;
-        // the Player is too far to the left to be touching
-        // the Player is too far to the right to be touching
-        if left_difference < 0.0 || left_difference > combined_x_diameter {
-            return;
-        }
-
-        let object_surface_y = position.y - radius.y;
-        let player_bottom_y = player_position.y + player_height_radius + 4.0;
-        if object_surface_y > player_bottom_y {
-            // Platform is too low
-            return;
-        }
-        let y_distance = object_surface_y - player_bottom_y;
-        if !(-16.0..0.0).contains(&y_distance) {
-            // Platform is too low
-            return;
-        }
-        player_position.y += y_distance + 3.0;
-        player.set_global_position(player_position);
-
-        player.bind_mut().set_grounded(false);
-        player.bind_mut().set_ground_angle(0.0);
-        player.bind_mut().set_ground_speed(velocity.x);
-        player
-            .bind_mut()
-            .set_stand_on_sloped_object(self.base().clone().cast::<SlopedSolidObject>());
-        godot_print!(
-            "upwards land on top solid collision dy : {}",
-            -y_distance - 1.0
-        );
-    }
-
-    pub(super) fn solid_object_collision(
-        &mut self,
-        mut player: Gd<Character>,
-        position: Vector2,
-        radius: Vector2,
-    ) {
-        let mut velocity = player.bind().get_velocity();
-        if self.top_solid_only && velocity.y < 0.0 {
-            return;
-        }
-        // Check overlap
-        let combined_x_radius = radius.x + player.bind().get_push_radius() + 1.0;
-        let combined_y_radius = radius.y + player.bind().get_height_radius();
-
-        let mut player_position = player.get_global_position();
-
-        let combined_x_diameter = combined_x_radius * 2.0;
-        let left_difference = (player_position.x - position.x) + combined_x_radius;
-
-        // the Player is too far to the left to be touching
-        // the Player is too far to the right to be touching
-        if left_difference < 0.0 || left_difference > combined_x_diameter {
-            return;
-        }
-
-        let top_difference = (player_position.y - position.y) + 4.0 + combined_y_radius;
-        let combined_y_diameter = combined_y_radius * 2.0;
-
-        // the Player is too far above to be touching
-        // the Player is too far down to be touching
-
-        if top_difference < 0.0 || top_difference > combined_y_diameter {
-            return;
-        }
-
-        // Find which side on the object you are nearest and calculate overlap distance
-        let x_distance = if player_position.x > position.x {
-            // Right side: x distance is < 0.0
-            left_difference - combined_x_diameter
-        } else {
-            // Left side: x distance is > 0.0
-            left_difference
-        };
-
-        let y_distance = if player_position.y > position.y {
-            // Bottom side:  y distance is < 0.0
-            top_difference - combined_y_diameter - 4.0
-        } else {
-            // Top side: y distance is > 0.0
-            top_difference
-        };
-        let is_grounded = player.bind().get_is_grounded();
-        // Is the distance closer on horizontal side or vertical side
-        if x_distance.abs() > y_distance.abs() || y_distance.abs() <= 4.0 {
-            // Collide vertically
-            if y_distance < 0.0 {
-                // Downwards collision
-                if velocity.y >= 0.0 && is_grounded {
-                    // Die from getting crushed
-                    player.bind_mut().die();
-                } else if velocity.y < 0.0 && y_distance < 0.0 {
-                    player_position.y -= y_distance;
-                    player.set_global_position(player_position);
-                    velocity.y = 0.0;
-                    player.bind_mut().set_velocity(velocity);
-                    godot_print!("downwards solid collision dy : {}", -y_distance);
-                }
-            } else if y_distance < TILE_SIZE {
-                // Land on object
-                let y_distance = y_distance - 4.0;
-                // Distance to object right edge
-                let x_comparison = position.x - player_position.x + radius.x;
-                // if the Player is too far to the right
-                // if the Player is too far to the left
-                if x_comparison < 0.0 || x_comparison >= combined_x_diameter {
-                    return;
-                }
-                // Going up and not landing
-                if velocity.y < 0.0 {
-                    return;
-                }
-
-                player_position.y -= y_distance;
-                player_position.y -= 1.0;
-                player.set_global_position(player_position);
-                player.bind_mut().set_grounded(false);
-                // TODO: what if i wanted to calculate the angle?
-                player.bind_mut().set_ground_angle(0.0);
-                player.bind_mut().set_ground_speed(velocity.x);
-                player
-                    .bind_mut()
-                    .set_stand_on_sloped_object(self.base().clone().cast::<SlopedSolidObject>());
-                godot_print!("upwards land on solid collision dy : {}", -y_distance - 1.0);
-            }
-        } else {
-            // Collide horizontally
-            if x_distance == 0.0 {
-                // Do not reset speeds
-            } else if (x_distance > 0.0 && velocity.x > 0.0)
-                || (x_distance < 0.0 && velocity.x < 0.0)
-            {
-                // Reset speeds only when moving left if on right side or
-                //when moving right if on left side
-
-                player.bind_mut().set_ground_speed(0.0);
-                velocity.x = 0.0;
-                player.bind_mut().set_velocity(velocity);
-            }
-            godot_print!("horizontal solid collision dx : {}", -x_distance);
-
-            player_position.x -= x_distance;
-            player.set_global_position(player_position);
-        }
     }
 }

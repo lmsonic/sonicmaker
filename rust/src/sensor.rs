@@ -238,7 +238,7 @@ impl Sensor {
         }
     }
 
-    fn _sense(&mut self) -> Option<DetectionResult> {
+    pub fn _sense(&mut self) -> Option<DetectionResult> {
         let target_direction = self.direction.target_direction();
         let snapped_position = self.snapped_position();
         let mut result;

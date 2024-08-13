@@ -1,0 +1,14 @@
+[gd_scene load_steps=2 format=3 uid="uid://tud7ojs66mkf"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_6m2b0"]
+
+[node name="PushableBlock" type="SolidObject" node_paths=PackedStringArray("collision_shape")]
+is_pushable = false
+collision_shape = NodePath("CollisionShape2D")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_6m2b0")
+
+[node name="Sensor" type="Sensor" parent="."]
+collision_mask = 1
+position = Vector2(0, 10)

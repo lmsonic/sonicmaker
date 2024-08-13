@@ -93,6 +93,7 @@ position = Vector2(320, 106)
 position = Vector2(715, 100)
 
 [node name="SolidObject" parent="." instance=ExtResource("8_8a470")]
+is_pushable = false
 position = Vector2(1315, 58)
 script = ExtResource("9_7urwl")
 
