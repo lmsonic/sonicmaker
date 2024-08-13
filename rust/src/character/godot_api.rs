@@ -298,7 +298,7 @@ impl Character {
         let width = self.push_radius * 2.0;
         let height = self.height_radius * 2.0;
         let mode = self.current_mode();
-        let attacking = self.state.is_ball();
+        self.attacking = self.state.is_ball();
 
         if let Some(mut shape) = self
             .sensor_shape
@@ -323,14 +323,11 @@ impl Character {
                 }
                 rect.set_size(size);
             }
-            collision_shape.set_debug_color(if attacking {
+            collision_shape.set_debug_color(if self.attacking {
                 Color::RED.with_alpha(0.2)
             } else {
                 Color::BLUE.with_alpha(0.2)
             })
-        }
-        if let Some(area) = &mut self.hitbox_area {
-            area.set(c"attacking".into(), attacking.to_variant());
         }
     }
 }

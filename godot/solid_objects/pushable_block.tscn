@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3 uid="uid://tud7ojs66mkf"]
 
-[ext_resource type="Script" path="res://solid_objects/pushable_block.gd" id="1_dwxi0"]
+[ext_resource type="Script" path="res://solid_objects/pushable.gd" id="1_dwxi0"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_6m2b0"]
 size = Vector2(32, 32)
@@ -9,7 +9,6 @@ size = Vector2(32, 32)
 width_radius = 16.0
 height_radius = 16.0
 collision_shape = NodePath("CollisionShape2D")
-collision = "None"
 process_physics_priority = 1
 collision_mask = 0
 script = ExtResource("1_dwxi0")

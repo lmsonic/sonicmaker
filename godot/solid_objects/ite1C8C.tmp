@@ -1,0 +1,28 @@
+[gd_scene load_steps=4 format=3 uid="uid://c5s40o2fdylxv"]
+
+[ext_resource type="Script" path="res://solid_objects/item_monitor.gd" id="1_10mfy"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ak4fe"]
+size = Vector2(32, 28)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_fpp7q"]
+size = Vector2(32, 32)
+
+[node name="ItemMonitor" type="SolidObject" node_paths=PackedStringArray("collision_shape")]
+width_radius = 16.0
+height_radius = 14.0
+is_monitor = true
+collision_shape = NodePath("CollisionShape2D")
+script = ExtResource("1_10mfy")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_ak4fe")
+
+[node name="Hitbox" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hitbox"]
+shape = SubResource("RectangleShape2D_fpp7q")
+
+[node name="Sensor" type="Sensor" parent="."]
+collision_mask = 1
+position = Vector2(0, 14)

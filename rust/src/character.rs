@@ -98,6 +98,8 @@ pub struct Character {
     #[export]
     #[var(set, get)]
     rings: i32,
+    #[var(set, get)]
+    attacking: bool,
 
     #[init(default = 2.0)]
     hurt_x_force: f32,

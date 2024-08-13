@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3 uid="uid://uyn5gaitoc5w"]
+[gd_scene load_steps=14 format=3 uid="uid://uyn5gaitoc5w"]
 
 [ext_resource type="PackedScene" uid="uid://cwy1rw6rmm00c" path="res://player/character.tscn" id="1_dsfe8"]
 [ext_resource type="TileSet" uid="uid://cqlsdl65vv0s2" path="res://assets/green_hill/tilemap.tres" id="1_euhdp"]
@@ -11,6 +11,7 @@
 [ext_resource type="PackedScene" uid="uid://tud7ojs66mkf" path="res://solid_objects/pushable_block.tscn" id="8_8ajht"]
 [ext_resource type="PackedScene" uid="uid://fyumun0gvc66" path="res://solid_objects/sloped_solid_object.tscn" id="9_58uql"]
 [ext_resource type="Script" path="res://solid_objects/moving_object.gd" id="10_t4inu"]
+[ext_resource type="PackedScene" uid="uid://c5s40o2fdylxv" path="res://solid_objects/item_monitor.tscn" id="12_pepby"]
 
 [sub_resource type="GDScript" id="GDScript_43165"]
 script/source = "extends Node
@@ -94,11 +95,14 @@ position = Vector2(320, 106)
 position = Vector2(715, 100)
 
 [node name="PushableBlock" parent="." instance=ExtResource("8_8ajht")]
-position = Vector2(966, 39)
+position = Vector2(968, 69)
 
 [node name="SolidObject" parent="." instance=ExtResource("8_8a470")]
-position = Vector2(1315, 58)
+position = Vector2(1250, 46)
 script = ExtResource("10_t4inu")
 
 [node name="SlopedSolidObject" parent="." instance=ExtResource("9_58uql")]
 position = Vector2(1545, 59)
+
+[node name="ItemMonitor" parent="." instance=ExtResource("12_pepby")]
+position = Vector2(1068, 113)

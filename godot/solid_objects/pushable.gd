@@ -1,11 +1,12 @@
 extends SolidObject
 
-@export var fall_down_speed:= 2.5
+@export var fall_gravity:= 0.21875
 @export var push_speed:= 0.3333
 @export var slide_off_speed:= 4.0
 
 @onready var sensor: Sensor = $Sensor
 var is_falling := false
+var velocity_y := 0.0
 var pixels_moved := 0.0
 
 func _physics_process(delta: float) -> void:
@@ -39,17 +40,19 @@ func _physics_process(delta: float) -> void:
 	else:
 		global_position.y += distance
 		is_falling = false
+		velocity_y = 0.0
 
 	if is_falling:
 		if pixels_moved > 16.0 || pixels_moved == 0.0:
 			pixels_moved = 0.0
 			distance = sense_distance()
-			global_position.y += fall_down_speed
+			velocity_y += fall_gravity
+			global_position.y += velocity_y
 			if distance <= 0:
 				is_falling = false
 				global_position.y += distance
-
-		else:
+				velocity_y = 0.0
+		elif pixels_moved != 0.0:
 			var d := slide_off_speed if pixels_moved > 0.0 else -slide_off_speed
 			pixels_moved += d
 			global_position.x += d

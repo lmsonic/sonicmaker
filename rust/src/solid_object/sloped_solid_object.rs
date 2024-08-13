@@ -6,12 +6,9 @@ use godot::{
     prelude::*,
 };
 
-use crate::{character::Character, sensor::TILE_SIZE};
+use crate::character::Character;
 
-use super::{
-    solid_object_collision, solid_object_collision_fully_solid, solid_object_collision_top_solid,
-    Collision,
-};
+use super::{solid_object_collision, Collision};
 #[derive(GodotClass)]
 #[class(init, base=Area2D)]
 pub struct SlopedSolidObject {
