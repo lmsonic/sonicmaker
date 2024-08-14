@@ -94,15 +94,17 @@ pub struct Character {
     #[export(flags_2d_physics)]
     #[var(get, set = set_collision_layer)]
     collision_layer: u32,
+
     #[export]
     #[var(set, get)]
     pub velocity: Vector2,
     #[export]
     #[var(set, get)]
     rings: i32,
-    #[var(set, get)]
+    #[var(get)]
     attacking: bool,
-
+    #[var(get)]
+    invulnerability_timer: i32,
     #[init(default = 2.0)]
     hurt_x_force: f32,
     #[init(default = -4.0)]

@@ -89,7 +89,6 @@ sprite_frames = SubResource("SpriteFrames_kqk2x")
 autoplay = "default"
 
 [node name="Sensor" type="Sensor" parent="."]
-collision_mask = 1
 position = Vector2(0, 8)
 
 [connection signal="area_entered" from="." to="." method="_on_area_entered"]

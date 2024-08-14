@@ -1,11 +1,7 @@
 #![allow(clippy::needless_pass_by_value)]
 use std::{f32::consts::FRAC_PI_2, ops::Rem};
 
-use godot::{
-    builtin::math::ApproxEq,
-    engine::{Area2D, RectangleShape2D},
-    prelude::*,
-};
+use godot::{builtin::math::ApproxEq, engine::RectangleShape2D, prelude::*};
 use real_consts::{PI, TAU};
 
 #[derive(GodotConvert, Var, Export, Default, Debug, PartialEq, Eq, Clone, Copy)]
@@ -109,6 +105,16 @@ impl Character {
         self.set_state(State::Hurt);
         self.set_grounded(false);
         self.clear_objects();
+    }
+    #[func]
+    #[allow(clippy::missing_const_for_fn)]
+    pub(super) fn is_invulnerable(&self) -> bool {
+        self.invulnerability_timer > 0 || self.state.is_hurt()
+    }
+    #[func]
+    #[allow(clippy::missing_const_for_fn)]
+    pub(super) fn can_gather_rings(&self) -> bool {
+        !self.state.is_hurt() || self.invulnerability_timer < 64
     }
 
     fn scatter_rings(&mut self) {
@@ -249,7 +255,9 @@ impl Character {
     pub(super) fn set_state(&mut self, value: State) {
         let was_ball = self.state.is_ball();
         let is_ball = value.is_ball();
-
+        if self.state.is_hurt() && !value.is_hurt() {
+            self.invulnerability_timer = 120;
+        }
         self.state = value;
         if was_ball && !is_ball {
             self.set_character(self.character);
@@ -257,15 +265,18 @@ impl Character {
             self.set_width_radius(7.0);
             self.set_height_radius(14.0);
         }
+
         if let Some(sprites) = &mut self.sprites {
             match self.state {
-                State::Idle | State::Hurt => sprites.play_ex().name(c"idle".into()).done(),
+                State::Idle => sprites.play_ex().name(c"idle".into()).done(),
                 State::StartMotion => sprites.play_ex().name(c"start_motion".into()).done(),
                 State::FullMotion => sprites.play_ex().name(c"full_motion".into()).done(),
                 State::JumpBall | State::RollingBall => {
                     sprites.play_ex().name(c"rolling".into()).done();
                 } // TODO: add the hurt animation
-                  // State::Idle => sprites.play_ex().name(c"idle".into()).done(),
+                State::Hurt => {
+                    sprites.play_ex().name(c"idle".into()).done();
+                }
             }
         }
     }

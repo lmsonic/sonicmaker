@@ -85,6 +85,7 @@ shape = SubResource("RectangleShape2D_5c76l")
 debug_color = Color(0.798641, 0.659167, 0, 0.42)
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+z_index = -1
 sprite_frames = SubResource("SpriteFrames_jy8ii")
 autoplay = "default"
 

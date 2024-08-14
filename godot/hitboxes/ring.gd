@@ -12,6 +12,7 @@ func _on_area_entered(area: Area2D) -> void:
 		player_hitbox.increment_rings(amount)
 		sprite.play("collected")
 		collected = true
+		z_index = 1
 		await sprite.animation_finished
 		queue_free()
 

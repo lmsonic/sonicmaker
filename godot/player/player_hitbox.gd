@@ -2,12 +2,13 @@ class_name PlayerHitbox extends Area2D
 
 @export var player:Character
 var regather_rings_timer := 0
+
 func _ready() -> void:
 	await get_tree().process_frame
 	EventBus.rings_set.emit(player.rings)
 
 func can_gather_rings() -> bool:
-	return regather_rings_timer <= 0
+	return regather_rings_timer <= 0 and player.can_gather_rings()
 
 func _physics_process(delta: float) -> void:
 	if regather_rings_timer > 0:
@@ -18,6 +19,8 @@ func increment_rings(amount:int) -> void:
 	EventBus.rings_set.emit(player.rings)
 
 func on_hurt(hazard:Node2D) -> void:
+	if player.is_invulnerable():
+		return
 	await get_tree().process_frame
 	regather_rings_timer = 64
 	player.on_hurt(hazard)

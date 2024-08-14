@@ -47,6 +47,7 @@ impl INode2D for Character {
         } else {
             delta as f32 * FPS
         };
+        self.handle_invulnerability();
         self.stand_on_solid_object();
         if self.is_grounded {
             self.grounded(delta);
@@ -56,6 +57,20 @@ impl INode2D for Character {
     }
 }
 impl Character {
+    fn handle_invulnerability(&mut self) {
+        if self.invulnerability_timer > 0 {
+            self.invulnerability_timer -= 1;
+            if self.invulnerability_timer % 4 == 0 {
+                if let Some(sprite) = &mut self.sprites {
+                    if sprite.is_visible() {
+                        sprite.hide();
+                    } else {
+                        sprite.show();
+                    }
+                }
+            }
+        }
+    }
     fn stand_on_solid_object(&mut self) {
         let Some(solid_object) = &self.solid_object_to_stand_on else {
             return;
