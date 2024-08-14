@@ -1,8 +1,79 @@
-[gd_scene load_steps=3 format=3 uid="uid://dxcy6vgx8p71f"]
+[gd_scene load_steps=13 format=3 uid="uid://dxcy6vgx8p71f"]
 
 [ext_resource type="Script" path="res://hitboxes/increment_rings.gd" id="1_u8p58"]
+[ext_resource type="Texture2D" uid="uid://snd5762wieji" path="res://assets/common/ring.png" id="2_y7nqm"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_5c76l"]
+size = Vector2(12, 12)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_36yfu"]
+atlas = ExtResource("2_y7nqm")
+region = Rect2(0, 16, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_br3tx"]
+atlas = ExtResource("2_y7nqm")
+region = Rect2(16, 16, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_rc7uf"]
+atlas = ExtResource("2_y7nqm")
+region = Rect2(32, 16, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_sthk7"]
+atlas = ExtResource("2_y7nqm")
+region = Rect2(48, 16, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kaqp2"]
+atlas = ExtResource("2_y7nqm")
+region = Rect2(0, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2mj8d"]
+atlas = ExtResource("2_y7nqm")
+region = Rect2(16, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ero1d"]
+atlas = ExtResource("2_y7nqm")
+region = Rect2(32, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_pkdgu"]
+atlas = ExtResource("2_y7nqm")
+region = Rect2(48, 0, 16, 16)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_jy8ii"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_36yfu")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_br3tx")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rc7uf")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_sthk7")
+}],
+"loop": false,
+"name": &"collected",
+"speed": 8.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_kaqp2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2mj8d")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ero1d")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_pkdgu")
+}],
+"loop": true,
+"name": &"default",
+"speed": 8.0
+}]
 
 [node name="Ring" type="Area2D"]
 monitorable = false
@@ -12,4 +83,12 @@ script = ExtResource("1_u8p58")
 shape = SubResource("RectangleShape2D_5c76l")
 debug_color = Color(0.798641, 0.659167, 0, 0.42)
 
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("SpriteFrames_jy8ii")
+animation = &"collected"
+autoplay = "default"
+frame = 3
+frame_progress = 1.0
+
 [connection signal="area_entered" from="." to="." method="_on_area_entered"]
+[connection signal="animation_finished" from="AnimatedSprite2D" to="." method="_on_animated_sprite_2d_animation_finished"]
