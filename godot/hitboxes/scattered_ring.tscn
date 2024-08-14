@@ -1,44 +1,44 @@
-[gd_scene load_steps=13 format=3 uid="uid://dxcy6vgx8p71f"]
+[gd_scene load_steps=13 format=3 uid="uid://cijfeqhaqi5ef"]
 
-[ext_resource type="Script" path="res://hitboxes/ring.gd" id="1_u8p58"]
-[ext_resource type="Texture2D" uid="uid://snd5762wieji" path="res://assets/common/ring.png" id="2_y7nqm"]
+[ext_resource type="Script" path="res://hitboxes/scattered_ring.gd" id="1_gnsbs"]
+[ext_resource type="Texture2D" uid="uid://snd5762wieji" path="res://assets/common/ring.png" id="2_jifv5"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_5c76l"]
-size = Vector2(13, 13)
+size = Vector2(17, 17)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_36yfu"]
-atlas = ExtResource("2_y7nqm")
+atlas = ExtResource("2_jifv5")
 region = Rect2(0, 16, 16, 16)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_br3tx"]
-atlas = ExtResource("2_y7nqm")
+atlas = ExtResource("2_jifv5")
 region = Rect2(16, 16, 16, 16)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_rc7uf"]
-atlas = ExtResource("2_y7nqm")
+atlas = ExtResource("2_jifv5")
 region = Rect2(32, 16, 16, 16)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_sthk7"]
-atlas = ExtResource("2_y7nqm")
+atlas = ExtResource("2_jifv5")
 region = Rect2(48, 16, 16, 16)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_kaqp2"]
-atlas = ExtResource("2_y7nqm")
+atlas = ExtResource("2_jifv5")
 region = Rect2(0, 0, 16, 16)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_2mj8d"]
-atlas = ExtResource("2_y7nqm")
+atlas = ExtResource("2_jifv5")
 region = Rect2(16, 0, 16, 16)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_ero1d"]
-atlas = ExtResource("2_y7nqm")
+atlas = ExtResource("2_jifv5")
 region = Rect2(32, 0, 16, 16)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_pkdgu"]
-atlas = ExtResource("2_y7nqm")
+atlas = ExtResource("2_jifv5")
 region = Rect2(48, 0, 16, 16)
 
-[sub_resource type="SpriteFrames" id="SpriteFrames_jy8ii"]
+[sub_resource type="SpriteFrames" id="SpriteFrames_kqk2x"]
 animations = [{
 "frames": [{
 "duration": 1.0,
@@ -72,12 +72,12 @@ animations = [{
 }],
 "loop": true,
 "name": &"default",
-"speed": 8.0
+"speed": 30.0
 }]
 
-[node name="Ring" type="Area2D" node_paths=PackedStringArray("sprite")]
+[node name="ScatteredRing" type="Area2D" node_paths=PackedStringArray("sprite")]
 monitorable = false
-script = ExtResource("1_u8p58")
+script = ExtResource("1_gnsbs")
 sprite = NodePath("AnimatedSprite2D")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
@@ -85,8 +85,12 @@ shape = SubResource("RectangleShape2D_5c76l")
 debug_color = Color(0.798641, 0.659167, 0, 0.42)
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
-sprite_frames = SubResource("SpriteFrames_jy8ii")
+sprite_frames = SubResource("SpriteFrames_kqk2x")
 autoplay = "default"
+
+[node name="Sensor" type="Sensor" parent="."]
+collision_mask = 1
+position = Vector2(0, 8)
 
 [connection signal="area_entered" from="." to="." method="_on_area_entered"]
 [connection signal="animation_finished" from="AnimatedSprite2D" to="." method="_on_animated_sprite_2d_animation_finished"]

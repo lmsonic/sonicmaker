@@ -89,6 +89,7 @@ pub struct Sensor {
     last_result: Option<DetectionResult>,
     #[export(flags_2d_physics)]
     #[var(get, set)]
+    #[init(default = 1)]
     collision_mask: u32,
     #[export]
     #[init(default = Color::from_rgba(0.0, 0.6, 0.7, 0.42))]

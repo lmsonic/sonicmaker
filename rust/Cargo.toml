@@ -4,7 +4,6 @@ version = "0.1.0"   # You can leave version and edition as-is for now.
 edition = "2021"
 
 [lints.rust]
-unsafe = "deny"
 keyword_idents = { level = "warn", priority = -1 }
 missing_copy_implementations = "warn"
 missing_debug_implementations = "warn"

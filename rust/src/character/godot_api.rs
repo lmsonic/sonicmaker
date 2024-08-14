@@ -1,7 +1,11 @@
 #![allow(clippy::needless_pass_by_value)]
 use std::{f32::consts::FRAC_PI_2, ops::Rem};
 
-use godot::{builtin::math::ApproxEq, engine::RectangleShape2D, prelude::*};
+use godot::{
+    builtin::math::ApproxEq,
+    engine::{Area2D, RectangleShape2D},
+    prelude::*,
+};
 use real_consts::{PI, TAU};
 
 #[derive(GodotConvert, Var, Export, Default, Debug, PartialEq, Eq, Clone, Copy)]
@@ -98,13 +102,51 @@ impl Character {
             self.die();
             return;
         }
+        self.scatter_rings();
         let hazard_position = hazard.get_global_position();
         let sign = (self.global_position().x - hazard_position.x).signum();
-        self.rings = 0;
         self.velocity = Vector2::new(self.hurt_x_force * sign, self.hurt_y_force);
         self.set_state(State::Hurt);
         self.set_grounded(false);
         self.clear_objects();
+    }
+
+    fn scatter_rings(&mut self) {
+        if let Some(scattered_ring_scene) = &self.scattered_ring_scene.clone() {
+            let ring_starting_angle = f32::to_radians(101.25);
+            let mut ring_angle = ring_starting_angle;
+            let mut ring_flip = false;
+            let mut ring_speed = 4.0;
+
+            for i in 0..self.rings {
+                // If we are halfway, start second "circle" of rings with lower speed
+                if i == 16 {
+                    ring_speed = 2.0;
+                    ring_angle = ring_starting_angle;
+                }
+
+                let mut x_speed = ring_angle.cos() * ring_speed;
+                let y_speed = -ring_angle.sin() * ring_speed;
+                // Every ring created will moving be at the same angle as the other in the current pair,
+                // but flipped the other side of the circle
+                if ring_flip {
+                    x_speed *= -1.0; // Reverse ring's X Speed
+                    ring_angle += f32::to_radians(22.5); // We increment angle on every other ring which makes 2 even rings either side
+                }
+                // Toggle flip
+                ring_flip = !ring_flip;
+                // Create a scattered ring object at the Player's X and Y Position;
+                let mut scattered_ring = scattered_ring_scene.instantiate_as::<Node2D>();
+                scattered_ring.set_as_top_level(true);
+                scattered_ring.set_global_position(self.global_position());
+                scattered_ring.set(
+                    c"velocity".into(),
+                    Vector2::new(x_speed, y_speed).to_variant(),
+                );
+                self.base_mut().add_child(scattered_ring.upcast());
+            }
+        }
+        self.rings = 0;
     }
 
     pub fn die(&self) {

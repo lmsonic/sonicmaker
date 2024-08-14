@@ -81,6 +81,8 @@ pub struct Character {
     #[export]
     sensor_push_right: Option<Gd<Sensor>>,
     #[export]
+    scattered_ring_scene: Option<Gd<PackedScene>>,
+    #[export]
     #[var(get,set= set_grounded)]
     is_grounded: bool,
     #[export(range = (0.0, 360.0, 0.001, radians_as_degrees))]

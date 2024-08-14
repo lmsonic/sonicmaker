@@ -1,5 +1,6 @@
-[gd_scene load_steps=23 format=3 uid="uid://cwy1rw6rmm00c"]
+[gd_scene load_steps=24 format=3 uid="uid://cwy1rw6rmm00c"]
 
+[ext_resource type="PackedScene" uid="uid://cijfeqhaqi5ef" path="res://hitboxes/scattered_ring.tscn" id="1_06exi"]
 [ext_resource type="Texture2D" uid="uid://dpigsx74d37wt" path="res://assets/sonic/sonic.png" id="1_ddxe8"]
 [ext_resource type="PackedScene" uid="uid://cwfcb4naaj1h1" path="res://player/sensor.tscn" id="2_mvnfj"]
 [ext_resource type="Script" path="res://player/player_hitbox.gd" id="4_2cy7d"]
@@ -161,12 +162,13 @@ sensor_ceiling_left = NodePath("Sensors/SensorCeilingLeft")
 sensor_ceiling_right = NodePath("Sensors/SensorCeilingRight")
 sensor_push_left = NodePath("Sensors/SensorPushLeft")
 sensor_push_right = NodePath("Sensors/SensorPushRight")
+scattered_ring_scene = ExtResource("1_06exi")
 debug_draw = true
 collision_layer = 1
+rings = 32
 position = Vector2(0, -19)
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
-texture_filter = 1
 position = Vector2(0, -4)
 sprite_frames = SubResource("SpriteFrames_fg2lh")
 animation = &"idle"
