@@ -296,6 +296,7 @@ fn solid_object_collision_fully_solid(
         // Collide horizontally
         if x_distance == 0.0 {
             // Do not reset speeds
+            return Collision::None;
         } else if (x_distance > 0.0 && velocity.x > 0.0) || (x_distance < 0.0 && velocity.x < 0.0) {
             // Reset speeds only when moving left if on right side or
             //when moving right if on left side
@@ -360,7 +361,7 @@ fn item_monitor_collision(
     let y_distance = player_position.y - top_edge;
     let mut velocity = player.bind().get_velocity();
 
-    if y_distance < TILE_SIZE && x_distance < 4.0 {
+    if y_distance < TILE_SIZE {
         // Land on object
         let y_distance = y_distance - 4.0;
         // Distance to object right edge
@@ -388,6 +389,7 @@ fn item_monitor_collision(
         // Collide horizontally
         if x_distance == 0.0 {
             // Do not reset speeds
+            return Collision::None;
         } else if (x_distance > 0.0 && velocity.x > 0.0) || (x_distance < 0.0 && velocity.x < 0.0) {
             // Reset speeds only when moving left if on right side or
             //when moving right if on left side

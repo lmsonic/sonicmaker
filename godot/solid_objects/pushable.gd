@@ -1,7 +1,7 @@
 extends SolidObject
 
 @export var fall_gravity:= 0.21875
-@export var push_speed:= 1.0
+@export var push_speed:= 0.33333
 @export var slide_off_speed:= 4.0
 
 @onready var sensor: Sensor = $Sensor
@@ -18,7 +18,6 @@ func _physics_process(delta: float) -> void:
 	match collision:
 		"Left":
 			global_position.x += push_speed
-			player.global_position.x -= 1.0
 			player.global_position.x += push_speed
 			player.velocity.x = 0.0
 			player.ground_speed = 0.25
@@ -31,7 +30,6 @@ func _physics_process(delta: float) -> void:
 				is_falling = true
 		"Right":
 			global_position.x -= push_speed
-			player.global_position.x += 1.0
 			player.global_position.x -= push_speed
 			player.velocity.x = 0.0
 			player.ground_speed = -0.25

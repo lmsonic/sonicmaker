@@ -462,7 +462,9 @@ impl Character {
         if self.control_lock_timer <= 0 {
             let is_rolling = self.state.is_rolling();
             // Ground Acceleration
-            if input.is_action_pressed(c"left".into()) {
+            let horizontal_input = i32::from(input.is_action_pressed(c"right".into()))
+                - i32::from(input.is_action_pressed(c"left".into()));
+            if horizontal_input < 0 {
                 if self.ground_speed > 0.0 {
                     // Turn around
                     godot_print!("Turn around");
@@ -486,8 +488,7 @@ impl Character {
                 }
 
                 self.set_flip_h(true);
-            }
-            if input.is_action_pressed(c"right".into()) {
+            } else if horizontal_input > 0 {
                 if self.ground_speed < 0.0 {
                     // Turn around
                     godot_print!("Turn around");
@@ -542,9 +543,11 @@ impl Character {
     fn update_animation(&mut self) {
         if self.state.is_pushing() {
             let input = Input::singleton();
-            if !(input.is_action_pressed(c"left".into())
-                || input.is_action_pressed(c"right".into()))
-                && self.ground_speed == 0.0
+            let horizontal_input = i32::from(input.is_action_pressed(c"right".into()))
+                - i32::from(input.is_action_pressed(c"left".into()));
+            if horizontal_input == 0
+                || horizontal_input > 0 && self.facing_left()
+                || horizontal_input < 0 && !self.facing_left()
             {
                 self.set_state(State::Idle);
             }
