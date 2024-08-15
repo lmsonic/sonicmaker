@@ -1,7 +1,7 @@
-mod collision;
-mod godot_api;
-mod lifecycle;
-mod utils;
+pub(crate) mod collision;
+pub(crate) mod godot_api;
+pub(crate) mod lifecycle;
+pub(crate) mod utils;
 
 use godot::engine::{AnimatedSprite2D, Area2D, CollisionShape2D};
 use godot::prelude::*;
@@ -17,7 +17,7 @@ pub struct Character {
     character: Kind,
     #[export]
     #[var(get, set = set_state)]
-    state: State,
+    pub(crate) state: State,
     #[export]
     sprites: Option<Gd<AnimatedSprite2D>>,
     #[export(range = (0.0,100.0, 1.0))]

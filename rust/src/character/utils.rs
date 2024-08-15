@@ -163,6 +163,12 @@ impl Character {
             sprites.play_ex().name(animation.into()).done();
         }
     }
+    pub(super) fn facing_left(&self) -> bool {
+        if let Some(sprites) = &self.sprites {
+            return sprites.is_flipped_h();
+        }
+        false
+    }
 
     pub(super) fn clear_objects(&mut self) {
         self.solid_object_to_stand_on = None;

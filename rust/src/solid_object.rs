@@ -7,7 +7,10 @@ use godot::{
     prelude::*,
 };
 
-use crate::{character::Character, sensor::TILE_SIZE};
+use crate::{
+    character::{godot_api::State, Character},
+    sensor::TILE_SIZE,
+};
 #[derive(GodotClass)]
 #[class(init, base=Area2D)]
 pub struct SolidObject {
@@ -64,6 +67,12 @@ impl SolidObject {
                         .bind_mut()
                         .set_stand_on_object(self.base().clone().cast::<Self>());
                 }
+                if (self.collision == Collision::Left || self.collision == Collision::Right)
+                    && player.bind().state != State::Pushing
+                    && player.bind().get_is_grounded()
+                {
+                    player.bind_mut().set_state(State::Pushing);
+                }
             }
         } else {
             self.collision =
@@ -72,6 +81,12 @@ impl SolidObject {
                 player
                     .bind_mut()
                     .set_stand_on_object(self.base().clone().cast::<Self>());
+            }
+            if (self.collision == Collision::Left || self.collision == Collision::Right)
+                && player.bind().state != State::Pushing
+                && player.bind().get_is_grounded()
+            {
+                player.bind_mut().set_state(State::Pushing);
             }
         }
 

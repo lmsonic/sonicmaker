@@ -14,7 +14,7 @@ pub(super) enum Kind {
 }
 #[derive(GodotConvert, Var, Export, Default, Debug, PartialEq, Eq, Clone, Copy)]
 #[godot(via = GString)]
-pub(super) enum State {
+pub(crate) enum State {
     #[default]
     Idle,
     StartMotion,
@@ -289,7 +289,7 @@ impl Character {
         self.character = value;
     }
     #[func]
-    pub(super) fn set_state(&mut self, value: State) {
+    pub fn set_state(&mut self, value: State) {
         let was_ball = self.state.is_ball();
         let is_ball = value.is_ball();
         if self.state.is_hurt() && !value.is_hurt() {
@@ -302,17 +302,17 @@ impl Character {
             self.set_width_radius(7.0);
             self.set_height_radius(14.0);
         }
-
+        godot_print!("{:?}", self.state);
         match self.state {
-            State::Idle => self.play_animation("idle"),
-            State::StartMotion => self.play_animation("start_motion"),
-            State::FullMotion => self.play_animation("full_motion"),
+            State::Idle => self.play_animation(c"idle"),
+            State::StartMotion => self.play_animation(c"start_motion"),
+            State::FullMotion => self.play_animation(c"full_motion"),
             State::JumpBall | State::RollingBall => {
-                self.play_animation("rolling");
+                self.play_animation(c"rolling");
             }
-            State::Hurt => self.play_animation("hurt"),
-            State::Skidding => self.play_animation("skidding"),
-            State::Pushing => self.play_animation("pushing"),
+            State::Hurt => self.play_animation(c"hurt"),
+            State::Skidding => self.play_animation(c"skidding"),
+            State::Pushing => self.play_animation(c"pushing"),
         }
     }
     pub(super) fn set_flip_h(&mut self, value: bool) {

@@ -1,7 +1,7 @@
 extends SolidObject
 
 @export var fall_gravity:= 0.21875
-@export var push_speed:= 0.3333
+@export var push_speed:= 1.0
 @export var slide_off_speed:= 4.0
 
 @onready var sensor: Sensor = $Sensor
@@ -14,13 +14,15 @@ func _physics_process(delta: float) -> void:
 	var player :Character = get_tree().get_first_node_in_group("player") as Character
 	if !player.is_grounded:
 		return
-	match collision :
+
+	match collision:
 		"Left":
 			global_position.x += push_speed
+			player.global_position.x -= 1.0
 			player.global_position.x += push_speed
 			player.velocity.x = 0.0
 			player.ground_speed = 0.25
-			player.set_state("Pushing")
+
 			var distance := sense_distance()
 			if distance > 0.0:
 				player.set_state("Idle")
@@ -29,10 +31,10 @@ func _physics_process(delta: float) -> void:
 				is_falling = true
 		"Right":
 			global_position.x -= push_speed
+			player.global_position.x += 1.0
 			player.global_position.x -= push_speed
 			player.velocity.x = 0.0
 			player.ground_speed = -0.25
-			player.set_state("Pushing")
 			var distance := sense_distance()
 			if distance > 0.0:
 				player.set_state("Idle")

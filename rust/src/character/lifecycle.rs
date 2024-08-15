@@ -315,7 +315,6 @@ impl Character {
     fn grounded(&mut self, delta: f32) {
         self.check_unrolling();
 
-        self.update_animation();
         // Grounded
         let input = Input::singleton();
 
@@ -333,6 +332,8 @@ impl Character {
         self.apply_friction(&input, delta);
 
         self.check_walls();
+
+        self.update_animation();
 
         if self.solid_object_to_stand_on.is_none() {
             self.check_floor();
@@ -539,6 +540,16 @@ impl Character {
     }
 
     fn update_animation(&mut self) {
+        if self.state.is_pushing() {
+            let input = Input::singleton();
+            if !(input.is_action_pressed(c"left".into())
+                || input.is_action_pressed(c"right".into()))
+                && self.ground_speed == 0.0
+            {
+                self.set_state(State::Idle);
+            }
+        }
+
         if !(self.state.is_rolling() || self.state.is_skidding() || self.state.is_pushing()) {
             if self.ground_speed.abs() >= self.top_speed {
                 self.set_state(State::FullMotion);
