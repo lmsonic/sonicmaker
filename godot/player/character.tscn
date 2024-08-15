@@ -165,7 +165,7 @@ sensor_push_right = NodePath("Sensors/SensorPushRight")
 scattered_ring_scene = ExtResource("1_06exi")
 debug_draw = true
 collision_layer = 1
-rings = 32
+rings = 10
 position = Vector2(0, -19)
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]

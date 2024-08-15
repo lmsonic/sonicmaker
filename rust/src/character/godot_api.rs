@@ -124,7 +124,7 @@ impl Character {
             let mut ring_flip = false;
             let mut ring_speed = 4.0;
 
-            for i in 0..self.rings {
+            for i in 0..(self.rings).min(32) {
                 // If we are halfway, start second "circle" of rings with lower speed
                 if i == 16 {
                     ring_speed = 2.0;
