@@ -163,12 +163,7 @@ impl Character {
             sprites.play_ex().name(animation.into()).done();
         }
     }
-    pub(super) fn animation(&self) -> Option<StringName> {
-        if let Some(sprites) = &self.sprites {
-            return Some(sprites.get_animation());
-        }
-        None
-    }
+
     pub(super) fn clear_objects(&mut self) {
         self.solid_object_to_stand_on = None;
     }

@@ -19,8 +19,11 @@ pub(super) enum State {
     Idle,
     StartMotion,
     FullMotion,
+    Skidding,
+    Pushing,
     JumpBall,
     RollingBall,
+
     Hurt,
 }
 
@@ -52,6 +55,22 @@ impl State {
     pub(super) const fn is_hurt(self) -> bool {
         matches!(self, Self::Hurt)
     }
+
+    /// Returns `true` if the state is [`Skidding`].
+    ///
+    /// [`Skidding`]: State::Skidding
+    #[must_use]
+    pub(super) const fn is_skidding(self) -> bool {
+        matches!(self, Self::Skidding)
+    }
+
+    /// Returns `true` if the state is [`Pushing`].
+    ///
+    /// [`Pushing`]: State::Pushing
+    #[must_use]
+    pub(super) const fn is_pushing(self) -> bool {
+        matches!(self, Self::Pushing)
+    }
 }
 use crate::{
     character::Character,
@@ -70,10 +89,8 @@ impl Character {
     fn rings_changed(value: i32);
     #[func]
     pub(super) fn reset_idle_from_skidding(&mut self) {
-        if let Some(animation) = self.animation() {
-            if animation == "skidding".into() {
-                self.play_animation("idle");
-            }
+        if self.state == State::Skidding {
+            self.set_state(State::Idle);
         }
     }
     #[func]
@@ -285,11 +302,7 @@ impl Character {
             self.set_width_radius(7.0);
             self.set_height_radius(14.0);
         }
-        if let Some(animation) = self.animation() {
-            if animation == "skidding".into() {
-                return;
-            }
-        }
+
         match self.state {
             State::Idle => self.play_animation("idle"),
             State::StartMotion => self.play_animation("start_motion"),
@@ -297,13 +310,14 @@ impl Character {
             State::JumpBall | State::RollingBall => {
                 self.play_animation("rolling");
             }
-
             State::Hurt => self.play_animation("hurt"),
+            State::Skidding => self.play_animation("skidding"),
+            State::Pushing => self.play_animation("pushing"),
         }
     }
     pub(super) fn set_flip_h(&mut self, value: bool) {
         if let Some(sprites) = &mut self.sprites {
-            if sprites.get_animation() != "skidding".into() {
+            if !self.state.is_skidding() {
                 sprites.set_flip_h(value);
             }
         }

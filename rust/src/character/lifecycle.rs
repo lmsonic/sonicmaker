@@ -466,9 +466,11 @@ impl Character {
                     // Turn around
                     godot_print!("Turn around");
                     self.ground_speed -= self.current_deceleration() * delta;
-
+                    if self.state.is_pushing() {
+                        self.set_state(State::Idle);
+                    }
                     if self.ground_speed > 4.0 {
-                        self.play_animation("skidding");
+                        self.set_state(State::Skidding);
                     }
                     let roll_turn_threshold = (self.roll_deceleration + self.roll_friction) * delta;
                     if self.ground_speed <= 0.0
@@ -489,8 +491,11 @@ impl Character {
                     // Turn around
                     godot_print!("Turn around");
                     self.ground_speed += self.current_deceleration() * delta;
+                    if self.state.is_pushing() {
+                        self.set_state(State::Idle);
+                    }
                     if self.ground_speed < -4.0 {
-                        self.play_animation("skidding");
+                        self.set_state(State::Skidding);
                     }
                     let roll_turn_threshold = (self.roll_deceleration + self.roll_friction) * delta;
                     if self.ground_speed >= 0.0
@@ -534,7 +539,7 @@ impl Character {
     }
 
     fn update_animation(&mut self) {
-        if !self.state.is_rolling() {
+        if !(self.state.is_rolling() || self.state.is_skidding() || self.state.is_pushing()) {
             if self.ground_speed.abs() >= self.top_speed {
                 self.set_state(State::FullMotion);
             } else if self.ground_speed.abs() > 0.1 {

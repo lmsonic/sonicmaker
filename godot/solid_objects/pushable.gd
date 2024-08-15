@@ -12,14 +12,18 @@ var pixels_moved := 0.0
 func _physics_process(delta: float) -> void:
 	physics_process(delta)
 	var player :Character = get_tree().get_first_node_in_group("player") as Character
+	if !player.is_grounded:
+		return
 	match collision :
 		"Left":
 			global_position.x += push_speed
 			player.global_position.x += push_speed
 			player.velocity.x = 0.0
 			player.ground_speed = 0.25
+			player.set_state("Pushing")
 			var distance := sense_distance()
 			if distance > 0.0:
+				player.set_state("Idle")
 				pixels_moved = slide_off_speed
 				global_position.x += slide_off_speed
 				is_falling = true
@@ -28,11 +32,14 @@ func _physics_process(delta: float) -> void:
 			player.global_position.x -= push_speed
 			player.velocity.x = 0.0
 			player.ground_speed = -0.25
+			player.set_state("Pushing")
 			var distance := sense_distance()
 			if distance > 0.0:
+				player.set_state("Idle")
 				pixels_moved = -slide_off_speed
 				global_position.x -= slide_off_speed
 				is_falling = true
+
 
 	var distance := sense_distance()
 	if distance > 0:

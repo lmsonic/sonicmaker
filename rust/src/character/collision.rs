@@ -1,7 +1,7 @@
 use godot::prelude::*;
 
 use crate::{
-    character::Character,
+    character::{godot_api::State, Character},
     sensor::{DetectionResult, Sensor, Solidity},
 };
 
@@ -10,6 +10,7 @@ impl Character {
         let right = self.current_mode().right();
         let mut position = self.global_position();
         position += right * distance;
+
         self.ground_speed = 0.0;
         self.velocity.x = 0.0;
 
@@ -20,6 +21,7 @@ impl Character {
         let left = self.current_mode().left();
         let mut position = self.global_position();
         position += left * distance;
+
         self.ground_speed = 0.0;
         self.velocity.x = 0.0;
         self.set_global_position(position);
