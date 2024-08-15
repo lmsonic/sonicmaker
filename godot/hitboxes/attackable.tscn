@@ -5,6 +5,7 @@
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_3y0bs"]
 
 [node name="Attackable" type="Area2D"]
+monitorable = false
 script = ExtResource("1_csc15")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]

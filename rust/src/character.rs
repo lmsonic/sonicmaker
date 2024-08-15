@@ -99,12 +99,14 @@ pub struct Character {
     #[var(set, get)]
     pub velocity: Vector2,
     #[export]
-    #[var(set, get)]
+    #[var(set = set_rings, get)]
     rings: i32,
     #[var(get)]
     attacking: bool,
     #[var(get)]
     invulnerability_timer: i32,
+    #[var(get)]
+    regather_rings_timer: i32,
     #[init(default = 2.0)]
     hurt_x_force: f32,
     #[init(default = -4.0)]

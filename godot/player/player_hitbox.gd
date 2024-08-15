@@ -1,30 +1,23 @@
 class_name PlayerHitbox extends Area2D
 
 @export var player:Character
-var regather_rings_timer := 0
 
 func _ready() -> void:
 	await get_tree().process_frame
-	EventBus.rings_set.emit(player.rings)
+	_on_rings_changed(player.rings)
+
+func _on_rings_changed(value: int) -> void:
+	EventBus.rings_set.emit(value)
 
 func can_gather_rings() -> bool:
-	return regather_rings_timer <= 0 and player.can_gather_rings()
-
-func _physics_process(delta: float) -> void:
-	if regather_rings_timer > 0:
-		regather_rings_timer -= 1
+	return player.can_gather_rings()
 
 func increment_rings(amount:int) -> void:
 	player.rings += amount
-	EventBus.rings_set.emit(player.rings)
 
 func on_hurt(hazard:Node2D) -> void:
-	if player.is_invulnerable():
-		return
 	await get_tree().process_frame
-	regather_rings_timer = 64
 	player.on_hurt(hazard)
-	EventBus.rings_set.emit(player.rings)
 
 func on_attacking_badnik(badnik:Node2D) -> void:
 	if player.attacking:
@@ -32,10 +25,10 @@ func on_attacking_badnik(badnik:Node2D) -> void:
 	else:
 		on_hurt(badnik)
 
-
-
 func on_attacking_boss(boss:Node2D) -> void:
 	if player.attacking:
 		player.on_attacking(boss,true)
 	else:
 		on_hurt(boss)
+
+

@@ -1,0 +1,19 @@
+[gd_scene load_steps=4 format=3 uid="uid://b16frlq35lku6"]
+
+[ext_resource type="Script" path="res://solid_objects/spike.gd" id="1_otjiv"]
+[ext_resource type="Texture2D" uid="uid://b3wpeuukwael2" path="res://assets/common/spike.png" id="1_t1bcw"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_b1dr8"]
+size = Vector2(32, 32)
+
+[node name="Spike" type="SolidObject" node_paths=PackedStringArray("collision_shape")]
+width_radius = 16.0
+height_radius = 16.0
+collision_shape = NodePath("CollisionShape2D")
+script = ExtResource("1_otjiv")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_b1dr8")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("1_t1bcw")

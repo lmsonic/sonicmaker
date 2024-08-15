@@ -4,7 +4,7 @@
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_574aa"]
 
-[node name="Spike" type="Area2D"]
+[node name="Hurt" type="Area2D"]
 script = ExtResource("1_32bs2")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]

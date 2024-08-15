@@ -5,8 +5,6 @@ extends Ring
 var velocity := Vector2.ZERO
 var lifespan := 256.0
 
-
-
 func _physics_process(delta: float) -> void:
 	if collected:
 		sprite.speed_scale = 1.0

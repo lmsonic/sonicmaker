@@ -66,6 +66,14 @@ pub enum SolidObjectKind {
 
 #[godot_api]
 impl Character {
+    #[signal]
+    fn rings_changed(value: i32);
+    #[func]
+    pub(super) fn set_rings(&mut self, value: i32) {
+        self.rings = value;
+        self.base_mut()
+            .emit_signal(c"rings_changed".into(), &[Variant::from(value)]);
+    }
     #[func]
     pub fn set_stand_on_object(&mut self, object: Gd<SolidObject>) {
         self.solid_object_to_stand_on = Some(SolidObjectKind::Simple(object));
@@ -93,11 +101,15 @@ impl Character {
     }
     #[func]
     fn on_hurt(&mut self, hazard: Gd<Node2D>) {
+        if self.is_invulnerable() {
+            return;
+        }
         if self.rings <= 0 {
             // Death
             self.die();
             return;
         }
+        self.regather_rings_timer = 64;
         self.scatter_rings();
         let hazard_position = hazard.get_global_position();
         let sign = (self.global_position().x - hazard_position.x).signum();
@@ -114,7 +126,7 @@ impl Character {
     #[func]
     #[allow(clippy::missing_const_for_fn)]
     pub(super) fn can_gather_rings(&self) -> bool {
-        !self.state.is_hurt() || self.invulnerability_timer < 64
+        (!self.state.is_hurt() || self.invulnerability_timer < 64) && self.regather_rings_timer <= 0
     }
 
     fn scatter_rings(&mut self) {
@@ -152,7 +164,7 @@ impl Character {
                 self.base_mut().add_child(scattered_ring.upcast());
             }
         }
-        self.rings = 0;
+        self.set_rings(0);
     }
 
     pub fn die(&self) {
