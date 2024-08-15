@@ -467,6 +467,9 @@ impl Character {
                     godot_print!("Turn around");
                     self.ground_speed -= self.current_deceleration() * delta;
 
+                    if self.ground_speed > 4.0 {
+                        self.play_animation("skidding");
+                    }
                     let roll_turn_threshold = (self.roll_deceleration + self.roll_friction) * delta;
                     if self.ground_speed <= 0.0
                         || is_rolling && self.ground_speed.abs() < roll_turn_threshold
@@ -486,6 +489,9 @@ impl Character {
                     // Turn around
                     godot_print!("Turn around");
                     self.ground_speed += self.current_deceleration() * delta;
+                    if self.ground_speed < -4.0 {
+                        self.play_animation("skidding");
+                    }
                     let roll_turn_threshold = (self.roll_deceleration + self.roll_friction) * delta;
                     if self.ground_speed >= 0.0
                         || is_rolling && self.ground_speed.abs() < roll_turn_threshold

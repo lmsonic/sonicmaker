@@ -69,6 +69,14 @@ impl Character {
     #[signal]
     fn rings_changed(value: i32);
     #[func]
+    pub(super) fn reset_idle_from_skidding(&mut self) {
+        if let Some(animation) = self.animation() {
+            if animation == "skidding".into() {
+                self.play_animation("idle");
+            }
+        }
+    }
+    #[func]
     pub(super) fn set_rings(&mut self, value: i32) {
         self.rings = value;
         self.base_mut()
@@ -277,24 +285,27 @@ impl Character {
             self.set_width_radius(7.0);
             self.set_height_radius(14.0);
         }
-
-        if let Some(sprites) = &mut self.sprites {
-            match self.state {
-                State::Idle => sprites.play_ex().name(c"idle".into()).done(),
-                State::StartMotion => sprites.play_ex().name(c"start_motion".into()).done(),
-                State::FullMotion => sprites.play_ex().name(c"full_motion".into()).done(),
-                State::JumpBall | State::RollingBall => {
-                    sprites.play_ex().name(c"rolling".into()).done();
-                } // TODO: add the hurt animation
-                State::Hurt => {
-                    sprites.play_ex().name(c"idle".into()).done();
-                }
+        if let Some(animation) = self.animation() {
+            if animation == "skidding".into() {
+                return;
             }
+        }
+        match self.state {
+            State::Idle => self.play_animation("idle"),
+            State::StartMotion => self.play_animation("start_motion"),
+            State::FullMotion => self.play_animation("full_motion"),
+            State::JumpBall | State::RollingBall => {
+                self.play_animation("rolling");
+            }
+
+            State::Hurt => self.play_animation("hurt"),
         }
     }
     pub(super) fn set_flip_h(&mut self, value: bool) {
         if let Some(sprites) = &mut self.sprites {
-            sprites.set_flip_h(value);
+            if sprites.get_animation() != "skidding".into() {
+                sprites.set_flip_h(value);
+            }
         }
     }
 

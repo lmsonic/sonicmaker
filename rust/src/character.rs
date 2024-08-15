@@ -103,10 +103,9 @@ pub struct Character {
     rings: i32,
     #[var(get)]
     attacking: bool,
-    #[var(get)]
     invulnerability_timer: i32,
-    #[var(get)]
     regather_rings_timer: i32,
+
     #[init(default = 2.0)]
     hurt_x_force: f32,
     #[init(default = -4.0)]
