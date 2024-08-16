@@ -1,7 +1,7 @@
-pub(crate) mod collision;
-pub(crate) mod godot_api;
-pub(crate) mod lifecycle;
-pub(crate) mod utils;
+pub mod collision;
+pub mod godot_api;
+pub mod lifecycle;
+pub mod utils;
 
 use godot::engine::{AnimatedSprite2D, Area2D, CollisionShape2D};
 use godot::prelude::*;

@@ -1,7 +1,7 @@
 use godot::prelude::*;
 
 use crate::{
-    character::{godot_api::State, Character},
+    character::Character,
     sensor::{DetectionResult, Sensor, Solidity},
 };
 

@@ -14,7 +14,7 @@ pub(super) enum Kind {
 }
 #[derive(GodotConvert, Var, Export, Default, Debug, PartialEq, Eq, Clone, Copy)]
 #[godot(via = GString)]
-pub(crate) enum State {
+pub enum State {
     #[default]
     Idle,
     StartMotion,
