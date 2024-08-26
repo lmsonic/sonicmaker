@@ -3,7 +3,7 @@ class_name Ring extends Area2D
 @export var amount := 1
 
 @export var sprite: AnimatedSprite2D
-var collected:=false
+var collected := false
 func _on_area_entered(area: Area2D) -> void:
 	if collected:
 		return
@@ -15,5 +15,3 @@ func _on_area_entered(area: Area2D) -> void:
 		z_index = 1
 		await sprite.animation_finished
 		queue_free()
-
-

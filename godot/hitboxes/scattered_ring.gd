@@ -26,7 +26,7 @@ func _physics_process(delta: float) -> void:
 
 
 func sense() -> float:
-	var result:Variant = sensor.sense_godot()
+	var result: Variant = sensor.sense_godot()
 	if result:
 		return result.distance
 	else:

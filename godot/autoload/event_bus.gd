@@ -1,3 +1,2 @@
 extends Node
-signal rings_set(value:int)
-
+signal rings_set(value: int)

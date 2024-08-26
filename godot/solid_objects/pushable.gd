@@ -1,8 +1,8 @@
 extends SolidObject
 
-@export var fall_gravity:= 0.21875
-@export var push_speed:= 1.0
-@export var slide_off_speed:= 4.0
+@export var fall_gravity := 0.21875
+@export var push_speed := 1.0
+@export var slide_off_speed := 4.0
 
 @onready var sensor: Sensor = $Sensor
 var is_falling := false
@@ -11,7 +11,7 @@ var pixels_moved := 0.0
 
 func _physics_process(delta: float) -> void:
 	physics_process(delta)
-	var player :Character = get_tree().get_first_node_in_group("player") as Character
+	var player: Character = get_tree().get_first_node_in_group("player") as Character
 	if !player.is_grounded:
 		return
 
@@ -67,7 +67,7 @@ func _physics_process(delta: float) -> void:
 
 # is on floor only when distance <=0
 func sense_distance() -> float:
-	var result :Variant = sensor.sense_godot()
+	var result: Variant = sensor.sense_godot()
 	if result:
 		return result.distance
 	else:
