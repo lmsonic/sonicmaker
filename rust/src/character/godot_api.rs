@@ -23,8 +23,8 @@ pub enum State {
     Pushing,
     JumpBall,
     RollingBall,
-
     Hurt,
+    SpringBounce,
 }
 
 impl State {
@@ -71,6 +71,14 @@ impl State {
     pub(super) const fn is_pushing(self) -> bool {
         matches!(self, Self::Pushing)
     }
+
+    /// Returns `true` if the state is [`SpringBounce`].
+    ///
+    /// [`SpringBounce`]: State::SpringBounce
+    #[must_use]
+    pub const fn is_spring_bouncing(self) -> bool {
+        matches!(self, Self::SpringBounce)
+    }
 }
 use crate::{
     character::Character,
@@ -98,6 +106,10 @@ impl Character {
         self.rings = value;
         self.base_mut()
             .emit_signal(c"rings_changed".into(), &[Variant::from(value)]);
+    }
+    #[func]
+    pub fn clear_standing_objects(&mut self) {
+        self.solid_object_to_stand_on = None;
     }
     #[func]
     pub fn set_stand_on_object(&mut self, object: Gd<SolidObject>) {
@@ -141,7 +153,7 @@ impl Character {
         self.velocity = Vector2::new(self.hurt_x_force * sign, self.hurt_y_force);
         self.set_state(State::Hurt);
         self.set_grounded(false);
-        self.clear_objects();
+        self.clear_standing_objects();
     }
     #[func]
     #[allow(clippy::missing_const_for_fn)]
@@ -313,9 +325,11 @@ impl Character {
             State::Hurt => self.play_animation(c"hurt"),
             State::Skidding => self.play_animation(c"skidding"),
             State::Pushing => self.play_animation(c"pushing"),
+            State::SpringBounce => self.play_animation(c"spring_bounce"),
         }
     }
-    pub(super) fn set_flip_h(&mut self, value: bool) {
+    #[func]
+    pub fn set_flip_h(&mut self, value: bool) {
         if let Some(sprites) = &mut self.sprites {
             if !self.state.is_skidding() {
                 sprites.set_flip_h(value);

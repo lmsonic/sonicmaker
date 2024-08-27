@@ -170,9 +170,6 @@ impl Character {
         false
     }
 
-    pub(super) fn clear_objects(&mut self) {
-        self.solid_object_to_stand_on = None;
-    }
     pub(super) fn global_position(&self) -> Vector2 {
         self.base().get_global_position()
     }

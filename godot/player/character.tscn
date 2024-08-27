@@ -1,4 +1,4 @@
-[gd_scene load_steps=33 format=3 uid="uid://cwy1rw6rmm00c"]
+[gd_scene load_steps=34 format=3 uid="uid://cwy1rw6rmm00c"]
 
 [ext_resource type="PackedScene" uid="uid://cijfeqhaqi5ef" path="res://hitboxes/scattered_ring.tscn" id="1_06exi"]
 [ext_resource type="Texture2D" uid="uid://dpigsx74d37wt" path="res://assets/sonic/sonic.png" id="1_ddxe8"]
@@ -80,6 +80,10 @@ region = Rect2(138, 144, 46, 48)
 [sub_resource type="AtlasTexture" id="AtlasTexture_knbts"]
 atlas = ExtResource("1_ddxe8")
 region = Rect2(184, 144, 46, 48)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_rd6kx"]
+atlas = ExtResource("1_ddxe8")
+region = Rect2(230, 0, 46, 48)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_cq4kt"]
 atlas = ExtResource("1_ddxe8")
@@ -198,6 +202,14 @@ animations = [{
 "loop": false,
 "name": &"skidding",
 "speed": 8.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rd6kx")
+}],
+"loop": true,
+"name": &"spring_bounce",
+"speed": 5.0
 }, {
 "frames": [{
 "duration": 1.0,

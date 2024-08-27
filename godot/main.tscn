@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://uyn5gaitoc5w"]
+[gd_scene load_steps=16 format=3 uid="uid://uyn5gaitoc5w"]
 
 [ext_resource type="TileSet" uid="uid://cqlsdl65vv0s2" path="res://assets/green_hill/tilemap.tres" id="1_81d8w"]
 [ext_resource type="PackedScene" uid="uid://cwy1rw6rmm00c" path="res://player/character.tscn" id="2_ujavw"]
@@ -13,6 +13,7 @@
 [ext_resource type="PackedScene" uid="uid://fyumun0gvc66" path="res://solid_objects/sloped_solid_object.tscn" id="11_551y7"]
 [ext_resource type="PackedScene" uid="uid://c5s40o2fdylxv" path="res://solid_objects/item_monitor.tscn" id="12_xisca"]
 [ext_resource type="PackedScene" uid="uid://b16frlq35lku6" path="res://solid_objects/spike.tscn" id="13_2dqvm"]
+[ext_resource type="PackedScene" uid="uid://cjf55isuivasc" path="res://solid_objects/spring.tscn" id="14_gvboi"]
 
 [sub_resource type="GDScript" id="GDScript_43165"]
 script/source = "extends Node
@@ -113,3 +114,8 @@ position = Vector2(1068, 113)
 [node name="Spike" parent="." instance=ExtResource("13_2dqvm")]
 position = Vector2(1410, 151)
 moving = true
+
+[node name="Spring" parent="." instance=ExtResource("14_gvboi")]
+width_radius = 16.0
+position = Vector2(1348, 109)
+spring_force = 10.0

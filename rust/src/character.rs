@@ -88,6 +88,7 @@ pub struct Character {
     #[export(range = (0.0, 360.0, 0.001, radians_as_degrees))]
     #[var(get,set= set_ground_angle)]
     ground_angle: f32,
+    #[var(set, get)]
     control_lock_timer: i32,
     #[export]
     debug_draw: bool,
@@ -105,6 +106,8 @@ pub struct Character {
     attacking: bool,
     invulnerability_timer: i32,
     regather_rings_timer: i32,
+    #[var(set, get)]
+    spring_bounce_timer: i32,
 
     #[init(default = 2.0)]
     hurt_x_force: f32,

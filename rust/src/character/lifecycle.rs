@@ -124,7 +124,7 @@ impl Character {
         let combined_x_radius = obj_width_radius + self.push_radius + 1.0;
         let x_left_distance = (position.x - object_position.x) + combined_x_radius;
         if x_left_distance <= 0.0 || x_left_distance >= combined_x_radius * 2.0 {
-            self.clear_objects();
+            self.clear_standing_objects();
 
             self.set_grounded(false);
             godot_print!("walk off solid object");
@@ -145,6 +145,7 @@ impl Character {
             self.air_drag(delta);
         }
 
+        self.tick_spring_bounce_animation();
         self.update_animation_air();
 
         self.update_position(delta);
@@ -157,6 +158,15 @@ impl Character {
         self.check_walls_air();
         self.check_ceiling_air();
         self.check_floor_air();
+    }
+
+    fn tick_spring_bounce_animation(&mut self) {
+        if self.spring_bounce_timer > 0 {
+            self.spring_bounce_timer -= 1;
+            if self.spring_bounce_timer <= 0 {
+                self.set_state(State::Idle);
+            }
+        }
     }
     fn handle_variable_jump(&mut self, input: &Gd<Input>) {
         if self.state.is_jumping()
@@ -302,7 +312,7 @@ impl Character {
     }
 
     fn update_animation_air(&mut self) {
-        if !(self.state.is_ball() || self.state.is_hurt()) {
+        if !(self.state.is_ball() || self.state.is_hurt() || self.state.is_spring_bouncing()) {
             if self.velocity.x.abs() >= self.top_speed {
                 self.set_state(State::FullMotion);
             } else if self.velocity.x.abs() > 0.0 {
@@ -437,7 +447,7 @@ impl Character {
 
             self.set_grounded(false);
             self.set_state(State::JumpBall);
-            self.clear_objects();
+            self.clear_standing_objects();
 
             return true;
         }

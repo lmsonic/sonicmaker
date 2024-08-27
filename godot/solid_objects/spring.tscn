@@ -1,0 +1,14 @@
+[gd_scene load_steps=3 format=3 uid="uid://cjf55isuivasc"]
+
+[ext_resource type="Script" path="res://solid_objects/spring.gd" id="1_uhiu4"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_jp5y5"]
+size = Vector2(32, 16)
+
+[node name="Spring" type="SolidObject" node_paths=PackedStringArray("collision_shape")]
+width_radius = 16.0
+collision_shape = NodePath("CollisionShape2D")
+script = ExtResource("1_uhiu4")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_jp5y5")
