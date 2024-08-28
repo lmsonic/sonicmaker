@@ -21,10 +21,10 @@ func is_left(dir: Direction) -> bool:
 
 func direction_vector() -> Vector2:
 	match direction:
-		Direction.TopRight: return Vector2(0.707107, -0.707107)
-		Direction.TopLeft: return Vector2(-0.707107, -0.707107)
-		Direction.BottomRight: return Vector2(0.707107, 0.707107)
-		Direction.BottomLeft: return Vector2(-0.707107, 0.707107)
+		Direction.TopRight: return Vector2(1.0, -1.0)
+		Direction.TopLeft: return Vector2(-1.0, -1.0)
+		Direction.BottomRight: return Vector2(1.0, 1.0)
+		Direction.BottomLeft: return Vector2(-1.0, 1.0)
 	return Vector2.ZERO
 
 func _draw() -> void:
