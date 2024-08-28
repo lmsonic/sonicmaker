@@ -18,4 +18,4 @@ shape = SubResource("RectangleShape2D_b1dr8")
 [node name="Sprite2D" type="Sprite2D" parent="."]
 texture = ExtResource("1_t1bcw")
 
-[connection signal="collided" from="." to="." method="_on_collided"]
+[connection signal="collided" from="." to="." method="_on_collided" flags=3]

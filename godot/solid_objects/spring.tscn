@@ -1,16 +1,140 @@
-[gd_scene load_steps=3 format=3 uid="uid://cjf55isuivasc"]
+[gd_scene load_steps=13 format=3 uid="uid://cjf55isuivasc"]
 
 [ext_resource type="Script" path="res://solid_objects/spring.gd" id="1_uhiu4"]
+[ext_resource type="Texture2D" uid="uid://fbep3llhs3hl" path="res://assets/common/spring.png" id="2_1wt5j"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_jp5y5"]
-size = Vector2(16, 28)
+resource_local_to_scene = true
+size = Vector2(32, 16)
 
-[node name="Spring" type="SolidObject" node_paths=PackedStringArray("collision_shape")]
+[sub_resource type="AtlasTexture" id="AtlasTexture_h143u"]
+atlas = ExtResource("2_1wt5j")
+region = Rect2(32, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5s5n1"]
+atlas = ExtResource("2_1wt5j")
+region = Rect2(32, 32, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ql1ae"]
+atlas = ExtResource("2_1wt5j")
+region = Rect2(0, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vd722"]
+atlas = ExtResource("2_1wt5j")
+region = Rect2(32, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2rf4y"]
+atlas = ExtResource("2_1wt5j")
+region = Rect2(64, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_atfw6"]
+atlas = ExtResource("2_1wt5j")
+region = Rect2(0, 32, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_1cqms"]
+atlas = ExtResource("2_1wt5j")
+region = Rect2(32, 32, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_3aajs"]
+atlas = ExtResource("2_1wt5j")
+region = Rect2(64, 32, 32, 32)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_ud6sx"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_h143u")
+}],
+"loop": false,
+"name": &"relaxed",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_5s5n1")
+}],
+"loop": false,
+"name": &"relaxed_red",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ql1ae")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vd722")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vd722")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2rf4y")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2rf4y")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2rf4y")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2rf4y")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2rf4y")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2rf4y")
+}],
+"loop": false,
+"name": &"spring",
+"speed": 60.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_atfw6")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_1cqms")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_1cqms")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_3aajs")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_3aajs")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_3aajs")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_3aajs")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_3aajs")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_3aajs")
+}],
+"loop": false,
+"name": &"spring_red",
+"speed": 60.0
+}]
+
+[node name="Spring" type="SolidObject" node_paths=PackedStringArray("collision_shape", "sprite")]
 width_radius = 16.0
 collision_shape = NodePath("CollisionShape2D")
 script = ExtResource("1_uhiu4")
+sprite = NodePath("AnimatedSprite2D")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("RectangleShape2D_jp5y5")
 
-[connection signal="collided" from="." to="." method="_on_collided"]
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+position = Vector2(0, -8)
+sprite_frames = SubResource("SpriteFrames_ud6sx")
+animation = &"relaxed"
+
+[connection signal="collided" from="." to="." method="_on_collided" flags=3]
+[connection signal="animation_finished" from="AnimatedSprite2D" to="." method="_on_animated_sprite_2d_animation_finished"]

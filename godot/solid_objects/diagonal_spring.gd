@@ -7,6 +7,7 @@ enum Direction {
 	BottomLeft
 }
 
+
 func is_bottom(dir: Direction) -> bool:
 	return dir == Direction.BottomRight || dir == Direction.BottomLeft
 
@@ -26,6 +27,17 @@ func direction_vector() -> Vector2:
 		Direction.BottomRight: return Vector2(1.0, 1.0)
 		Direction.BottomLeft: return Vector2(-1.0, 1.0)
 	return Vector2.ZERO
+
+
+func _on_collided(collision: String, player: Character) -> void:
+	match collision:
+		"Up":
+			if is_top(direction) and check_horizontal_conditions(player):
+				spring(player)
+		"Down":
+			if is_bottom(direction) and check_horizontal_conditions(player):
+				spring(player)
+
 
 func _draw() -> void:
 	const g := Vector2(0.0, 0.21875)
@@ -48,9 +60,27 @@ func _draw() -> void:
 		if is_left(direction) and is_right(value) || is_left(value) and is_right(direction):
 			flip_x()
 		direction = value
+		update_sprite()
+
+
+func update_sprite() -> void:
+	if is_right(direction):
+		sprite.position.x = 10.0
+	elif is_left(direction):
+		sprite.position.x = -10.0
+	if is_top(direction):
+		sprite.position.y = -6.0
+	elif is_bottom(direction):
+		sprite.position.y = 6.0
+
+	match direction:
+		Direction.TopRight: sprite.rotation = 0.0
+		Direction.TopLeft: sprite.rotation = -PI / 2.0
+		Direction.BottomRight: sprite.rotation = PI / 2.0
+		Direction.BottomLeft: sprite.rotation = PI
 
 @export var spring_force := 16.0
-
+@export var sprite: AnimatedSprite2D
 
 func check_horizontal_conditions(player: Character) -> bool:
 	return is_right(direction) and player.global_position.x > global_position.x - 4.0 or \
@@ -60,18 +90,17 @@ func spring(player: Character) -> void:
 	if is_top(direction):
 		player.clear_standing_objects()
 		player.has_jumped = false
-	var vector := direction_vector()
+		player.set_state("SpringBounce")
+		player.spring_bounce_timer = 48
 
-	print("springed")
+	var vector := direction_vector()
 	player.global_position -= vector * 8.0
 	player.velocity = vector * spring_force
+	var animation := sprite.animation.replace("relaxed","spring")
+	sprite.play(animation)
 
 
-func _on_collided(collision: String, player: Character) -> void:
-	match collision:
-		"Up":
-			if is_top(direction) and check_horizontal_conditions(player):
-				spring(player)
-		"Down":
-			if is_bottom(direction) and check_horizontal_conditions(player):
-				spring(player)
+func _on_animated_sprite_2d_animation_finished() -> void:
+	if sprite.animation.begins_with("spring"):
+		var animation := sprite.animation.replace("spring","relaxed")
+		sprite.play(animation)

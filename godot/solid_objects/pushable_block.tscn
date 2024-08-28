@@ -19,4 +19,4 @@ shape = SubResource("RectangleShape2D_6m2b0")
 [node name="Sensor" type="Sensor" parent="."]
 position = Vector2(0, 16)
 
-[connection signal="collided" from="." to="." method="_on_collided"]
+[connection signal="collided" from="." to="." method="_on_collided" flags=3]
