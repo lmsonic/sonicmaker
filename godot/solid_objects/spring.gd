@@ -19,7 +19,10 @@ enum Direction {
 			height_radius = 8
 @export var spring_force := 16.0
 
-func collision_matches_direction(collision: String) -> bool:
+func is_horizontal() -> bool:
+	return direction == Direction.Right or direction == Direction.Left
+
+func collision_matches_direction() -> bool:
 	match collision:
 		"Left":
 			return direction == Direction.Left
@@ -36,30 +39,51 @@ func _physics_process(delta: float) -> void:
 
 	var player: Character = get_tree().get_first_node_in_group("player") as Character
 	if !player: return
-	if collision_matches_direction(collision):
-		if direction == Direction.Up || direction == Direction.Down:
-			player.clear_standing_objects()
-			player.velocity.y = -spring_force if direction == Direction.Up else spring_force
-			player.global_position.y += 8 if direction == Direction.Up else -8
-			player.set_state("SpringBounce")
-			player.spring_bounce_timer = 48
+	if collision_matches_direction():
+		if is_horizontal():
+			horizontal_spring(player)
 		else:
+			vertical_spring(player)
+	elif is_horizontal() and player_not_moving_towards_spring(player) and check_box_around_player(player):
+		print("spring horizontal")
 
-			if player.is_grounded:
-				player.ground_speed = spring_force if direction == Direction.Right else -spring_force
-			else:
-				player.global_position.x += -8 if direction == Direction.Right else 8
-			player.global_position.x += -8 if direction == Direction.Right else 8
-			player.set_flip_h(direction == Direction.Left)
-			player.control_lock_timer = 16
+		horizontal_spring(player)
 
+
+func vertical_spring(player: Character) -> void:
+	player.clear_standing_objects()
+	player.velocity.y = -spring_force if direction == Direction.Up else spring_force
+	player.global_position.y += 8 if direction == Direction.Up else -8
+	player.set_state("SpringBounce")
+	player.spring_bounce_timer = 48
+
+
+func horizontal_spring(player: Character) -> void:
+	if player.is_grounded:
+		player.ground_speed = spring_force if direction == Direction.Right else -spring_force
+	else:
+		player.global_position.x += -8 if direction == Direction.Right else 8
+	player.global_position.x += -8 if direction == Direction.Right else 8
+	player.set_flip_h(direction == Direction.Left)
+	player.control_lock_timer = 16
 
 func check_box_around_player(player: Character) -> bool:
-	var box := Rect2(global_position, Vector2(40.0, 24.0))
-	return box.has_point(player.global_position)
+	var contains_y := global_position.y - 24.0 <= player.global_position.y and player.global_position.y < global_position.y + 24.0
+	var contains_x_right := global_position.x <= player.global_position.x and player.global_position.x <= global_position.x + 40.0
+	var contains_x_left := global_position.x - 40.0 <= player.global_position.x and player.global_position.x <= global_position.x
+	var contains_x := contains_x_right if direction == Direction.Right else contains_x_left
+	return contains_y and contains_x
 
-func is_player_moving_towards_spring(player: Character) -> bool:
+func player_not_moving_towards_spring(player: Character) -> bool:
+
 	if player.velocity.x == 0.0:
-		return false
-	var delta := global_position - player.global_position
-	return player.velocity.x != 0.0 and signf(player.velocity.x) == signf(delta.x)
+		return true
+
+	var delta := player.global_position - global_position
+	# Moving to the right and player to the right
+	if player.velocity.x > 0.0 and delta.x > 0.0:
+		return true
+	# Moving to the left and player to the left
+	if player.velocity.x < 0.0 and delta.x < 0.0:
+		return true
+	return false

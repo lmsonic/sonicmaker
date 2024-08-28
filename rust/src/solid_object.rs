@@ -84,7 +84,6 @@ impl SolidObject {
                     .set_stand_on_object(self.base().clone().cast::<Self>());
             }
             // TODO: make pushing so that player knows what it is pushing
-
             if (self.collision == Collision::Left || self.collision == Collision::Right)
                 && player.bind().state != State::Pushing
                 && player.bind().get_is_grounded()

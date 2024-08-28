@@ -26,19 +26,8 @@ pub struct SlopedSolidObject {
 
 #[godot_api]
 impl IArea2D for SlopedSolidObject {
-    fn physics_process(&mut self, _delta: f64) {
-        if let Some(player) = self
-            .base()
-            .get_tree()
-            .and_then(|mut tree| tree.get_first_node_in_group(c"player".into()))
-            .and_then(|player| player.try_cast::<Character>().ok())
-        {
-            self.sloped_solid_object_collision(player);
-        }
-        self.base_mut().queue_redraw();
-        let position = self.base().get_global_position();
-        self.velocity = position - self.position_last_frame;
-        self.position_last_frame = position;
+    fn physics_process(&mut self, delta: f64) {
+        self.physics_process(delta)
     }
     fn draw(&mut self) {
         let center = self.global_center();
@@ -77,6 +66,47 @@ impl IArea2D for SlopedSolidObject {
                 Color::RED,
             );
         }
+    }
+}
+
+#[godot_api]
+impl SlopedSolidObject {
+    #[func]
+    fn physics_process(&mut self, _delta: f64) {
+        if let Some(player) = self
+            .base()
+            .get_tree()
+            .and_then(|mut tree| tree.get_first_node_in_group(c"player".into()))
+            .and_then(|player| player.try_cast::<Character>().ok())
+        {
+            self.sloped_solid_object_collision(player);
+        }
+        self.base_mut().queue_redraw();
+        let position = self.base().get_global_position();
+        self.velocity = position - self.position_last_frame;
+        self.position_last_frame = position;
+    }
+    #[func]
+    fn flip_x(&mut self) {
+        let Some(shape) = &mut self.collision_polygon else {
+            return;
+        };
+        let mut polygon = shape.get_polygon();
+        for i in 0..polygon.len() {
+            polygon[i].x = -polygon[i].x;
+        }
+        shape.set_polygon(polygon);
+    }
+    #[func]
+    fn flip_y(&mut self) {
+        let Some(shape) = &mut self.collision_polygon else {
+            return;
+        };
+        let mut polygon = shape.get_polygon();
+        for i in 0..polygon.len() {
+            polygon[i].y = -polygon[i].y;
+        }
+        shape.set_polygon(polygon);
     }
 }
 

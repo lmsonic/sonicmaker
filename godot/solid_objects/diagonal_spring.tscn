@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3 uid="uid://cgxws6jpbvn15"]
+
+[ext_resource type="Script" path="res://solid_objects/diagonal_spring.gd" id="1_t8jho"]
+
+[node name="DiagonalSpring" type="SlopedSolidObject" node_paths=PackedStringArray("collision_polygon")]
+collision_polygon = NodePath("CollisionPolygon2D")
+script = ExtResource("1_t8jho")
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="."]
+polygon = PackedVector2Array(-16, -16, -16, 16, 0, 16, 17, 36, 17, 4, 0, -16)

@@ -10,10 +10,10 @@
 [ext_resource type="PackedScene" uid="uid://tud7ojs66mkf" path="res://solid_objects/pushable_block.tscn" id="8_1sn8x"]
 [ext_resource type="PackedScene" uid="uid://cejgtrbyx7w4o" path="res://solid_objects/solid_object.tscn" id="9_uia5h"]
 [ext_resource type="Script" path="res://solid_objects/moving_object.gd" id="10_y47bd"]
-[ext_resource type="PackedScene" uid="uid://fyumun0gvc66" path="res://solid_objects/sloped_solid_object.tscn" id="11_551y7"]
 [ext_resource type="PackedScene" uid="uid://c5s40o2fdylxv" path="res://solid_objects/item_monitor.tscn" id="12_xisca"]
 [ext_resource type="PackedScene" uid="uid://b16frlq35lku6" path="res://solid_objects/spike.tscn" id="13_2dqvm"]
 [ext_resource type="PackedScene" uid="uid://cjf55isuivasc" path="res://solid_objects/spring.tscn" id="14_gvboi"]
+[ext_resource type="PackedScene" uid="uid://cgxws6jpbvn15" path="res://solid_objects/diagonal_spring.tscn" id="15_j2rru"]
 
 [sub_resource type="GDScript" id="GDScript_43165"]
 script/source = "extends Node
@@ -102,20 +102,19 @@ position = Vector2(715, 100)
 position = Vector2(968, 69)
 
 [node name="SolidObject" parent="." instance=ExtResource("9_uia5h")]
-position = Vector2(1250, 46)
+position = Vector2(1217, 25)
 script = ExtResource("10_y47bd")
-
-[node name="SlopedSolidObject" parent="." instance=ExtResource("11_551y7")]
-position = Vector2(1545, 59)
 
 [node name="ItemMonitor" parent="." instance=ExtResource("12_xisca")]
 position = Vector2(1068, 113)
 
 [node name="Spike" parent="." instance=ExtResource("13_2dqvm")]
-position = Vector2(1410, 151)
+position = Vector2(881, 220)
 moving = true
 
 [node name="Spring" parent="." instance=ExtResource("14_gvboi")]
-width_radius = 16.0
 position = Vector2(1348, 109)
 spring_force = 10.0
+
+[node name="DiagonalSpring" parent="." instance=ExtResource("15_j2rru")]
+position = Vector2(1557, 63)
