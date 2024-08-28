@@ -9,3 +9,5 @@ spring_force = 10.0
 
 [node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="."]
 polygon = PackedVector2Array(-16, -16, -16, 16, 0, 16, 17, 36, 17, 4, 0, -16)
+
+[connection signal="collided" from="." to="." method="_on_collided"]

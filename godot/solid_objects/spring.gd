@@ -22,7 +22,7 @@ enum Direction {
 func is_horizontal() -> bool:
 	return direction == Direction.Right or direction == Direction.Left
 
-func collision_matches_direction() -> bool:
+func collision_matches_direction(collision:String) -> bool:
 	match collision:
 		"Left":
 			return direction == Direction.Left
@@ -42,22 +42,6 @@ func direction_vector() -> Vector2:
 		Direction.Right: return Vector2.RIGHT
 	return Vector2.ZERO
 
-
-func _physics_process(delta: float) -> void:
-	physics_process(delta)
-	if Engine.is_editor_hint():
-		return
-	var player: Character = get_tree().get_first_node_in_group("player") as Character
-	if !player: return
-	if collision_matches_direction():
-		if is_horizontal():
-			horizontal_spring(player)
-		else:
-			vertical_spring(player)
-	elif is_horizontal() and player_not_moving_towards_spring(player) and check_box_around_player(player):
-		print("spring horizontal")
-
-		horizontal_spring(player)
 
 
 func vertical_spring(player: Character) -> void:
@@ -100,3 +84,15 @@ func player_not_moving_towards_spring(player: Character) -> bool:
 	if player.velocity.x < 0.0 and delta.x < 0.0:
 		return true
 	return false
+
+
+func _on_collided(collision: String, player: Character) -> void:
+	if collision_matches_direction(collision):
+		if is_horizontal():
+			horizontal_spring(player)
+		else:
+			vertical_spring(player)
+	elif is_horizontal() and player_not_moving_towards_spring(player) and check_box_around_player(player):
+		print("spring horizontal")
+
+		horizontal_spring(player)

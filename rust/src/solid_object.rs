@@ -28,8 +28,6 @@ pub struct SolidObject {
     is_monitor: bool,
     #[export]
     collision_shape: Option<Gd<CollisionShape2D>>,
-    #[var(get)]
-    collision: Collision,
     #[var]
     velocity: Vector2,
     position_last_frame: Vector2,
@@ -42,10 +40,40 @@ impl IArea2D for SolidObject {
     fn physics_process(&mut self, _delta: f64) {
         self.physics_process(_delta);
     }
+    fn ready(&mut self) {
+        let base = self.base().clone();
+        self.base_mut().connect(
+            "collided".into(),
+            Callable::from_object_method::<Area2D, StringName>(&base, "on_collided".into()),
+        );
+    }
 }
 
 #[godot_api]
 impl SolidObject {
+    #[signal]
+    fn collided(collision: Collision, player: Gd<Character>);
+    #[func]
+    fn on_collided(&self, collision: Collision, mut player: Gd<Character>) {
+        if collision == Collision::Up {
+            player
+                .bind_mut()
+                .set_stand_on_object(self.base().clone().cast::<Self>());
+        }
+        // TODO: make pushing so that player knows what it is pushing
+        if (collision == Collision::Left || collision == Collision::Right)
+            && player.bind().state != State::Pushing
+            && player.bind().get_is_grounded()
+        {
+            player.bind_mut().set_state(State::Pushing);
+        }
+    }
+    fn emit_collided(&mut self, collision: Collision, player: Gd<Character>) {
+        self.base_mut().emit_signal(
+            "collided".into(),
+            &[collision.to_variant(), player.to_variant()],
+        );
+    }
     #[func]
     fn physics_process(&mut self, _delta: f64) {
         let Some(mut player) = self
@@ -61,35 +89,12 @@ impl SolidObject {
         let radius = Vector2::new(self.width_radius, self.height_radius);
         if self.is_monitor {
             if !player.bind().get_attacking() {
-                self.collision = item_monitor_collision(&mut player, position, radius);
-                if self.collision == Collision::Up {
-                    player
-                        .bind_mut()
-                        .set_stand_on_object(self.base().clone().cast::<Self>());
-                }
-                // TODO: make pushing so that player knows what it is pushing
-                if (self.collision == Collision::Left || self.collision == Collision::Right)
-                    && player.bind().state != State::Pushing
-                    && player.bind().get_is_grounded()
-                {
-                    player.bind_mut().set_state(State::Pushing);
+                if let Some(collision) = item_monitor_collision(&mut player, position, radius) {
+                    self.emit_collided(collision, player);
                 }
             }
-        } else {
-            self.collision =
-                solid_object_collision(&mut player, position, radius, self.top_solid_only);
-            if self.collision == Collision::Up {
-                player
-                    .bind_mut()
-                    .set_stand_on_object(self.base().clone().cast::<Self>());
-            }
-            // TODO: make pushing so that player knows what it is pushing
-            if (self.collision == Collision::Left || self.collision == Collision::Right)
-                && player.bind().state != State::Pushing
-                && player.bind().get_is_grounded()
-            {
-                player.bind_mut().set_state(State::Pushing);
-            }
+        } else if let Some(collision) = item_monitor_collision(&mut player, position, radius) {
+            self.emit_collided(collision, player);
         }
 
         let position = self.base().get_global_position();
@@ -130,11 +135,9 @@ impl SolidObject {
     }
 }
 
-#[derive(GodotConvert, Var, Export, Debug, PartialEq, Eq, Clone, Copy, Default)]
+#[derive(GodotConvert, Var, Export, Debug, PartialEq, Eq, Clone, Copy)]
 #[godot(via = GString)]
 enum Collision {
-    #[default]
-    None,
     Left,
     Right,
     Up,
@@ -146,7 +149,7 @@ fn solid_object_collision(
     position: Vector2,
     radius: Vector2,
     top_solid_only: bool,
-) -> Collision {
+) -> Option<Collision> {
     if top_solid_only {
         solid_object_collision_top_solid(player, position, radius)
     } else {
@@ -158,10 +161,10 @@ fn solid_object_collision_top_solid(
     player: &mut Gd<Character>,
     position: Vector2,
     radius: Vector2,
-) -> Collision {
+) -> Option<Collision> {
     let velocity = player.bind().get_velocity();
     if velocity.y < 0.0 {
-        return Collision::None;
+        return None;
     }
     // Check overlap
     let combined_x_radius = radius.x + player.bind().get_push_radius() + 1.0;
@@ -174,19 +177,19 @@ fn solid_object_collision_top_solid(
     // the Player is too far to the left to be touching
     // the Player is too far to the right to be touching
     if left_difference < 0.0 || left_difference > combined_x_diameter {
-        return Collision::None;
+        return None;
     }
 
     let object_surface_y = position.y - radius.y;
     let player_bottom_y = player_position.y + player_height_radius + 4.0;
     if object_surface_y > player_bottom_y {
         // Platform is too low
-        return Collision::None;
+        return None;
     }
     let y_distance = object_surface_y - player_bottom_y;
     if !(-16.0..0.0).contains(&y_distance) {
         // Platform is too low
-        return Collision::None;
+        return None;
     }
     player_position.y += y_distance + 3.0;
     player.set_global_position(player_position);
@@ -198,14 +201,14 @@ fn solid_object_collision_top_solid(
         "upwards land on top solid collision dy : {}",
         -y_distance - 1.0
     );
-    Collision::Up
+    Some(Collision::Up)
 }
 
 fn solid_object_collision_fully_solid(
     player: &mut Gd<Character>,
     position: Vector2,
     radius: Vector2,
-) -> Collision {
+) -> Option<Collision> {
     // Check overlap
     let combined_x_radius = radius.x + player.bind().get_push_radius() + 1.0;
     let player_height_radius = player.bind().get_height_radius();
@@ -218,7 +221,7 @@ fn solid_object_collision_fully_solid(
     // the Player is too far to the left to be touching
     // the Player is too far to the right to be touching
     if left_difference < 0.0 || left_difference > combined_x_diameter {
-        return Collision::None;
+        return None;
     }
 
     let top_difference = (player_position.y - position.y) + 4.0 + combined_y_radius;
@@ -227,7 +230,7 @@ fn solid_object_collision_fully_solid(
     // the Player is too far above to be touching
     // the Player is too far down to be touching
     if top_difference < 0.0 || top_difference > combined_y_diameter {
-        return Collision::None;
+        return None;
     }
 
     // Find which side on the object you are nearest and calculate overlap distance
@@ -256,16 +259,16 @@ fn solid_object_collision_fully_solid(
             if velocity.y.is_zero_approx() && is_grounded {
                 // Die from getting crushed
                 player.bind_mut().die();
-                Collision::Down
+                Some(Collision::Down)
             } else if velocity.y < 0.0 && y_distance < 0.0 {
                 player_position.y -= y_distance;
                 player.set_global_position(player_position);
                 velocity.y = 0.0;
                 player.bind_mut().set_velocity(velocity);
                 godot_print!("downwards solid collision dy : {}", -y_distance);
-                Collision::Down
+                Some(Collision::Down)
             } else {
-                Collision::None
+                None
             }
         } else if y_distance < TILE_SIZE {
             // Land on object
@@ -275,11 +278,11 @@ fn solid_object_collision_fully_solid(
             // if the Player is too far to the right
             // if the Player is too far to the left
             if x_comparison < 0.0 || x_comparison >= combined_x_diameter {
-                return Collision::None;
+                return None;
             }
             // Going up and not landing
             if velocity.y < 0.0 {
-                return Collision::None;
+                return None;
             }
 
             player_position.y -= y_distance;
@@ -290,15 +293,15 @@ fn solid_object_collision_fully_solid(
             player.bind_mut().set_ground_speed(velocity.x);
 
             godot_print!("upwards land on solid collision dy : {}", -y_distance - 1.0);
-            Collision::Up
+            Some(Collision::Up)
         } else {
-            Collision::None
+            None
         }
     } else {
         // Collide horizontally
         if x_distance == 0.0 {
             // Do not reset speeds
-            return Collision::None;
+            return None;
         } else if (x_distance > 0.0 && velocity.x > 0.0) || (x_distance < 0.0 && velocity.x < 0.0) {
             // Reset speeds only when moving left if on right side or
             //when moving right if on left side
@@ -313,9 +316,9 @@ fn solid_object_collision_fully_solid(
         player.set_global_position(player_position);
 
         if x_distance < 0.0 {
-            Collision::Right
+            Some(Collision::Right)
         } else {
-            Collision::Left
+            Some(Collision::Left)
         }
     }
 }
@@ -324,7 +327,7 @@ fn item_monitor_collision(
     player: &mut Gd<Character>,
     position: Vector2,
     radius: Vector2,
-) -> Collision {
+) -> Option<Collision> {
     // Check overlap
     let combined_x_radius = radius.x + player.bind().get_push_radius() + 1.0;
     let player_height_radius = player.bind().get_height_radius();
@@ -337,7 +340,7 @@ fn item_monitor_collision(
     // the Player is too far to the left to be touching
     // the Player is too far to the right to be touching
     if left_difference < 0.0 || left_difference > combined_x_diameter {
-        return Collision::None;
+        return None;
     }
     // IN ITEM MONITOR WE DO NOT ADD 4
     let top_difference = (player_position.y - position.y) + combined_y_radius;
@@ -346,7 +349,7 @@ fn item_monitor_collision(
     // the Player is too far above to be touching
     // the Player is too far down to be touching
     if top_difference < 0.0 || top_difference > combined_y_diameter {
-        return Collision::None;
+        return None;
     }
 
     let top_edge = position.y - combined_y_radius;
@@ -371,11 +374,11 @@ fn item_monitor_collision(
         // if the Player is too far to the right
         // if the Player is too far to the left
         if x_comparison < 0.0 || x_comparison >= combined_x_diameter {
-            return Collision::None;
+            return None;
         }
         // Going up and not landing
         if velocity.y < 0.0 {
-            return Collision::None;
+            return None;
         }
 
         player_position.y -= y_distance;
@@ -386,12 +389,12 @@ fn item_monitor_collision(
         player.bind_mut().set_ground_speed(velocity.x);
 
         godot_print!("upwards land on solid collision dy : {}", -y_distance - 1.0);
-        Collision::Up
+        Some(Collision::Up)
     } else {
         // Collide horizontally
         if x_distance == 0.0 {
             // Do not reset speeds
-            return Collision::None;
+            return None;
         } else if (x_distance > 0.0 && velocity.x > 0.0) || (x_distance < 0.0 && velocity.x < 0.0) {
             // Reset speeds only when moving left if on right side or
             //when moving right if on left side
@@ -406,9 +409,9 @@ fn item_monitor_collision(
         player.set_global_position(player_position);
 
         if x_distance < 0.0 {
-            Collision::Right
+            Some(Collision::Right)
         } else {
-            Collision::Left
+            Some(Collision::Left)
         }
     }
 }

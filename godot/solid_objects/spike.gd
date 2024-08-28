@@ -8,18 +8,10 @@ var extended := false
 
 func _physics_process(delta: float) -> void:
 	physics_process(delta)
-
 	if moving:
 		timer += 1
 		if timer >= 64:
 			move()
-
-
-	var player: Character = get_tree().get_first_node_in_group("player") as Character
-	if !player: return
-	match collision:
-		"Up":
-			player.on_hurt(self)
 
 func move() -> void:
 	if extended:
@@ -34,3 +26,9 @@ func move() -> void:
 		if position.y <= original_y - 32:
 			timer = 0
 			extended = true
+
+
+func _on_collided(collision: String, player: Character) -> void:
+	match collision:
+		"Up":
+			player.on_hurt(self)

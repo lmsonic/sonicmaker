@@ -16,8 +16,6 @@ pub struct SlopedSolidObject {
     top_solid_only: bool,
     #[export]
     collision_polygon: Option<Gd<CollisionPolygon2D>>,
-    #[var(get)]
-    collision: Collision,
     #[var]
     velocity: Vector2,
     position_last_frame: Vector2,
@@ -33,6 +31,14 @@ impl IArea2D for SlopedSolidObject {
 
 #[godot_api]
 impl SlopedSolidObject {
+    #[signal]
+    fn collided(collision: Collision, player: Gd<Character>);
+    fn emit_collided(&mut self, collision: Collision, player: Gd<Character>) {
+        self.base_mut().emit_signal(
+            "collided".into(),
+            &[collision.to_variant(), player.to_variant()],
+        );
+    }
     #[func]
     fn physics_process(&mut self, _delta: f64) {
         if let Some(player) = self
@@ -81,11 +87,15 @@ impl SlopedSolidObject {
         position.y = (bottom + top) * 0.5;
         let radius = Vector2::new(self.width_radius(), (bottom - top) * 0.5);
 
-        self.collision = solid_object_collision(&mut player, position, radius, self.top_solid_only);
-        if self.collision == Collision::Up {
-            player
-                .bind_mut()
-                .set_stand_on_sloped_object(self.base().clone().cast::<Self>());
+        if let Some(collision) =
+            solid_object_collision(&mut player, position, radius, self.top_solid_only)
+        {
+            if collision == Collision::Up {
+                player
+                    .bind_mut()
+                    .set_stand_on_sloped_object(self.base().clone().cast::<Self>());
+            }
+            self.emit_collided(collision, player);
         }
     }
 

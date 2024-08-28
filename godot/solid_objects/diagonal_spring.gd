@@ -52,21 +52,6 @@ func _draw() -> void:
 @export var spring_force := 16.0
 
 
-func _physics_process(delta: float) -> void:
-	physics_process(delta)
-	if Engine.is_editor_hint():
-		return
-	var player: Character = get_tree().get_first_node_in_group("player") as Character
-	if !player: return
-
-	match collision:
-		"Up":
-			if is_top(direction) and check_horizontal_conditions(player):
-				spring(player)
-		"Down":
-			if is_bottom(direction) and check_horizontal_conditions(player):
-				spring(player)
-
 func check_horizontal_conditions(player: Character) -> bool:
 	return is_right(direction) and player.global_position.x > global_position.x - 4.0 or \
 		is_left(direction) and player.global_position.x < global_position.x + 4.0
@@ -80,3 +65,13 @@ func spring(player: Character) -> void:
 	print("springed")
 	player.global_position -= vector * 8.0
 	player.velocity = vector * spring_force
+
+
+func _on_collided(collision: String, player: Character) -> void:
+	match collision:
+		"Up":
+			if is_top(direction) and check_horizontal_conditions(player):
+				spring(player)
+		"Down":
+			if is_bottom(direction) and check_horizontal_conditions(player):
+				spring(player)
