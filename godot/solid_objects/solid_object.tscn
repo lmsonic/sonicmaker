@@ -7,7 +7,6 @@ size = Vector2(64, 32)
 width_radius = 32.0
 height_radius = 16.0
 collision_shape = NodePath("CollisionShape2D")
-process_physics_priority = 1
 monitoring = false
 monitorable = false
 

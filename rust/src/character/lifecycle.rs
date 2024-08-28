@@ -125,7 +125,6 @@ impl Character {
         let x_left_distance = (position.x - object_position.x) + combined_x_radius;
         if x_left_distance <= 0.0 || x_left_distance >= combined_x_radius * 2.0 {
             self.clear_standing_objects();
-
             self.set_grounded(false);
             godot_print!("walk off solid object");
         }
@@ -169,10 +168,7 @@ impl Character {
         }
     }
     fn handle_variable_jump(&mut self, input: &Gd<Input>) {
-        if self.state.is_jumping()
-            && !input.is_action_pressed(c"jump".into())
-            && self.velocity.y < -4.0
-        {
+        if self.has_jumped && !input.is_action_pressed(c"jump".into()) && self.velocity.y < -4.0 {
             self.velocity.y = -4.0;
         }
     }
@@ -190,6 +186,7 @@ impl Character {
                         godot_print!("floor collision dy:{}", result.distance);
                         self.set_ground_angle_from_result(result);
                         self.set_grounded(true);
+                        self.has_jumped = false;
                         if !self.state.is_rolling() {
                             self.update_animation();
                         }
@@ -447,6 +444,7 @@ impl Character {
 
             self.set_grounded(false);
             self.set_state(State::JumpBall);
+            self.has_jumped = true;
             self.clear_standing_objects();
 
             return true;

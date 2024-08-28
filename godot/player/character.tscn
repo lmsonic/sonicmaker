@@ -256,6 +256,7 @@ scattered_ring_scene = ExtResource("1_06exi")
 debug_draw = true
 collision_layer = 1
 rings = 10
+process_physics_priority = -1
 position = Vector2(0, -19)
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]

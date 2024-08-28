@@ -102,6 +102,8 @@ pub struct Character {
     #[export]
     #[var(set = set_rings, get)]
     rings: i32,
+    #[var(set, get)]
+    has_jumped: bool,
     #[var(get)]
     attacking: bool,
     invulnerability_timer: i32,

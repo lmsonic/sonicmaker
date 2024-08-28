@@ -110,14 +110,17 @@ impl Character {
     #[func]
     pub fn clear_standing_objects(&mut self) {
         self.solid_object_to_stand_on = None;
+        self.set_grounded(false);
     }
     #[func]
     pub fn set_stand_on_object(&mut self, object: Gd<SolidObject>) {
         self.solid_object_to_stand_on = Some(SolidObjectKind::Simple(object));
+        self.has_jumped = false;
     }
     #[func]
     pub fn set_stand_on_sloped_object(&mut self, object: Gd<SlopedSolidObject>) {
         self.solid_object_to_stand_on = Some(SolidObjectKind::Sloped(object));
+        self.has_jumped = false;
     }
     #[func]
     fn on_attacking(&mut self, badnik: Gd<Node2D>, is_boss: bool) {

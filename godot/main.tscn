@@ -113,8 +113,18 @@ position = Vector2(881, 220)
 moving = true
 
 [node name="Spring" parent="." instance=ExtResource("14_gvboi")]
-position = Vector2(1348, 109)
+width_radius = 8.0
+height_radius = 14.0
+position = Vector2(1535, 107)
+direction = 0
+spring_force = 10.0
+
+[node name="Spring2" parent="." instance=ExtResource("14_gvboi")]
+width_radius = 8.0
+height_radius = 14.0
+position = Vector2(1664, 104)
+direction = 2
 spring_force = 10.0
 
 [node name="DiagonalSpring" parent="." instance=ExtResource("15_j2rru")]
-position = Vector2(1557, 63)
+position = Vector2(1440, 65)

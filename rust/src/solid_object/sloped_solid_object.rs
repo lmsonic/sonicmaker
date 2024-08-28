@@ -27,45 +27,7 @@ pub struct SlopedSolidObject {
 #[godot_api]
 impl IArea2D for SlopedSolidObject {
     fn physics_process(&mut self, delta: f64) {
-        self.physics_process(delta)
-    }
-    fn draw(&mut self) {
-        let center = self.global_center();
-        let height_radius = self.height_radius();
-        let width_radius = self.width_radius();
-        let global_position = self.base().get_global_position();
-        self.base_mut()
-            .draw_circle(center - global_position, 2.0, Color::PURPLE);
-        self.base_mut().draw_line(
-            center + Vector2::new(0.0, height_radius) - global_position,
-            center - Vector2::new(0.0, height_radius) - global_position,
-            Color::BLUE,
-        );
-        self.base_mut().draw_line(
-            center + Vector2::new(width_radius, 0.0) - global_position,
-            center - Vector2::new(width_radius, 0.0) - global_position,
-            Color::BLUE,
-        );
-        if let Some(player) = self
-            .base()
-            .get_tree()
-            .and_then(|mut tree| tree.get_first_node_in_group(c"player".into()))
-            .and_then(|player| player.try_cast::<Character>().ok())
-        {
-            let player_position = player.get_global_position();
-            let position = self.global_center();
-            let (top, bottom) = self.current_top_bottom(player_position);
-            let current_height = if player_position.y > position.y {
-                bottom
-            } else {
-                top
-            };
-            self.base_mut().draw_line(
-                player_position - global_position,
-                Vector2::new(player_position.x, current_height) - global_position,
-                Color::RED,
-            );
-        }
+        self.physics_process(delta);
     }
 }
 
@@ -237,7 +199,6 @@ impl SlopedSolidObject {
                 }
             }
         }
-        godot_print!("top{min} bottom{max}");
         (min, max)
     }
 

@@ -34,9 +34,19 @@ func collision_matches_direction() -> bool:
 			return direction == Direction.Down
 	return false
 
+func direction_vector() -> Vector2:
+	match direction:
+		Direction.Up: return Vector2.UP
+		Direction.Down: return Vector2.DOWN
+		Direction.Left: return Vector2.LEFT
+		Direction.Right: return Vector2.RIGHT
+	return Vector2.ZERO
+
+
 func _physics_process(delta: float) -> void:
 	physics_process(delta)
-
+	if Engine.is_editor_hint():
+		return
 	var player: Character = get_tree().get_first_node_in_group("player") as Character
 	if !player: return
 	if collision_matches_direction():
@@ -51,19 +61,22 @@ func _physics_process(delta: float) -> void:
 
 
 func vertical_spring(player: Character) -> void:
-	player.clear_standing_objects()
+	if direction == Direction.Up:
+		player.clear_standing_objects()
+		player.has_jumped = false
+		player.set_state("SpringBounce")
+		player.spring_bounce_timer = 48
+
 	player.velocity.y = -spring_force if direction == Direction.Up else spring_force
 	player.global_position.y += 8 if direction == Direction.Up else -8
-	player.set_state("SpringBounce")
-	player.spring_bounce_timer = 48
 
 
 func horizontal_spring(player: Character) -> void:
 	if player.is_grounded:
 		player.ground_speed = spring_force if direction == Direction.Right else -spring_force
 	else:
-		player.global_position.x += -8 if direction == Direction.Right else 8
-	player.global_position.x += -8 if direction == Direction.Right else 8
+		player.velocity.x = spring_force if direction == Direction.Right else -spring_force
+		player.velocity.y = 0.0
 	player.set_flip_h(direction == Direction.Left)
 	player.control_lock_timer = 16
 
