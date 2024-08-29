@@ -253,7 +253,6 @@ sensor_ceiling_right = NodePath("Sensors/SensorCeilingRight")
 sensor_push_left = NodePath("Sensors/SensorPushLeft")
 sensor_push_right = NodePath("Sensors/SensorPushRight")
 scattered_ring_scene = ExtResource("1_06exi")
-debug_draw = true
 collision_layer = 1
 rings = 10
 process_physics_priority = -1

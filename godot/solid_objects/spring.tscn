@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3 uid="uid://cjf55isuivasc"]
+[gd_scene load_steps=9 format=3 uid="uid://cjf55isuivasc"]
 
 [ext_resource type="Script" path="res://solid_objects/spring.gd" id="1_uhiu4"]
 [ext_resource type="Texture2D" uid="uid://fbep3llhs3hl" path="res://assets/common/spring.png" id="2_1wt5j"]
@@ -10,10 +10,6 @@ size = Vector2(32, 16)
 [sub_resource type="AtlasTexture" id="AtlasTexture_h143u"]
 atlas = ExtResource("2_1wt5j")
 region = Rect2(32, 0, 32, 32)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_5s5n1"]
-atlas = ExtResource("2_1wt5j")
-region = Rect2(32, 32, 32, 32)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_ql1ae"]
 atlas = ExtResource("2_1wt5j")
@@ -27,18 +23,6 @@ region = Rect2(32, 0, 32, 32)
 atlas = ExtResource("2_1wt5j")
 region = Rect2(64, 0, 32, 32)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_atfw6"]
-atlas = ExtResource("2_1wt5j")
-region = Rect2(0, 32, 32, 32)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_1cqms"]
-atlas = ExtResource("2_1wt5j")
-region = Rect2(32, 32, 32, 32)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_3aajs"]
-atlas = ExtResource("2_1wt5j")
-region = Rect2(64, 32, 32, 32)
-
 [sub_resource type="SpriteFrames" id="SpriteFrames_ud6sx"]
 animations = [{
 "frames": [{
@@ -47,14 +31,6 @@ animations = [{
 }],
 "loop": false,
 "name": &"relaxed",
-"speed": 5.0
-}, {
-"frames": [{
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_5s5n1")
-}],
-"loop": false,
-"name": &"relaxed_red",
 "speed": 5.0
 }, {
 "frames": [{
@@ -87,38 +63,6 @@ animations = [{
 }],
 "loop": false,
 "name": &"spring",
-"speed": 60.0
-}, {
-"frames": [{
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_atfw6")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_1cqms")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_1cqms")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_3aajs")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_3aajs")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_3aajs")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_3aajs")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_3aajs")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_3aajs")
-}],
-"loop": false,
-"name": &"spring_red",
 "speed": 60.0
 }]
 

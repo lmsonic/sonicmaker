@@ -1,5 +1,5 @@
 @tool
-extends SolidObject
+class_name Spring extends SolidObject
 
 enum Direction {
 	Right,
@@ -24,7 +24,7 @@ enum Direction {
 			sprite.position.x = 0.0
 			sprite.position.y = -8.0 if direction == Direction.Up else 8.0
 
-@export var spring_force := 16.0
+@export var spring_force := 10.0
 @export var sprite: AnimatedSprite2D
 func is_horizontal() -> bool:
 	return direction == Direction.Right or direction == Direction.Left
@@ -46,7 +46,7 @@ func _on_collided(collision: String, player: Character) -> void:
 	elif is_horizontal() and player_not_moving_towards_spring(player) and check_box_around_player(player):
 		horizontal_spring(player)
 
-func collision_matches_direction(collision:String) -> bool:
+func collision_matches_direction(collision: String) -> bool:
 	match collision:
 		"Left":
 			return direction == Direction.Left

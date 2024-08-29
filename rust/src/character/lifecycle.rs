@@ -40,7 +40,9 @@ impl INode2D for Character {
         }
     }
     fn physics_process(&mut self, delta: f64) {
-        self.base_mut().queue_redraw();
+        if self.debug_draw {
+            self.base_mut().queue_redraw();
+        }
 
         let delta = if self.fix_delta {
             1.0

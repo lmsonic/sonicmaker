@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=3 uid="uid://cqsaf4yydhk8w"]
+
+[ext_resource type="Texture2D" uid="uid://1ntodevcw2xm" path="res://assets/green_hill/greenhill.png" id="1_0lmfk"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kx0ql"]
+atlas = ExtResource("1_0lmfk")
+region = Rect2(16, 0, 32, 32)
+
+[node name="GroundCursor" type="Sprite2D"]
+texture = SubResource("AtlasTexture_kx0ql")

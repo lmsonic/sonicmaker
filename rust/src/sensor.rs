@@ -84,6 +84,8 @@ pub struct Sensor {
     #[export]
     update_in_editor: bool,
     #[export]
+    display_debug_shape: bool,
+    #[export]
     display_debug_label: bool,
     last_collision_point: Option<Vector2>,
     last_result: Option<DetectionResult>,
@@ -163,9 +165,14 @@ impl INode2D for Sensor {
         if Engine::singleton().is_editor_hint() && self.update_in_editor {
             self.sense();
         }
-        self.base_mut().queue_redraw();
+        if self.display_debug_shape {
+            self.base_mut().queue_redraw();
+        }
     }
     fn draw(&mut self) {
+        if !self.display_debug_shape {
+            return;
+        }
         self.draw_ray();
         self.last_result = None;
         self.last_collision_point = None;
