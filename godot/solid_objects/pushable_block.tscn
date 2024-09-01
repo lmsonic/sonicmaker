@@ -1,6 +1,7 @@
-[gd_scene load_steps=3 format=3 uid="uid://tud7ojs66mkf"]
+[gd_scene load_steps=4 format=3 uid="uid://tud7ojs66mkf"]
 
 [ext_resource type="Script" path="res://solid_objects/pushable.gd" id="1_dwxi0"]
+[ext_resource type="Texture2D" uid="uid://cidenjqy3lsx1" path="res://assets/marble_zone/pushable.png" id="2_fm28h"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_6m2b0"]
 size = Vector2(32, 32)
@@ -18,5 +19,8 @@ shape = SubResource("RectangleShape2D_6m2b0")
 
 [node name="Sensor" type="Sensor" parent="."]
 position = Vector2(0, 16)
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_fm28h")
 
 [connection signal="collided" from="." to="." method="_on_collided" flags=3]

@@ -1,20 +1,16 @@
-[gd_scene load_steps=17 format=3 uid="uid://uyn5gaitoc5w"]
+[gd_scene load_steps=13 format=3 uid="uid://uyn5gaitoc5w"]
 
 [ext_resource type="TileSet" uid="uid://cqlsdl65vv0s2" path="res://assets/green_hill/tilemap.tres" id="1_81d8w"]
 [ext_resource type="PackedScene" uid="uid://cwy1rw6rmm00c" path="res://player/character.tscn" id="2_ujavw"]
 [ext_resource type="PackedScene" uid="uid://bmf6tr4scfbsw" path="res://hitboxes/layer_switcher.tscn" id="3_mwpvc"]
 [ext_resource type="Script" path="res://ui/rings_label.gd" id="4_xg8by"]
 [ext_resource type="PackedScene" uid="uid://dxcy6vgx8p71f" path="res://hitboxes/ring.tscn" id="5_uhykx"]
-[ext_resource type="PackedScene" uid="uid://dbhv1yqwt7kaj" path="res://hitboxes/hurt.tscn" id="6_7unag"]
-[ext_resource type="PackedScene" uid="uid://dlct42b7w52pd" path="res://hitboxes/attackable.tscn" id="7_61bjv"]
-[ext_resource type="PackedScene" uid="uid://tud7ojs66mkf" path="res://solid_objects/pushable_block.tscn" id="8_1sn8x"]
-[ext_resource type="PackedScene" uid="uid://cejgtrbyx7w4o" path="res://solid_objects/solid_object.tscn" id="9_uia5h"]
-[ext_resource type="Script" path="res://solid_objects/moving_object.gd" id="10_y47bd"]
-[ext_resource type="PackedScene" uid="uid://c5s40o2fdylxv" path="res://solid_objects/item_monitor.tscn" id="12_xisca"]
+[ext_resource type="PackedScene" uid="uid://tud7ojs66mkf" path="res://solid_objects/pushable_block.tscn" id="9_vxdu4"]
+[ext_resource type="PackedScene" uid="uid://c5s40o2fdylxv" path="res://solid_objects/item_monitor.tscn" id="10_227im"]
+[ext_resource type="PackedScene" uid="uid://dwc1ws5emrqcj" path="res://solid_objects/moving_platform.tscn" id="11_vk6gl"]
 [ext_resource type="PackedScene" uid="uid://b16frlq35lku6" path="res://solid_objects/spike.tscn" id="13_2dqvm"]
 [ext_resource type="PackedScene" uid="uid://cjf55isuivasc" path="res://solid_objects/spring.tscn" id="14_gvboi"]
 [ext_resource type="PackedScene" uid="uid://cgxws6jpbvn15" path="res://solid_objects/diagonal_spring.tscn" id="15_j2rru"]
-[ext_resource type="PackedScene" uid="uid://fyumun0gvc66" path="res://solid_objects/sloped_solid_object.tscn" id="15_rv3sa"]
 
 [sub_resource type="GDScript" id="GDScript_43165"]
 script/source = "extends Node
@@ -51,7 +47,7 @@ layer_0/tile_data = PackedInt32Array(393216, 0, 6, 458752, 0, 7, 524288, 0, 8, 5
 
 [node name="Character" parent="." instance=ExtResource("2_ujavw")]
 velocity = Vector2(0, 5.6875)
-position = Vector2(1265, -81)
+position = Vector2(704, 96)
 
 [node name="Camera2D" type="Camera2D" parent="Character"]
 drag_vertical_enabled = true
@@ -64,6 +60,7 @@ change_type = "Both"
 negative_side_layer = 2
 negative_side_z_index = -1
 positive_side_layer = 1
+positive_side_z_index = 1
 position = Vector2(1791, -17)
 
 [node name="LayerSwitcher2" parent="." node_paths=PackedStringArray("collision_shape") instance=ExtResource("3_mwpvc")]
@@ -72,6 +69,7 @@ change_type = "Both"
 negative_side_layer = 2
 negative_side_z_index = -1
 positive_side_layer = 1
+positive_side_z_index = 1
 position = Vector2(1920, 89)
 
 [node name="SetTimeScale" type="Node" parent="."]
@@ -88,46 +86,53 @@ script = ExtResource("4_xg8by")
 metadata/_edit_use_anchors_ = true
 
 [node name="Ring" parent="." instance=ExtResource("5_uhykx")]
-position = Vector2(903, 71)
+position = Vector2(1072, -24)
 
 [node name="Ring2" parent="." instance=ExtResource("5_uhykx")]
-position = Vector2(850, 69)
+position = Vector2(1072, -56)
 
-[node name="Hurt" parent="." instance=ExtResource("6_7unag")]
-position = Vector2(320, 106)
+[node name="Ring3" parent="." instance=ExtResource("5_uhykx")]
+position = Vector2(1072, -88)
 
-[node name="Attackable" parent="." instance=ExtResource("7_61bjv")]
-position = Vector2(715, 100)
+[node name="Ring4" parent="." instance=ExtResource("5_uhykx")]
+position = Vector2(1072, -120)
 
-[node name="PushableBlock" parent="." instance=ExtResource("8_1sn8x")]
-position = Vector2(968, 69)
+[node name="Ring5" parent="." instance=ExtResource("5_uhykx")]
+position = Vector2(1528, -24)
 
-[node name="SolidObject" parent="." instance=ExtResource("9_uia5h")]
-top_solid_only = true
-position = Vector2(1217, 25)
-script = ExtResource("10_y47bd")
+[node name="Ring6" parent="." instance=ExtResource("5_uhykx")]
+position = Vector2(1560, -64)
 
-[node name="ItemMonitor" parent="." instance=ExtResource("12_xisca")]
-position = Vector2(1068, 113)
+[node name="Ring7" parent="." instance=ExtResource("5_uhykx")]
+position = Vector2(1592, -104)
+
+[node name="Ring8" parent="." instance=ExtResource("5_uhykx")]
+position = Vector2(1632, -144)
 
 [node name="Spike" parent="." instance=ExtResource("13_2dqvm")]
 position = Vector2(881, 220)
 moving = true
 
 [node name="Spring" parent="." instance=ExtResource("14_gvboi")]
-position = Vector2(1535, 107)
+z_index = -1
+position = Vector2(1076, 33)
 
 [node name="Spring2" parent="." instance=ExtResource("14_gvboi")]
 width_radius = 8.0
 height_radius = 14.0
-position = Vector2(1664, 104)
-direction = 2
+position = Vector2(776, 176)
+direction = 0
 
 [node name="DiagonalSpring" parent="." instance=ExtResource("15_j2rru")]
-position = Vector2(1440, 65)
+z_index = -1
+position = Vector2(1496, 24)
+debug_trajectory = true
 
-[node name="SolidObject2" parent="." instance=ExtResource("9_uia5h")]
-position = Vector2(1336, 48)
+[node name="PushableBlock" parent="." instance=ExtResource("9_vxdu4")]
+position = Vector2(968, 80)
 
-[node name="SlopedSolidObject" parent="." instance=ExtResource("15_rv3sa")]
-position = Vector2(864, 16)
+[node name="ItemMonitor" parent="." instance=ExtResource("10_227im")]
+position = Vector2(1264, 112)
+
+[node name="MovingPlatform" parent="." instance=ExtResource("11_vk6gl")]
+position = Vector2(1200, 8)

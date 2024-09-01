@@ -49,7 +49,6 @@ impl SlopedSolidObject {
         {
             self.sloped_solid_object_collision(player);
         }
-        self.base_mut().queue_redraw();
         let position = self.base().get_global_position();
         self.velocity = position - self.position_last_frame;
         self.position_last_frame = position;

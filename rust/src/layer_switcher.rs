@@ -73,7 +73,7 @@ impl INode2D for LayerSwitcher {
         };
     }
     fn draw(&mut self) {
-        if Engine::singleton().is_editor_hint() && !self.enable_in_editor {
+        if !Engine::singleton().is_editor_hint() {
             return;
         }
         if let Some(font) = ThemeDb::singleton()

@@ -1,11 +1,15 @@
 extends SolidObject
 @export var fall_gravity := 0.21875
 @export var rings := 10
+@onready var sprite_2d: Sprite2D = $Sprite2D
 
 @onready var sensor: Sensor = $Sensor
+var destroyed:=false
 var is_falling := false
 var velocity_y := 0.0
 func _physics_process(delta: float) -> void:
+	if destroyed:
+		return
 	physics_process(delta)
 	var distance := sense_distance()
 	if distance > 0:
@@ -25,9 +29,13 @@ func sense_distance() -> float:
 
 
 func _on_item_monitor_hitbox_area_entered(area: Area2D) -> void:
+	if destroyed:
+		return
 	var hitbox := area as PlayerHitbox
 	if hitbox and hitbox.player.attacking:
 		if hitbox.player.velocity.y > 0.0:
 			hitbox.player.velocity.y *= -1.0
 		hitbox.increment_rings(rings)
-		queue_free()
+		sprite_2d.frame = 1
+		destroyed = true
+		#queue_free()

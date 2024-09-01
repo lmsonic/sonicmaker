@@ -76,6 +76,7 @@ animations = [{
 }]
 
 [node name="Ring" type="Area2D" node_paths=PackedStringArray("sprite")]
+z_index = 1
 monitorable = false
 script = ExtResource("1_u8p58")
 sprite = NodePath("AnimatedSprite2D")

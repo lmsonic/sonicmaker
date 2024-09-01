@@ -6,7 +6,10 @@ enum Direction {
 	BottomRight,
 	BottomLeft
 }
-
+@export var debug_trajectory:=false:
+	set(value):
+		debug_trajectory = value
+		queue_redraw()
 
 func is_bottom(dir: Direction) -> bool:
 	return dir == Direction.BottomRight || dir == Direction.BottomLeft
@@ -40,6 +43,9 @@ func _on_collided(collision: String, player: Character) -> void:
 
 
 func _draw() -> void:
+	if !debug_trajectory:
+
+		return
 	const g := Vector2(0.0, 0.21875)
 	const top_speed = 6.0
 	var initial_velocity := direction_vector() * spring_force
@@ -61,6 +67,7 @@ func _draw() -> void:
 			flip_x()
 		direction = value
 		update_sprite()
+		queue_redraw()
 
 
 func update_sprite() -> void:
@@ -79,7 +86,10 @@ func update_sprite() -> void:
 		Direction.BottomRight: sprite.rotation = PI / 2.0
 		Direction.BottomLeft: sprite.rotation = PI
 
-@export var spring_force := 16.0
+@export var spring_force := 16.0 :
+	set(value):
+		spring_force = value
+		queue_redraw()
 @export var sprite: AnimatedSprite2D
 
 func check_horizontal_conditions(player: Character) -> bool:

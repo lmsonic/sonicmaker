@@ -1,0 +1,19 @@
+[gd_scene load_steps=4 format=3 uid="uid://dwc1ws5emrqcj"]
+
+[ext_resource type="Texture2D" uid="uid://r02f5u6x47fh" path="res://assets/green_hill/platform.png" id="1_mgxko"]
+[ext_resource type="Script" path="res://solid_objects/moving_platform.gd" id="1_qv57q"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ftlrv"]
+size = Vector2(58, 22)
+
+[node name="MovingPlatform" type="SolidObject" node_paths=PackedStringArray("collision_shape")]
+width_radius = 29.0
+height_radius = 11.0
+collision_shape = NodePath("CollisionShape2D")
+script = ExtResource("1_qv57q")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_ftlrv")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("1_mgxko")
