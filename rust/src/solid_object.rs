@@ -42,10 +42,8 @@ impl IArea2D for SolidObject {
     }
     fn ready(&mut self) {
         let base = self.base().clone();
-        self.base_mut().connect(
-            "collided".into(),
-            Callable::from_object_method::<Area2D, StringName>(&base, "on_collided".into()),
-        );
+        self.base_mut()
+            .connect("collided".into(), base.callable("on_collided"));
     }
 }
 

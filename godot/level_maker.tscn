@@ -1,11 +1,17 @@
-[gd_scene load_steps=14 format=4 uid="uid://c6cja1odonjqm"]
+[gd_scene load_steps=20 format=4 uid="uid://c6cja1odonjqm"]
 
-[ext_resource type="Script" path="res://level_maker.gd" id="1_sei7q"]
 [ext_resource type="Texture2D" uid="uid://dpigsx74d37wt" path="res://assets/sonic/sonic.png" id="1_xse6r"]
 [ext_resource type="Texture2D" uid="uid://snd5762wieji" path="res://assets/common/ring.png" id="2_fb523"]
 [ext_resource type="Texture2D" uid="uid://b3wpeuukwael2" path="res://assets/common/spike.png" id="3_8rgmc"]
 [ext_resource type="Texture2D" uid="uid://1ntodevcw2xm" path="res://assets/green_hill/greenhill.png" id="3_ddefp"]
+[ext_resource type="Script" path="res://ui/spawn_player.gd" id="3_j6n8t"]
+[ext_resource type="Script" path="res://ui/spawn_scene.gd" id="3_r86ub"]
+[ext_resource type="PackedScene" uid="uid://cwy1rw6rmm00c" path="res://player/character.tscn" id="4_nat3m"]
 [ext_resource type="Texture2D" uid="uid://fbep3llhs3hl" path="res://assets/common/spring.png" id="4_vksk7"]
+[ext_resource type="PackedScene" uid="uid://dxcy6vgx8p71f" path="res://hitboxes/ring.tscn" id="6_8d1gi"]
+[ext_resource type="PackedScene" uid="uid://b16frlq35lku6" path="res://solid_objects/spike.tscn" id="8_bucas"]
+[ext_resource type="PackedScene" uid="uid://cjf55isuivasc" path="res://solid_objects/spring.tscn" id="10_qrngg"]
+[ext_resource type="PackedScene" uid="uid://bgu25wrgsudlv" path="res://solid_objects/red_spring.tscn" id="11_rmifu"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_axvoy"]
 texture = ExtResource("3_ddefp")
@@ -504,13 +510,13 @@ sources/0 = SubResource("TileSetAtlasSource_axvoy")
 atlas = ExtResource("1_xse6r")
 region = Rect2(5, 4, 34, 46)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_ea2y8"]
+[sub_resource type="AtlasTexture" id="AtlasTexture_h8380"]
 atlas = ExtResource("3_ddefp")
-region = Rect2(16, 0, 32, 32)
+region = Rect2(32, 0, 32, 32)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_kjjfo"]
+[sub_resource type="AtlasTexture" id="AtlasTexture_t5inw"]
 atlas = ExtResource("2_fb523")
-region = Rect2(0, 0, 17, 16)
+region = Rect2(0, 0, 16, 16)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_qlf5f"]
 atlas = ExtResource("4_vksk7")
@@ -520,8 +526,10 @@ region = Rect2(32, 0, 32, 32)
 atlas = ExtResource("4_vksk7")
 region = Rect2(32, 32, 32, 32)
 
-[node name="LevelMaker" type="Node2D"]
-script = ExtResource("1_sei7q")
+[node name="LevelMaker" type="LevelMaker" node_paths=PackedStringArray("toolbar", "cursor", "selected_tool")]
+toolbar = NodePath("UI/MarginContainer/VBoxContainer/SelectionBar")
+cursor = NodePath("Cursor")
+selected_tool = NodePath("UI/MarginContainer/VBoxContainer/SelectionBar/GroundButton")
 
 [node name="TileMapLayer" type="TileMapLayer" parent="."]
 tile_map_data = PackedByteArray("AAACAAgAAAAAAAAAAAADAAgAAAACAAAAAAAEAAgAAAAGAAAAAAACAAkAAAAAAAEAAAADAAkAAAACAAEAAAAEAAkAAAAGAAEAAAA=")
@@ -544,54 +552,65 @@ layout_mode = 2
 [node name="SelectionBar" type="HBoxContainer" parent="UI/MarginContainer/VBoxContainer"]
 layout_mode = 2
 
-[node name="PlayerButton" type="Button" parent="UI/MarginContainer/VBoxContainer/SelectionBar"]
+[node name="PlayerButton" type="Tool" parent="UI/MarginContainer/VBoxContainer/SelectionBar"]
+cursor_placeholder = SubResource("AtlasTexture_2b7jh")
 layout_mode = 2
 icon = SubResource("AtlasTexture_2b7jh")
 icon_alignment = 1
+script = ExtResource("3_j6n8t")
+scene = ExtResource("4_nat3m")
 
-[node name="GroundButton" type="Button" parent="UI/MarginContainer/VBoxContainer/SelectionBar"]
+[node name="GroundButton" type="Tool" parent="UI/MarginContainer/VBoxContainer/SelectionBar"]
+cursor_placeholder = SubResource("AtlasTexture_h8380")
 layout_mode = 2
-icon = SubResource("AtlasTexture_ea2y8")
+icon = SubResource("AtlasTexture_h8380")
 icon_alignment = 1
 
-[node name="RingButton" type="Button" parent="UI/MarginContainer/VBoxContainer/SelectionBar"]
+[node name="RingButton" type="Tool" parent="UI/MarginContainer/VBoxContainer/SelectionBar"]
+cursor_placeholder = SubResource("AtlasTexture_t5inw")
 custom_minimum_size = Vector2(32, 0)
 layout_mode = 2
-icon = SubResource("AtlasTexture_kjjfo")
+icon = SubResource("AtlasTexture_t5inw")
 icon_alignment = 1
 expand_icon = true
+script = ExtResource("3_r86ub")
+scene = ExtResource("6_8d1gi")
 
-[node name="SpikeButton" type="Button" parent="UI/MarginContainer/VBoxContainer/SelectionBar"]
+[node name="SpikeButton" type="Tool" parent="UI/MarginContainer/VBoxContainer/SelectionBar"]
+cursor_placeholder = ExtResource("3_8rgmc")
 custom_minimum_size = Vector2(32, 0)
 layout_mode = 2
 icon = ExtResource("3_8rgmc")
 icon_alignment = 1
 expand_icon = true
+script = ExtResource("3_r86ub")
+scene = ExtResource("8_bucas")
 
-[node name="YellowSpringButton" type="Button" parent="UI/MarginContainer/VBoxContainer/SelectionBar"]
+[node name="YellowSpringButton" type="Tool" parent="UI/MarginContainer/VBoxContainer/SelectionBar"]
+cursor_placeholder = SubResource("AtlasTexture_qlf5f")
 custom_minimum_size = Vector2(32, 0)
 layout_mode = 2
 icon = SubResource("AtlasTexture_qlf5f")
 icon_alignment = 1
 expand_icon = true
+script = ExtResource("3_r86ub")
+scene = ExtResource("10_qrngg")
 
-[node name="RedSpringButton" type="Button" parent="UI/MarginContainer/VBoxContainer/SelectionBar"]
+[node name="RedSpringButton" type="Tool" parent="UI/MarginContainer/VBoxContainer/SelectionBar"]
+cursor_placeholder = SubResource("AtlasTexture_fsc5y")
 custom_minimum_size = Vector2(32, 0)
 layout_mode = 2
 icon = SubResource("AtlasTexture_fsc5y")
 icon_alignment = 1
 expand_icon = true
+script = ExtResource("3_r86ub")
+scene = ExtResource("11_rmifu")
 
 [node name="Control" type="Control" parent="UI/MarginContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
 mouse_filter = 1
 
-[node name="Cursor" type="Marker2D" parent="."]
-
-[connection signal="pressed" from="UI/MarginContainer/VBoxContainer/SelectionBar/PlayerButton" to="." method="_on_player_button_pressed"]
-[connection signal="pressed" from="UI/MarginContainer/VBoxContainer/SelectionBar/GroundButton" to="." method="_on_ground_button_pressed"]
-[connection signal="pressed" from="UI/MarginContainer/VBoxContainer/SelectionBar/RingButton" to="." method="_on_ring_button_pressed"]
-[connection signal="pressed" from="UI/MarginContainer/VBoxContainer/SelectionBar/SpikeButton" to="." method="_on_spike_button_pressed"]
-[connection signal="pressed" from="UI/MarginContainer/VBoxContainer/SelectionBar/YellowSpringButton" to="." method="_on_yellow_spring_button_pressed"]
-[connection signal="pressed" from="UI/MarginContainer/VBoxContainer/SelectionBar/RedSpringButton" to="." method="_on_red_spring_button_pressed"]
+[node name="Cursor" type="Sprite2D" parent="."]
+modulate = Color(1, 1, 1, 0.392157)
+texture = SubResource("AtlasTexture_h8380")
