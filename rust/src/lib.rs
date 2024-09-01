@@ -5,6 +5,7 @@ mod level_maker;
 mod sensor;
 mod solid_object;
 
+mod solid_line_2d;
 mod tool;
 mod vec3_ext;
 
