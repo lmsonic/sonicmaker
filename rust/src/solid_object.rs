@@ -91,7 +91,9 @@ impl SolidObject {
                     self.emit_collided(collision, player);
                 }
             }
-        } else if let Some(collision) = item_monitor_collision(&mut player, position, radius) {
+        } else if let Some(collision) =
+            solid_object_collision(&mut player, position, radius, self.top_solid_only)
+        {
             self.emit_collided(collision, player);
         }
 
@@ -258,7 +260,7 @@ fn solid_object_collision_fully_solid(
                 // Die from getting crushed
                 player.bind_mut().die();
                 Some(Collision::Down)
-            } else if velocity.y < 0.0 && y_distance < 0.0 {
+            } else if velocity.y < 0.0 {
                 player_position.y -= y_distance;
                 player.set_global_position(player_position);
                 velocity.y = 0.0;

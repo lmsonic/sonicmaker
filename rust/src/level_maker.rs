@@ -27,14 +27,20 @@ impl INode2D for LevelMaker {
         }
     }
     fn process(&mut self, _delta: f64) {
-        let mouse_position = self.base().get_global_mouse_position();
+        let mut mouse_position = self.base().get_global_mouse_position();
+        if let Some(tool) = &mut self.selected_tool {
+            mouse_position = mouse_position.snapped(tool.bind().tile_size);
+        }
         if let Some(cursor) = &mut self.cursor {
             cursor.set_global_position(mouse_position);
         }
     }
-    fn unhandled_input(&mut self, event: Gd<InputEvent>) {
-        if Input::singleton().is_action_just_pressed(c"click".into()) {
-            if let Some(tool) = &mut self.selected_tool {
+    fn unhandled_input(&mut self, _event: Gd<InputEvent>) {
+        if let Some(tool) = &mut self.selected_tool {
+            if Input::singleton().is_action_just_pressed(c"click".into())
+                || !tool.bind().only_just_pressed
+                    && Input::singleton().is_action_pressed(c"click".into())
+            {
                 tool.bind_mut().on_tool_used();
             }
         }

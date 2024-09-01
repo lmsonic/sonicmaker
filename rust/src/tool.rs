@@ -8,9 +8,10 @@ use godot::{
 pub struct Tool {
     #[export]
     pub cursor_placeholder: Option<Gd<Texture2D>>,
-
     #[export]
-    pub tile_size: Vector2i,
+    pub only_just_pressed: bool,
+    #[export]
+    pub tile_size: Vector2,
     base: Base<Button>,
 }
 #[godot_api]
