@@ -49,11 +49,6 @@ layer_0/tile_data = PackedInt32Array(393216, 0, 6, 458752, 0, 7, 524288, 0, 8, 5
 velocity = Vector2(0, 5.6875)
 position = Vector2(704, 96)
 
-[node name="Camera2D" type="Camera2D" parent="Character"]
-drag_vertical_enabled = true
-editor_draw_drag_margin = true
-metadata/_edit_lock_ = true
-
 [node name="LayerSwitcher" parent="." instance=ExtResource("3_mwpvc")]
 grounded_only = true
 change_type = "Both"
@@ -126,7 +121,6 @@ direction = 0
 [node name="DiagonalSpring" parent="." instance=ExtResource("15_j2rru")]
 z_index = -1
 position = Vector2(1496, 24)
-debug_trajectory = true
 
 [node name="PushableBlock" parent="." instance=ExtResource("9_vxdu4")]
 position = Vector2(968, 80)
