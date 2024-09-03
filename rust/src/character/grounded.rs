@@ -155,6 +155,11 @@ impl Character {
     }
 
     fn ground_accelerate(&mut self, input: &Gd<Input>, delta: f32) {
+        let top_speed = if self.state.is_rolling() {
+            self.roll_top_speed
+        } else {
+            self.top_speed
+        };
         if self.control_lock_timer <= 0 {
             let is_rolling = self.state.is_rolling();
             // Ground Acceleration
@@ -177,10 +182,11 @@ impl Character {
                     {
                         self.ground_speed = -0.5;
                     }
-                } else if self.ground_speed > -self.top_speed && !is_rolling {
+                } else if self.ground_speed > -self.top_speed {
                     godot_print!("Accelerate left");
                     self.ground_speed -= self.acceleration * delta;
-                    self.ground_speed = self.ground_speed.max(-self.top_speed);
+                    // Cap velocity
+                    self.ground_speed = self.ground_speed.max(-top_speed);
                 }
 
                 self.set_flip_h(true);
@@ -201,22 +207,15 @@ impl Character {
                     {
                         self.ground_speed = 0.5;
                     }
-                } else if self.ground_speed < self.top_speed && !is_rolling {
+                } else if self.ground_speed < top_speed {
                     godot_print!("Accelerate right");
                     self.ground_speed += self.acceleration * delta;
-                    self.ground_speed = self.ground_speed.min(self.top_speed);
+                    self.ground_speed = self.ground_speed.min(top_speed);
                 }
 
                 self.set_flip_h(false);
             }
             // Cap roll velocity
-        }
-        if self.state.is_rolling() {
-            // Optional fix : use ground speed instead
-            self.velocity.x = self
-                .velocity
-                .x
-                .clamp(-self.roll_top_speed, self.roll_top_speed);
         }
     }
 

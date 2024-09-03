@@ -229,7 +229,9 @@ impl Character {
         if angle < PI {
             angle += TAU;
         }
-        self.base_mut().set_rotation(TAU - angle);
+        if !self.state.is_rolling() {
+            self.base_mut().set_rotation(TAU - angle);
+        }
         self.update_sensors();
     }
 

@@ -1,9 +1,10 @@
-[gd_scene load_steps=34 format=3 uid="uid://cwy1rw6rmm00c"]
+[gd_scene load_steps=35 format=3 uid="uid://cwy1rw6rmm00c"]
 
 [ext_resource type="PackedScene" uid="uid://cijfeqhaqi5ef" path="res://hitboxes/scattered_ring.tscn" id="1_06exi"]
 [ext_resource type="Texture2D" uid="uid://dpigsx74d37wt" path="res://assets/sonic/sonic.png" id="1_ddxe8"]
 [ext_resource type="PackedScene" uid="uid://cwfcb4naaj1h1" path="res://player/sensor.tscn" id="2_mvnfj"]
 [ext_resource type="Script" path="res://player/player_hitbox.gd" id="4_2cy7d"]
+[ext_resource type="Script" path="res://player/player_camera.gd" id="5_ma8sd"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_7l682"]
 atlas = ExtResource("1_ddxe8")
@@ -262,7 +263,9 @@ position = Vector2(0, -19)
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 position = Vector2(0, -4)
 sprite_frames = SubResource("SpriteFrames_fg2lh")
+animation = &"idle"
 autoplay = "idle"
+frame_progress = 1.0
 
 [node name="RemoteTransform2D" type="RemoteTransform2D" parent="."]
 remote_path = NodePath("../Sensors")
@@ -322,7 +325,18 @@ player = NodePath("../..")
 shape = SubResource("RectangleShape2D_j2lx3")
 debug_color = Color(0, 0, 1, 0.2)
 
-[node name="Camera2D" type="Camera2D" parent="."]
+[node name="Camera2D" type="Camera2D" parent="." node_paths=PackedStringArray("player")]
+process_physics_priority = 1
+offset = Vector2(0, 16)
+process_callback = 0
+position_smoothing_enabled = true
+position_smoothing_speed = 24.0
+drag_horizontal_enabled = true
+drag_left_margin = 0.05
+drag_right_margin = 0.05
+editor_draw_drag_margin = true
+script = ExtResource("5_ma8sd")
+player = NodePath("..")
 
 [connection signal="rings_changed" from="." to="Sensors/PlayerHitbox" method="_on_rings_changed"]
 [connection signal="animation_finished" from="AnimatedSprite2D" to="." method="reset_idle_from_skidding"]
