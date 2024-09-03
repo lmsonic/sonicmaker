@@ -1,20 +1,19 @@
-pub mod collision;
+mod airborne;
+mod collision;
 pub mod godot_api;
-pub mod lifecycle;
-pub mod utils;
+mod grounded;
+mod lifecycle;
+mod utils;
 
 use godot::engine::{AnimatedSprite2D, Area2D, CollisionShape2D};
 use godot::prelude::*;
-use godot_api::{Kind, SolidObjectKind, State};
+use godot_api::{SolidObjectKind, State};
 
 use crate::sensor::Sensor;
 #[allow(clippy::struct_excessive_bools)]
 #[derive(GodotClass)]
 #[class(init, base=Node2D)]
 pub struct Character {
-    #[export]
-    #[var(get, set = set_character)]
-    character: Kind,
     #[export]
     #[var(get, set = set_state)]
     pub(crate) state: State,

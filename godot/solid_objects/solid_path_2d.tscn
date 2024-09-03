@@ -1,0 +1,19 @@
+[gd_scene load_steps=2 format=3 uid="uid://si23qg5lxn3c"]
+
+[sub_resource type="Curve2D" id="Curve2D_icvnx"]
+resource_local_to_scene = true
+bake_interval = 50.0
+_data = {
+"points": PackedVector2Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 64, 0, 0, 0, 0, 0, 64, 64, 0, 0, 0, 0, 0, 64, 0, 0, 0, 0, 0, 0)
+}
+point_count = 5
+
+[node name="SolidPath2D" type="SolidPath2D" node_paths=PackedStringArray("shape")]
+shape = NodePath("StaticBody2D/CollisionPolygon2D")
+curve = SubResource("Curve2D_icvnx")
+metadata/_edit_group_ = true
+
+[node name="StaticBody2D" type="StaticBody2D" parent="."]
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="StaticBody2D"]
+polygon = PackedVector2Array(0, 0, 32, 0, 64, 0, 64, 32, 64, 64, 32, 64, 0, 64, 0, 32, 0, 0)

@@ -6,14 +6,6 @@ use real_consts::{PI, TAU};
 
 #[derive(GodotConvert, Var, Export, Default, Debug, PartialEq, Eq, Clone, Copy)]
 #[godot(via = GString)]
-pub(super) enum Kind {
-    #[default]
-    Sonic,
-    Tails,
-    Knuckles,
-}
-#[derive(GodotConvert, Var, Export, Default, Debug, PartialEq, Eq, Clone, Copy)]
-#[godot(via = GString)]
 pub enum State {
     #[default]
     Idle,
@@ -30,14 +22,6 @@ pub enum State {
 impl State {
     pub(super) fn is_ball(self) -> bool {
         self == Self::JumpBall || self == Self::RollingBall
-    }
-
-    /// Returns `true` if the state is [`JumpBall`].
-    ///
-    /// [`JumpBall`]: State::JumpBall
-    #[must_use]
-    pub(super) const fn is_jumping(self) -> bool {
-        matches!(self, Self::JumpBall)
     }
 
     /// Returns `true` if the state is [`RollingBall`].
@@ -282,28 +266,6 @@ impl Character {
     }
 
     #[func]
-    pub(super) fn set_character(&mut self, value: Kind) {
-        match value {
-            Kind::Sonic => {
-                self.set_width_radius(9.0);
-                self.set_height_radius(19.0);
-                self.jump_force = 6.5;
-            }
-            Kind::Tails => {
-                self.set_width_radius(9.0);
-                self.set_height_radius(15.0);
-                self.jump_force = 6.5;
-            }
-            Kind::Knuckles => {
-                self.set_width_radius(9.0);
-                self.set_height_radius(19.0);
-                self.jump_force = 6.0;
-            }
-        }
-
-        self.character = value;
-    }
-    #[func]
     pub fn set_state(&mut self, value: State) {
         let was_ball = self.state.is_ball();
         let is_ball = value.is_ball();
@@ -312,7 +274,8 @@ impl Character {
         }
         self.state = value;
         if was_ball && !is_ball {
-            self.set_character(self.character);
+            self.set_width_radius(9.0);
+            self.set_height_radius(19.0);
         } else if is_ball && !was_ball {
             self.set_width_radius(7.0);
             self.set_height_radius(14.0);
