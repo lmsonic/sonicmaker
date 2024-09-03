@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://c1hgmahnp0fbw"]
+
+[ext_resource type="Texture2D" uid="uid://bcfjqd50hsr8s" path="res://assets/common/monitor.png" id="1_fuwrf"]
+
+[node name="DestroyedMonitor" type="Sprite2D"]
+texture = ExtResource("1_fuwrf")
+hframes = 2
+frame = 1

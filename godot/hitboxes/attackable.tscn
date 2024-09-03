@@ -3,6 +3,7 @@
 [ext_resource type="Script" path="res://hitboxes/attackable.gd" id="1_csc15"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_3y0bs"]
+resource_local_to_scene = true
 
 [node name="Attackable" type="Area2D"]
 monitorable = false

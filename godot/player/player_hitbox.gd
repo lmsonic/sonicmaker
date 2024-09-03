@@ -20,13 +20,7 @@ func on_hurt(hazard: Node2D) -> void:
 	player.on_hurt(hazard)
 
 func on_attacking_badnik(badnik: Node2D) -> void:
-	if player.attacking:
-		player.on_attacking(badnik, false)
-	else:
-		on_hurt(badnik)
+	player.on_attacking(badnik, false)
 
 func on_attacking_boss(boss: Node2D) -> void:
-	if player.attacking:
-		player.on_attacking(boss, true)
-	else:
-		on_hurt(boss)
+	player.on_attacking(boss, true)

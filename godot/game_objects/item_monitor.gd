@@ -26,7 +26,8 @@ func sense_distance() -> float:
 		return result.distance
 	else:
 		return 1.0
-
+const EXPLOSION = preload("res://enemies/explosion.tscn")
+const DESTROYED_MONITOR = preload("res://game_objects/destroyed_monitor.tscn")
 
 func _on_item_monitor_hitbox_area_entered(area: Area2D) -> void:
 	if destroyed:
@@ -36,6 +37,13 @@ func _on_item_monitor_hitbox_area_entered(area: Area2D) -> void:
 		if hitbox.player.velocity.y > 0.0:
 			hitbox.player.velocity.y *= -1.0
 		hitbox.increment_rings(rings)
-		sprite_2d.frame = 1
-		destroyed = true
-		#queue_free()
+		spawn(EXPLOSION)
+		spawn(DESTROYED_MONITOR)
+		queue_free()
+
+
+func spawn(scene:PackedScene) -> Node2D:
+	var node :Node2D= scene.instantiate()
+	node.global_position = global_position
+	get_tree().current_scene.add_child(node)
+	return node

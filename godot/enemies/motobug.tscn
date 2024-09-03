@@ -1,5 +1,104 @@
-[gd_scene format=3 uid="uid://dfglkrxp0aue5"]
+[gd_scene load_steps=15 format=3 uid="uid://dfglkrxp0aue5"]
+
+[ext_resource type="Script" path="res://enemies/motobug.gd" id="1_gjyse"]
+[ext_resource type="Script" path="res://hitboxes/attackable.gd" id="2_djem1"]
+[ext_resource type="Texture2D" uid="uid://df2q8luilwe0a" path="res://assets/badnik/motobug.png" id="3_f6f4e"]
+[ext_resource type="Texture2D" uid="uid://dtr3of6fdmfx6" path="res://assets/badnik/exhaust.png" id="4_j4bx1"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ahsr8"]
+resource_local_to_scene = true
+size = Vector2(44, 33)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_qkwhm"]
+atlas = ExtResource("3_f6f4e")
+region = Rect2(0, 0, 48, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4oi3g"]
+atlas = ExtResource("3_f6f4e")
+region = Rect2(48, 0, 48, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_pe3cb"]
+atlas = ExtResource("3_f6f4e")
+region = Rect2(96, 0, 48, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_8fcbg"]
+atlas = ExtResource("3_f6f4e")
+region = Rect2(144, 0, 48, 32)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_54xu4"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_qkwhm")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_4oi3g")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_pe3cb")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_8fcbg")
+}],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_aefn5"]
+atlas = ExtResource("4_j4bx1")
+region = Rect2(0, 0, 8, 8)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_myko2"]
+atlas = ExtResource("4_j4bx1")
+region = Rect2(8, 0, 8, 8)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_n2h1j"]
+atlas = ExtResource("4_j4bx1")
+region = Rect2(16, 0, 8, 8)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_gnfjw"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_aefn5")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_myko2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_n2h1j")
+}],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}]
 
 [node name="Motobug" type="Node2D"]
+script = ExtResource("1_gjyse")
 
 [node name="Sensor" type="Sensor" parent="."]
+position = Vector2(0, 14)
+
+[node name="Attackable" type="Area2D" parent="."]
+monitorable = false
+script = ExtResource("2_djem1")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Attackable"]
+shape = SubResource("RectangleShape2D_ahsr8")
+debug_color = Color(0.85098, 0.152941, 0.266667, 0.419608)
+
+[node name="MainSprite" type="AnimatedSprite2D" parent="."]
+position = Vector2(3, 0)
+sprite_frames = SubResource("SpriteFrames_54xu4")
+autoplay = "default"
+frame = 1
+frame_progress = 0.134119
+
+[node name="Exhaust" type="AnimatedSprite2D" parent="."]
+position = Vector2(23, 0)
+sprite_frames = SubResource("SpriteFrames_gnfjw")
+autoplay = "default"
+
+[connection signal="area_entered" from="Attackable" to="Attackable" method="_on_area_entered"]
+[connection signal="attacked" from="Attackable" to="." method="_on_attackable_attacked"]
