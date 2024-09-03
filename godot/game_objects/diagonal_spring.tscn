@@ -1,6 +1,6 @@
 [gd_scene load_steps=12 format=3 uid="uid://cgxws6jpbvn15"]
 
-[ext_resource type="Script" path="res://solid_objects/diagonal_spring.gd" id="1_t8jho"]
+[ext_resource type="Script" path="res://game_objects/diagonal_spring.gd" id="1_t8jho"]
 [ext_resource type="Texture2D" uid="uid://cj5k8rgbfidud" path="res://assets/common/diagonal_spring.png" id="2_c0dr7"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_gap82"]

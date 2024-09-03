@@ -5,12 +5,12 @@
 [ext_resource type="PackedScene" uid="uid://bmf6tr4scfbsw" path="res://hitboxes/layer_switcher.tscn" id="3_mwpvc"]
 [ext_resource type="Script" path="res://ui/rings_label.gd" id="4_xg8by"]
 [ext_resource type="PackedScene" uid="uid://dxcy6vgx8p71f" path="res://hitboxes/ring.tscn" id="5_uhykx"]
-[ext_resource type="PackedScene" uid="uid://tud7ojs66mkf" path="res://solid_objects/pushable_block.tscn" id="9_vxdu4"]
-[ext_resource type="PackedScene" uid="uid://c5s40o2fdylxv" path="res://solid_objects/item_monitor.tscn" id="10_227im"]
-[ext_resource type="PackedScene" uid="uid://dwc1ws5emrqcj" path="res://solid_objects/moving_platform.tscn" id="11_vk6gl"]
-[ext_resource type="PackedScene" uid="uid://b16frlq35lku6" path="res://solid_objects/spike.tscn" id="13_2dqvm"]
-[ext_resource type="PackedScene" uid="uid://cjf55isuivasc" path="res://solid_objects/spring.tscn" id="14_gvboi"]
-[ext_resource type="PackedScene" uid="uid://cgxws6jpbvn15" path="res://solid_objects/diagonal_spring.tscn" id="15_j2rru"]
+[ext_resource type="PackedScene" uid="uid://tud7ojs66mkf" path="res://game_objects/pushable_block.tscn" id="9_vxdu4"]
+[ext_resource type="PackedScene" uid="uid://c5s40o2fdylxv" path="res://game_objects/item_monitor.tscn" id="10_227im"]
+[ext_resource type="PackedScene" uid="uid://dwc1ws5emrqcj" path="res://game_objects/moving_platform.tscn" id="11_vk6gl"]
+[ext_resource type="PackedScene" uid="uid://b16frlq35lku6" path="res://game_objects/spike.tscn" id="13_2dqvm"]
+[ext_resource type="PackedScene" uid="uid://cjf55isuivasc" path="res://game_objects/spring.tscn" id="14_gvboi"]
+[ext_resource type="PackedScene" uid="uid://cgxws6jpbvn15" path="res://game_objects/diagonal_spring.tscn" id="15_j2rru"]
 
 [sub_resource type="GDScript" id="GDScript_43165"]
 script/source = "extends Node

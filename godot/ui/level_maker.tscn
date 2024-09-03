@@ -9,10 +9,10 @@
 [ext_resource type="Script" path="res://ui/spawn_scene.gd" id="7_ay407"]
 [ext_resource type="PackedScene" uid="uid://dxcy6vgx8p71f" path="res://hitboxes/ring.tscn" id="8_w3glv"]
 [ext_resource type="Texture2D" uid="uid://b3wpeuukwael2" path="res://assets/common/spike.png" id="9_ewsib"]
-[ext_resource type="PackedScene" uid="uid://b16frlq35lku6" path="res://solid_objects/spike.tscn" id="10_4xlmt"]
+[ext_resource type="PackedScene" uid="uid://b16frlq35lku6" path="res://game_objects/spike.tscn" id="10_4xlmt"]
 [ext_resource type="Texture2D" uid="uid://fbep3llhs3hl" path="res://assets/common/spring.png" id="11_46rxx"]
-[ext_resource type="PackedScene" uid="uid://cjf55isuivasc" path="res://solid_objects/spring.tscn" id="12_t41es"]
-[ext_resource type="PackedScene" uid="uid://bgu25wrgsudlv" path="res://solid_objects/red_spring.tscn" id="13_dybqi"]
+[ext_resource type="PackedScene" uid="uid://cjf55isuivasc" path="res://game_objects/spring.tscn" id="12_t41es"]
+[ext_resource type="PackedScene" uid="uid://bgu25wrgsudlv" path="res://game_objects/red_spring.tscn" id="13_dybqi"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_axvoy"]
 texture = ExtResource("1_7136s")

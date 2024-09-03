@@ -1,6 +1,6 @@
 [gd_scene load_steps=9 format=3 uid="uid://cjf55isuivasc"]
 
-[ext_resource type="Script" path="res://solid_objects/spring.gd" id="1_uhiu4"]
+[ext_resource type="Script" path="res://game_objects/spring.gd" id="1_uhiu4"]
 [ext_resource type="Texture2D" uid="uid://fbep3llhs3hl" path="res://assets/common/spring.png" id="2_1wt5j"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_jp5y5"]

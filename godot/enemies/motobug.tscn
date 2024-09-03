@@ -1,0 +1,5 @@
+[gd_scene format=3 uid="uid://dfglkrxp0aue5"]
+
+[node name="Motobug" type="Node2D"]
+
+[node name="Sensor" type="Sensor" parent="."]

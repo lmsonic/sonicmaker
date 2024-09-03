@@ -1,7 +1,7 @@
 [gd_scene load_steps=4 format=3 uid="uid://dwc1ws5emrqcj"]
 
 [ext_resource type="Texture2D" uid="uid://r02f5u6x47fh" path="res://assets/green_hill/platform.png" id="1_mgxko"]
-[ext_resource type="Script" path="res://solid_objects/moving_platform.gd" id="1_qv57q"]
+[ext_resource type="Script" path="res://game_objects/moving_platform.gd" id="1_qv57q"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ftlrv"]
 size = Vector2(58, 22)
