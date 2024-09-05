@@ -171,7 +171,7 @@ animations = [{
 }],
 "loop": true,
 "name": &"pushing",
-"speed": 5.0
+"speed": 10.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -263,9 +263,8 @@ position = Vector2(0, -19)
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 position = Vector2(0, -4)
 sprite_frames = SubResource("SpriteFrames_fg2lh")
-animation = &"idle"
+animation = &"skidding"
 autoplay = "idle"
-frame_progress = 1.0
 
 [node name="RemoteTransform2D" type="RemoteTransform2D" parent="."]
 remote_path = NodePath("../Sensors")

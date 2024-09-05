@@ -48,6 +48,7 @@ impl INode2D for Character {
 
         self.handle_invulnerability();
         self.stand_on_solid_object();
+        self.update_animation_speed();
         if self.is_grounded {
             self.grounded(delta);
         } else {
@@ -56,6 +57,38 @@ impl INode2D for Character {
     }
 }
 impl Character {
+    fn update_animation_speed(&mut self) {
+        let Some(sprite) = &mut self.sprites else {
+            return;
+        };
+        let Some(mut sprite_frames) = sprite.get_sprite_frames() else {
+            return;
+        };
+        let animation = sprite.get_animation();
+        let animation_fps = sprite_frames.get_animation_speed(animation.clone());
+
+        match self.state {
+            State::StartMotion | State::FullMotion => {
+                let frames = (9.0 - self.ground_speed.abs()).max(1.0).floor();
+                let fps = 60.0 / frames;
+                sprite_frames.set_animation_speed(animation, fps.into());
+            }
+
+            State::JumpBall | State::RollingBall => {
+                let frames = (5.0 - self.ground_speed.abs()).max(1.0).floor();
+                let fps = 60.0 / frames;
+                sprite_frames.set_animation_speed(animation, fps.into());
+            }
+
+            State::Pushing => {
+                let frames = (9.0 - self.ground_speed.abs() * 8.0).max(1.0).floor();
+                let fps = 60.0 / frames;
+
+                sprite_frames.set_animation_speed(animation, fps.into());
+            }
+            _ => {}
+        }
+    }
     fn stand_on_solid_object(&mut self) {
         let Some(solid_object) = &self.solid_object_to_stand_on else {
             return;
