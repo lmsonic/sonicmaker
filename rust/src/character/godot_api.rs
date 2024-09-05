@@ -23,7 +23,7 @@ pub enum State {
 
 impl State {
     pub(super) fn is_ball(self) -> bool {
-        self == Self::JumpBall || self == Self::RollingBall
+        self == Self::JumpBall || self == Self::RollingBall || self == Self::Spindash
     }
 
     /// Returns `true` if the state is [`RollingBall`].
@@ -72,6 +72,14 @@ impl State {
     #[must_use]
     pub const fn is_crouching(self) -> bool {
         matches!(self, Self::Crouch)
+    }
+
+    /// Returns `true` if the state is [`Spindash`].
+    ///
+    /// [`Spindash`]: State::Spindash
+    #[must_use]
+    pub const fn is_spindashing(self) -> bool {
+        matches!(self, Self::Spindash)
     }
 }
 use crate::{
@@ -347,6 +355,12 @@ impl Character {
                 sprites.set_flip_h(value);
             }
         }
+    }
+    pub fn get_flip_h(&mut self) -> bool {
+        if let Some(sprites) = &mut self.sprites {
+            return sprites.is_flipped_h();
+        }
+        false
     }
 
     #[func]

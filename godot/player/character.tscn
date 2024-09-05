@@ -267,6 +267,7 @@ sensor_push_left = NodePath("Sensors/SensorPushLeft")
 sensor_push_right = NodePath("Sensors/SensorPushRight")
 scattered_ring_scene = ExtResource("1_06exi")
 collision_layer = 1
+has_spindash = true
 process_physics_priority = -1
 z_index = 1
 position = Vector2(0, -19)

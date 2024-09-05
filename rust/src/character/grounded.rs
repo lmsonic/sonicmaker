@@ -7,26 +7,26 @@ use godot::prelude::*;
 
 impl Character {
     pub(super) fn grounded(&mut self, delta: f32) {
-        self.check_unrolling();
-
         // Grounded
         let input = Input::singleton();
 
         godot_print!("Grounded");
+        self.check_unrolling();
+
+        self.handle_spindash(&input, delta);
 
         self.apply_slope_factor(delta);
 
-        self.handle_crouch(&input);
-
-        if self.handle_jump(&input) {
+        if !(self.state.is_crouching() || self.state.is_spindashing()) && self.handle_jump(&input) {
             self.update_position(delta);
             return;
         }
-        if !self.state.is_crouching() {
+        if !(self.state.is_crouching() || self.state.is_spindashing()) {
             self.ground_accelerate(&input, delta);
+            self.apply_friction(&input, delta);
         }
 
-        self.apply_friction(&input, delta);
+        self.handle_crouch(&input);
 
         self.check_walls();
 
@@ -46,11 +46,36 @@ impl Character {
     }
 
     fn handle_crouch(&mut self, input: &Gd<Input>) {
-        if input.is_action_pressed(c"roll".into()) && self.ground_speed.abs() <= 1.0 {
+        if !self.state.is_spindashing()
+            && input.is_action_pressed(c"roll".into())
+            && self.ground_speed.abs() <= 1.0
+        {
             self.ground_speed = 0.0;
             self.set_state(State::Crouch);
         } else if self.state.is_crouching() && !input.is_action_pressed(c"roll".into()) {
             self.set_state(State::Idle);
+        }
+    }
+
+    fn handle_spindash(&mut self, input: &Gd<Input>, delta: f32) {
+        if !self.has_spindash {
+            return;
+        }
+        if self.state.is_spindashing() {
+            self.spinrev -= (self.spinrev / 0.125) / 256.0 * delta;
+
+            if input.is_action_pressed(c"jump".into()) {
+                self.spinrev += 2.0;
+            }
+            self.spinrev = self.spinrev.clamp(0.0, 8.0);
+            if input.is_action_just_released(c"roll".into()) {
+                self.ground_speed =
+                    (8.0 + self.spinrev.floor() / 2.0) * if self.get_flip_h() { -1.0 } else { 1.0 };
+                self.set_state(State::RollingBall);
+            }
+        } else if self.state.is_crouching() && input.is_action_pressed(c"jump".into()) {
+            self.set_state(State::Spindash);
+            self.spinrev = 0.0;
         }
     }
 
