@@ -16,12 +16,15 @@ impl Character {
 
         self.apply_slope_factor(delta);
 
+        self.handle_crouch(&input);
+
         if self.handle_jump(&input) {
             self.update_position(delta);
             return;
         }
-
-        self.ground_accelerate(&input, delta);
+        if !self.state.is_crouching() {
+            self.ground_accelerate(&input, delta);
+        }
 
         self.apply_friction(&input, delta);
 
@@ -40,6 +43,15 @@ impl Character {
         self.update_position(delta);
 
         self.handle_slipping();
+    }
+
+    fn handle_crouch(&mut self, input: &Gd<Input>) {
+        if input.is_action_pressed(c"roll".into()) && self.ground_speed.abs() <= 1.0 {
+            self.ground_speed = 0.0;
+            self.set_state(State::Crouch);
+        } else if self.state.is_crouching() && !input.is_action_pressed(c"roll".into()) {
+            self.set_state(State::Idle);
+        }
     }
 
     fn check_rolling(&mut self, input: &Gd<Input>) {

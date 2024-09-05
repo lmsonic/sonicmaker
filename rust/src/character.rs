@@ -58,7 +58,7 @@ pub struct Character {
     roll_deceleration: f32,
     #[init(default = 16.0)]
     roll_top_speed: f32,
-    #[export]
+    #[var(set, get)]
     ground_speed: f32,
 
     #[export]
@@ -94,11 +94,13 @@ pub struct Character {
     #[export(flags_2d_physics)]
     #[var(get, set = set_collision_layer)]
     collision_layer: u32,
-
     #[export]
+    has_spindash: bool,
+    spinrev: f32,
+
     #[var(set, get)]
     pub velocity: Vector2,
-    #[export]
+
     #[var(set = set_rings, get)]
     rings: i32,
     #[var(set, get)]

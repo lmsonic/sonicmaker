@@ -17,6 +17,8 @@ pub enum State {
     RollingBall,
     Hurt,
     SpringBounce,
+    Crouch,
+    Spindash,
 }
 
 impl State {
@@ -62,6 +64,14 @@ impl State {
     #[must_use]
     pub const fn is_spring_bouncing(self) -> bool {
         matches!(self, Self::SpringBounce)
+    }
+
+    /// Returns `true` if the state is [`Crouch`].
+    ///
+    /// [`Crouch`]: State::Crouch
+    #[must_use]
+    pub const fn is_crouching(self) -> bool {
+        matches!(self, Self::Crouch)
     }
 }
 use crate::{
@@ -319,13 +329,15 @@ impl Character {
             State::Idle => self.play_animation(c"idle"),
             State::StartMotion => self.play_animation(c"start_motion"),
             State::FullMotion => self.play_animation(c"full_motion"),
-            State::JumpBall | State::RollingBall => {
+            // TODO: get the actual spindash animation
+            State::JumpBall | State::RollingBall | State::Spindash => {
                 self.play_animation(c"rolling");
             }
             State::Hurt => self.play_animation(c"hurt"),
             State::Skidding => self.play_animation(c"skidding"),
             State::Pushing => self.play_animation(c"pushing"),
             State::SpringBounce => self.play_animation(c"spring_bounce"),
+            State::Crouch => self.play_animation(c"crouch"),
         }
     }
     #[func]

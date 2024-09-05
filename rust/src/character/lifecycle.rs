@@ -149,7 +149,11 @@ impl Character {
             }
         }
 
-        if !(self.state.is_rolling() || self.state.is_skidding() || self.state.is_pushing()) {
+        if !(self.state.is_rolling()
+            || self.state.is_skidding()
+            || self.state.is_pushing()
+            || self.state.is_crouching())
+        {
             if self.ground_speed.abs() >= self.top_speed {
                 self.set_state(State::FullMotion);
             } else if self.ground_speed.abs() > 0.1 {
