@@ -77,6 +77,38 @@ pub enum SolidObjectKind {
 
 #[godot_api]
 impl Character {
+    #[func]
+    fn update_animation_speed(&mut self) {
+        let Some(sprite) = &mut self.sprites else {
+            return;
+        };
+        let Some(mut sprite_frames) = sprite.get_sprite_frames() else {
+            return;
+        };
+        let animation = sprite.get_animation();
+
+        match self.state {
+            State::StartMotion | State::FullMotion => {
+                let frames = (9.0 - self.ground_speed.abs()).max(1.0).floor();
+                let fps = 60.0 / frames;
+                sprite_frames.set_animation_speed(animation, fps.into());
+            }
+
+            State::JumpBall | State::RollingBall => {
+                let frames = (5.0 - self.ground_speed.abs()).max(1.0).floor();
+                let fps = 60.0 / frames;
+                sprite_frames.set_animation_speed(animation, fps.into());
+            }
+
+            State::Pushing => {
+                let frames = (9.0 - self.ground_speed.abs() * 8.0).max(1.0).floor();
+                let fps = 60.0 / frames;
+
+                sprite_frames.set_animation_speed(animation, fps.into());
+            }
+            _ => {}
+        }
+    }
     #[signal]
     fn rings_changed(value: i32);
     #[func]
