@@ -9,6 +9,14 @@ use godot::engine::{AnimatedSprite2D, Area2D, CollisionShape2D};
 use godot::prelude::*;
 use godot_api::{SolidObjectKind, State};
 
+#[derive(GodotConvert, Var, Export, Default, Debug, PartialEq, Eq, Clone, Copy)]
+#[godot(via = GString)]
+enum SpindashStyle {
+    #[default]
+    Genesis,
+    CD,
+}
+
 use crate::sensor::Sensor;
 #[allow(clippy::struct_excessive_bools)]
 #[derive(GodotClass)]
@@ -96,7 +104,10 @@ pub struct Character {
     collision_layer: u32,
     #[export]
     has_spindash: bool,
-    spinrev: f32,
+    spindash_charge: f32,
+    #[export]
+    spindash_style: SpindashStyle,
+    spindash_timer: i32,
 
     #[var(set, get)]
     pub velocity: Vector2,
