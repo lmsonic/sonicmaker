@@ -118,19 +118,19 @@ impl Character {
 
         match self.state {
             State::StartMotion | State::FullMotion => {
-                let frames = (9.0 - self.ground_speed.abs()).max(1.0).floor();
+                let frames = (8.0 - self.ground_speed.abs()).max(1.0).floor();
                 let fps = 60.0 / frames;
                 sprite_frames.set_animation_speed(animation, fps.into());
             }
 
             State::JumpBall | State::RollingBall => {
-                let frames = (5.0 - self.ground_speed.abs()).max(1.0).floor();
+                let frames = (4.0 - self.ground_speed.abs()).max(1.0).floor();
                 let fps = 60.0 / frames;
                 sprite_frames.set_animation_speed(animation, fps.into());
             }
 
             State::Pushing => {
-                let frames = (9.0 - self.ground_speed.abs() * 4.0).max(1.0).floor();
+                let frames = (8.0 - self.ground_speed.abs() * 4.0).max(1.0).floor();
                 let fps = 60.0 / frames;
 
                 sprite_frames.set_animation_speed(animation, fps.into());

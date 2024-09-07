@@ -243,9 +243,9 @@ impl Character {
 
     fn update_animation_air(&mut self) {
         if !(self.state.is_ball() || self.state.is_hurt() || self.state.is_spring_bouncing()) {
-            if self.velocity.x.abs() >= self.top_speed {
+            if self.ground_speed.abs() >= self.top_speed {
                 self.set_state(State::FullMotion);
-            } else if self.velocity.x.abs() > 0.0 {
+            } else if self.ground_speed.abs() > 0.0 {
                 self.set_state(State::StartMotion);
             } else {
                 self.set_state(State::Idle);
