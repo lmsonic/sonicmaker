@@ -6,6 +6,10 @@ use super::Character;
 use godot::prelude::*;
 use real_consts::{FRAC_PI_2, PI};
 
+pub fn inverse_lerp(a: f32, b: f32, v: f32) -> f32 {
+    (v - a) / (b - a)
+}
+
 #[derive(Default, Debug, PartialEq, Eq, Clone, Copy)]
 pub(super) enum Mode {
     #[default]

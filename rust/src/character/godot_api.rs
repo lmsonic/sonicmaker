@@ -19,6 +19,7 @@ pub enum State {
     SpringBounce,
     Crouch,
     Spindash,
+    SuperPeelOut,
 }
 
 impl State {
@@ -81,12 +82,22 @@ impl State {
     pub const fn is_spindashing(self) -> bool {
         matches!(self, Self::Spindash)
     }
+
+    /// Returns `true` if the state is [`SuperPeelOut`].
+    ///
+    /// [`SuperPeelOut`]: State::SuperPeelOut
+    #[must_use]
+    pub const fn is_super_peel_out(self) -> bool {
+        matches!(self, Self::SuperPeelOut)
+    }
 }
 use crate::{
     character::Character,
     sensor::DetectionResult,
     solid_object::{sloped_solid_object::SlopedSolidObject, SolidObject},
 };
+
+use super::DropDashState;
 
 pub enum SolidObjectKind {
     Simple(Gd<SolidObject>),
@@ -144,11 +155,17 @@ impl Character {
     #[func]
     pub fn clear_standing_objects(&mut self) {
         self.solid_object_to_stand_on = None;
+        if self.drop_dash_state == DropDashState::Charged {
+            self.drop_dash();
+        }
         self.set_grounded(false);
     }
     #[func]
     pub fn set_stand_on_object(&mut self, object: Gd<SolidObject>) {
         self.solid_object_to_stand_on = Some(SolidObjectKind::Simple(object));
+        if self.drop_dash_state == DropDashState::Charged {
+            self.drop_dash();
+        }
         self.has_jumped = false;
     }
     #[func]
@@ -346,6 +363,8 @@ impl Character {
             State::Pushing => self.play_animation(c"pushing"),
             State::SpringBounce => self.play_animation(c"spring_bounce"),
             State::Crouch => self.play_animation(c"crouch"),
+            // TODO: get the actual superpeelout animation
+            State::SuperPeelOut => self.play_animation(c"full_motion"),
         }
     }
     #[func]

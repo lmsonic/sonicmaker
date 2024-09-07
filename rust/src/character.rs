@@ -129,6 +129,15 @@ pub struct Character {
     spindash_style: SpindashStyle,
     spindash_charge: f32,
     spindash_timer: i32,
+    #[export]
+    variable_cd_spindash: bool,
+
+    #[export]
+    has_super_peel_out: bool,
+    super_peel_out_timer: i32,
+
+    #[export]
+    variable_super_peelout: bool,
 
     #[export]
     mid_air_action: MidAirAction,
