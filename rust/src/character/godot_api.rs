@@ -130,7 +130,7 @@ impl Character {
             }
 
             State::Pushing => {
-                let frames = (9.0 - self.ground_speed.abs() * 8.0).max(1.0).floor();
+                let frames = (9.0 - self.ground_speed.abs() * 4.0).max(1.0).floor();
                 let fps = 60.0 / frames;
 
                 sprite_frames.set_animation_speed(animation, fps.into());

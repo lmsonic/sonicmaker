@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3 uid="uid://uyn5gaitoc5w"]
+[gd_scene load_steps=14 format=3 uid="uid://uyn5gaitoc5w"]
 
 [ext_resource type="TileSet" uid="uid://cqlsdl65vv0s2" path="res://assets/green_hill/tilemap.tres" id="1_81d8w"]
 [ext_resource type="PackedScene" uid="uid://cwy1rw6rmm00c" path="res://player/character.tscn" id="2_ujavw"]
@@ -8,6 +8,7 @@
 [ext_resource type="PackedScene" uid="uid://c5s40o2fdylxv" path="res://game_objects/item_monitor.tscn" id="10_227im"]
 [ext_resource type="PackedScene" uid="uid://dwc1ws5emrqcj" path="res://game_objects/moving_platform.tscn" id="11_vk6gl"]
 [ext_resource type="PackedScene" uid="uid://dfglkrxp0aue5" path="res://enemies/motobug.tscn" id="12_eo4sv"]
+[ext_resource type="PackedScene" uid="uid://tud7ojs66mkf" path="res://game_objects/pushable_block.tscn" id="12_wdh4i"]
 [ext_resource type="PackedScene" uid="uid://b16frlq35lku6" path="res://game_objects/spike.tscn" id="13_2dqvm"]
 [ext_resource type="PackedScene" uid="uid://cjf55isuivasc" path="res://game_objects/spring.tscn" id="14_gvboi"]
 [ext_resource type="PackedScene" uid="uid://cgxws6jpbvn15" path="res://game_objects/diagonal_spring.tscn" id="15_j2rru"]
@@ -129,3 +130,6 @@ position = Vector2(1200, 8)
 
 [node name="Motobug" parent="." instance=ExtResource("12_eo4sv")]
 position = Vector2(896, 76)
+
+[node name="PushableBlock" parent="." instance=ExtResource("12_wdh4i")]
+position = Vector2(740, 104)

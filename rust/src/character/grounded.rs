@@ -289,7 +289,7 @@ impl Character {
                     {
                         self.ground_speed = -0.5;
                     }
-                } else if self.ground_speed > -self.top_speed {
+                } else if self.ground_speed > -self.top_speed && !is_rolling {
                     godot_print!("Accelerate left");
                     self.ground_speed -= self.acceleration * delta;
                     // Cap velocity
@@ -314,7 +314,7 @@ impl Character {
                     {
                         self.ground_speed = 0.5;
                     }
-                } else if self.ground_speed < top_speed {
+                } else if self.ground_speed < top_speed && !is_rolling {
                     godot_print!("Accelerate right");
                     self.ground_speed += self.acceleration * delta;
                     self.ground_speed = self.ground_speed.min(top_speed);
