@@ -231,13 +231,14 @@ impl Character {
             godot_print!("Accelerate left");
             self.velocity.x -= self.air_acceleration * delta;
             self.set_flip_h(true);
+            self.velocity.x = self.velocity.x.max(-self.top_speed);
         }
         if input.is_action_pressed(c"right".into()) {
             godot_print!("Accelerate right");
             self.velocity.x += self.air_acceleration * delta;
             self.set_flip_h(false);
+            self.velocity.x = self.velocity.x.min(self.top_speed);
         }
-        self.velocity.x = self.velocity.x.clamp(-self.top_speed, self.top_speed);
     }
 
     fn update_animation_air(&mut self) {
