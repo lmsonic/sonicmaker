@@ -2,7 +2,7 @@ use real_consts::PI;
 
 use crate::character::{godot_api::State, utils::Mode};
 
-use super::Character;
+use super::{Character, SpindashStyle};
 use godot::prelude::*;
 
 impl Character {
@@ -58,11 +58,8 @@ impl Character {
     }
 
     fn handle_spindash(&mut self, input: &Gd<Input>, delta: f32) {
-        if !self.has_spindash {
-            return;
-        }
         match self.spindash_style {
-            super::SpindashStyle::Genesis => {
+            SpindashStyle::Genesis => {
                 if self.state.is_spindashing() {
                     self.spindash_charge -= (self.spindash_charge / 0.125) / 256.0 * delta;
 
@@ -80,7 +77,7 @@ impl Character {
                     self.spindash_charge = 0.0;
                 }
             }
-            super::SpindashStyle::CD => {
+            SpindashStyle::CD => {
                 if self.state.is_spindashing() {
                     self.spindash_timer -= 1;
                     if self.spindash_timer <= 0 && !input.is_action_pressed(c"roll".into()) {
@@ -93,6 +90,7 @@ impl Character {
                     self.spindash_timer = 45;
                 }
             }
+            SpindashStyle::None => {}
         }
     }
 
@@ -187,6 +185,7 @@ impl Character {
             self.set_grounded(false);
             self.set_state(State::JumpBall);
             self.has_jumped = true;
+            self.has_released_jump = false;
             self.clear_standing_objects();
 
             return true;

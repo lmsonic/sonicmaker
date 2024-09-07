@@ -1,6 +1,6 @@
 use crate::character::utils::MotionDirection;
 
-use super::{godot_api::State, Character};
+use super::{godot_api::State, Character, DropDashState, MidAirAction};
 use godot::prelude::*;
 
 impl Character {
@@ -9,6 +9,8 @@ impl Character {
         let input = Input::singleton();
 
         godot_print!("Airborne");
+
+        self.handle_mid_air_action(&input);
 
         if !self.state.is_hurt() {
             // Disable input when hurt
@@ -32,6 +34,39 @@ impl Character {
         self.check_walls_air();
         self.check_ceiling_air();
         self.check_floor_air();
+    }
+
+    fn handle_mid_air_action(&mut self, input: &Gd<Input>) {
+        match self.mid_air_action {
+            MidAirAction::DropDash => {
+                let is_jump_pressed = input.is_action_pressed(c"jump".into());
+                if self.has_jumped && !is_jump_pressed {
+                    self.has_released_jump = true;
+                }
+                match self.drop_dash_state {
+                    DropDashState::NotCharged => {
+                        if self.has_released_jump && is_jump_pressed {
+                            self.drop_dash_state = DropDashState::Charging { timer: 20 };
+                        }
+                    }
+                    DropDashState::Charging { ref mut timer } => {
+                        if is_jump_pressed {
+                            *timer -= 1;
+                            if *timer <= 0 {
+                                self.drop_dash_state = DropDashState::Charged;
+                            }
+                        } else {
+                            self.drop_dash_state = DropDashState::NotCharged;
+                        }
+                    }
+                    DropDashState::Charged => {}
+                }
+            }
+            MidAirAction::InstaShield => {}
+            MidAirAction::Flying => {}
+            MidAirAction::Gliding => {}
+            MidAirAction::None => {}
+        }
     }
 
     fn tick_spring_bounce_animation(&mut self) {
@@ -67,6 +102,31 @@ impl Character {
                         }
 
                         self.land_on_floor();
+
+                        // Drop dash on landing
+                        if self.drop_dash_state == DropDashState::Charged {
+                            let facing_left = self.get_flip_h();
+
+                            let is_moving_forwards = facing_left && self.velocity.x < 0.0
+                                || (!facing_left && self.velocity.x > 0.0)
+                                || self.velocity.x == 0.0;
+                            let direction = if facing_left { -1.0 } else { 1.0 };
+
+                            if is_moving_forwards {
+                                self.ground_speed =
+                                    self.ground_speed / 4.0 + self.drop_dash_speed * direction;
+                            } else if self.ground_angle == 0.0 {
+                                self.ground_speed = self.drop_dash_speed * direction;
+                            } else {
+                                self.ground_speed =
+                                    self.ground_speed / 2.0 + self.drop_dash_speed * direction;
+                            }
+                            self.ground_speed = self
+                                .ground_speed
+                                .clamp(-self.drop_dash_max_speed, self.drop_dash_max_speed);
+                            self.drop_dash_state = DropDashState::NotCharged;
+                            self.set_state(State::RollingBall);
+                        }
                     }
                 }
             }

@@ -13,8 +13,30 @@ use godot_api::{SolidObjectKind, State};
 #[godot(via = GString)]
 enum SpindashStyle {
     #[default]
+    None,
     Genesis,
     CD,
+}
+
+#[derive(GodotConvert, Var, Export, Default, Debug, PartialEq, Eq, Clone, Copy)]
+#[godot(via = GString)]
+enum MidAirAction {
+    #[default]
+    None,
+    DropDash,
+    InstaShield,
+    Flying,
+    Gliding,
+}
+
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+enum DropDashState {
+    #[default]
+    NotCharged,
+    Charging {
+        timer: i32,
+    },
+    Charged,
 }
 
 use crate::sensor::Sensor;
@@ -102,12 +124,20 @@ pub struct Character {
     #[export(flags_2d_physics)]
     #[var(get, set = set_collision_layer)]
     collision_layer: u32,
-    #[export]
-    has_spindash: bool,
-    spindash_charge: f32,
+
     #[export]
     spindash_style: SpindashStyle,
+    spindash_charge: f32,
     spindash_timer: i32,
+
+    #[export]
+    mid_air_action: MidAirAction,
+    #[init(default = 8.0)]
+    drop_dash_speed: f32,
+    #[init(default = 12.0)]
+    drop_dash_max_speed: f32,
+
+    drop_dash_state: DropDashState,
 
     #[var(set, get)]
     pub velocity: Vector2,
@@ -116,6 +146,7 @@ pub struct Character {
     rings: i32,
     #[var(set, get)]
     has_jumped: bool,
+    has_released_jump: bool,
     #[var(get)]
     attacking: bool,
     invulnerability_timer: i32,
