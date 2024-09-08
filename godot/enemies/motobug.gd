@@ -22,7 +22,6 @@ func _physics_process(delta: float) -> void:
 		return
 
 	var result: Variant = sensor.sense_godot()
-	print(facing_right)
 	if result:
 		var distance: float = result.distance
 		if distance < -8.0 or distance > 12.0:
@@ -35,7 +34,7 @@ func _physics_process(delta: float) -> void:
 		turn()
 
 func _on_attackable_attacked() -> void:
-	var explosion :Node2D= EXPLOSION.instantiate()
+	var explosion: Node2D = EXPLOSION.instantiate()
 	explosion.global_position = global_position
 	get_tree().current_scene.add_child(explosion)
 	queue_free()

@@ -12,6 +12,8 @@ enum Direction {
 @export var direction := Direction.Up:
 	set(value):
 		direction = value
+		if !sprite:
+			return
 		sprite.rotation = rotation_from_direction()
 		if is_horizontal():
 			width_radius = 8
@@ -65,8 +67,6 @@ func direction_vector() -> Vector2:
 		Direction.Left: return Vector2.LEFT
 		Direction.Right: return Vector2.RIGHT
 	return Vector2.ZERO
-
-
 
 func vertical_spring(player: Character) -> void:
 	if direction == Direction.Up:

@@ -100,7 +100,8 @@ impl Character {
             SpindashStyle::Genesis => {
                 if self.state.is_spindashing() {
                     self.ground_speed = 0.0;
-                    self.spindash_charge -= (self.spindash_charge / 0.125) / 256.0 * delta;
+                    self.spindash_charge -=
+                        (self.spindash_charge.div_euclid(0.125)) / 256.0 * delta;
 
                     if input.is_action_pressed(c"jump".into()) {
                         self.spindash_charge += 2.0;
@@ -322,7 +323,6 @@ impl Character {
 
                 self.set_flip_h(false);
             }
-            // Cap roll velocity
         }
     }
 
@@ -332,9 +332,10 @@ impl Character {
         if self.current_mode() != Mode::Ceiling {
             let slope_factor = self.current_slope_factor() * self.ground_angle.sin();
             // Forces moving when walking on steep slopes
-            let is_moving = self.ground_speed.abs() > 0.0;
+            let is_moving = self.ground_speed != 0.0;
             let is_rolling = self.state.is_rolling();
             let is_on_steep = slope_factor >= STEEP_ANGLE;
+
             if is_moving || is_rolling || is_on_steep {
                 godot_print!("Applying slope factor {slope_factor}");
                 self.ground_speed -= slope_factor * delta;

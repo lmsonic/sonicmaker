@@ -1,0 +1,53 @@
+[gd_scene load_steps=2 format=3 uid="uid://cu4pkafbkyvqs"]
+
+[ext_resource type="Script" path="res://ui/menu.gd" id="1_geffy"]
+
+[node name="Menu" type="PanelContainer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_geffy")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="Control3" type="Control" parent="VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Label" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+text = "SonicMaker"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Control" type="Control" parent="VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="DemoButton" type="Button" parent="VBoxContainer/VBoxContainer"]
+layout_mode = 2
+text = "Demo"
+
+[node name="LevelMakerButton" type="Button" parent="VBoxContainer/VBoxContainer"]
+layout_mode = 2
+text = "Level Maker"
+
+[node name="QuitButton" type="Button" parent="VBoxContainer/VBoxContainer"]
+layout_mode = 2
+text = "Quit"
+
+[node name="Control2" type="Control" parent="VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+size_flags_stretch_ratio = 2.0
+
+[connection signal="pressed" from="VBoxContainer/VBoxContainer/DemoButton" to="." method="_on_demo_button_pressed"]
+[connection signal="pressed" from="VBoxContainer/VBoxContainer/LevelMakerButton" to="." method="_on_level_maker_button_pressed"]
+[connection signal="pressed" from="VBoxContainer/VBoxContainer/QuitButton" to="." method="_on_quit_button_pressed"]

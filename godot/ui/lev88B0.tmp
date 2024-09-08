@@ -594,7 +594,6 @@ objects = NodePath("../../../../../LevelObjects")
 [node name="SpikeButton" type="Tool" parent="UI/MarginContainer/VBoxContainer/SelectionBar" node_paths=PackedStringArray("objects")]
 cursor_placeholder = ExtResource("9_ewsib")
 only_just_pressed = true
-can_rotate = true
 tile_size = Vector2(32, 32)
 custom_minimum_size = Vector2(32, 0)
 layout_mode = 2
@@ -608,7 +607,6 @@ objects = NodePath("../../../../../LevelObjects")
 [node name="YellowSpringButton" type="Tool" parent="UI/MarginContainer/VBoxContainer/SelectionBar" node_paths=PackedStringArray("objects")]
 cursor_placeholder = SubResource("AtlasTexture_qlf5f")
 only_just_pressed = true
-can_rotate = true
 tile_size = Vector2(32, 32)
 custom_minimum_size = Vector2(32, 0)
 layout_mode = 2
@@ -622,7 +620,6 @@ objects = NodePath("../../../../../LevelObjects")
 [node name="RedSpringButton" type="Tool" parent="UI/MarginContainer/VBoxContainer/SelectionBar" node_paths=PackedStringArray("objects")]
 cursor_placeholder = SubResource("AtlasTexture_fsc5y")
 only_just_pressed = true
-can_rotate = true
 tile_size = Vector2(32, 32)
 custom_minimum_size = Vector2(32, 0)
 layout_mode = 2

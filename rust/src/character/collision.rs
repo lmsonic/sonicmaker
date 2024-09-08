@@ -39,7 +39,6 @@ impl Character {
     }
     pub(super) fn airborne_right_wall_collision(&mut self, distance: f32) {
         let mut position = self.global_position();
-        godot_print!("{}", position);
         position.x += distance;
         self.set_global_position(position);
 

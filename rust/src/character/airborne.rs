@@ -147,7 +147,6 @@ impl Character {
                         let mut position = self.global_position();
                         position.y -= result.distance;
                         self.set_global_position(position);
-                        godot_print!("{}", position);
                         godot_print!("ceiling collision dy:{}", -result.distance);
 
                         if self.should_land_on_ceiling() {
@@ -256,7 +255,7 @@ impl Character {
     fn air_drag(&mut self, delta: f32) {
         if self.velocity.y < 0.0 && self.velocity.y > -4.0 {
             godot_print!("Apply drag");
-            self.velocity.x -= (self.velocity.x / 0.125) / 256.0 * delta;
+            self.velocity.x -= (self.velocity.x.div_euclid(0.125)) / 256.0 * delta;
         }
     }
     fn land_on_ceiling(&mut self) {

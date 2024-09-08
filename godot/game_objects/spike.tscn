@@ -6,11 +6,12 @@
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_b1dr8"]
 size = Vector2(32, 32)
 
-[node name="Spike" type="SolidObject" node_paths=PackedStringArray("collision_shape")]
+[node name="Spike" type="SolidObject" node_paths=PackedStringArray("collision_shape", "sprite")]
 width_radius = 16.0
 height_radius = 16.0
 collision_shape = NodePath("CollisionShape2D")
 script = ExtResource("1_otjiv")
+sprite = NodePath("Sprite2D")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("RectangleShape2D_b1dr8")

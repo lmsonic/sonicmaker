@@ -30,9 +30,10 @@ impl INode2D for LevelMaker {
         let mut mouse_position = self.base().get_global_mouse_position();
         if let Some(tool) = &mut self.selected_tool {
             mouse_position = mouse_position.snapped(tool.bind().tile_size);
-        }
-        if let Some(cursor) = &mut self.cursor {
-            cursor.set_global_position(mouse_position);
+            if let Some(cursor) = &mut self.cursor {
+                cursor.set_global_position(mouse_position);
+                cursor.set_global_rotation(tool.bind().tool_rotation);
+            }
         }
     }
     fn unhandled_input(&mut self, _event: Gd<InputEvent>) {
