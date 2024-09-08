@@ -32,7 +32,7 @@ impl INode2D for LevelMaker {
             mouse_position = mouse_position.snapped(tool.bind().tile_size);
             if let Some(cursor) = &mut self.cursor {
                 cursor.set_global_position(mouse_position);
-                cursor.set_global_rotation(tool.bind().tool_rotation);
+                cursor.set_global_rotation(tool.bind().tool_rotation());
             }
         }
     }

@@ -652,6 +652,7 @@ size_flags_vertical = 3
 mouse_filter = 1
 
 [node name="Cursor" type="Sprite2D" parent="."]
+unique_name_in_owner = true
 modulate = Color(1, 1, 1, 0.392157)
 
 [node name="LevelObjects" type="Node2D" parent="."]

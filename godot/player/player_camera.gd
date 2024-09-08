@@ -9,10 +9,6 @@ static func move_toward_positioni(origin: Vector2, target: Vector2, speed: float
 	origin = floor(origin)
 	return Vector2(move_toward(target.x,origin.x,speed),move_toward(target.y,origin.y,speed))
 
-
-
-
-
 func _physics_process(delta: float) -> void:
 	if player.is_grounded:
 		drag_top_margin = 0.0

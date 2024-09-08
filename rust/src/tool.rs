@@ -1,11 +1,19 @@
-use std::f32::consts::FRAC_PI_2;
+use std::f32::consts::{FRAC_PI_2, PI};
 
 use godot::{
     engine::{Button, IButton, InputEvent, InputEventMouseButton, Texture2D},
     global::MouseButton,
     prelude::*,
 };
-
+#[derive(GodotConvert, Var, Export, Default, Debug, PartialEq, Eq, Clone, Copy)]
+#[godot(via = i32)]
+enum Direction {
+    #[default]
+    Up = 0,
+    Right = 1,
+    Down = 2,
+    Left = 3,
+}
 #[derive(GodotClass)]
 #[class(init, base=Button)]
 pub struct Tool {
@@ -16,7 +24,7 @@ pub struct Tool {
     #[export]
     pub can_rotate: bool,
     #[var(set, get)]
-    pub tool_rotation: f32,
+    pub tool_direction: Direction,
     #[export]
     pub tile_size: Vector2,
     base: Base<Button>,
@@ -33,9 +41,19 @@ impl IButton for Tool {
         if let Ok(mouse_button) = event.try_cast::<InputEventMouseButton>() {
             if mouse_button.is_pressed() {
                 if mouse_button.get_button_index() == MouseButton::WHEEL_UP {
-                    self.tool_rotation += FRAC_PI_2;
+                    self.tool_direction = match self.tool_direction {
+                        Direction::Up => Direction::Right,
+                        Direction::Right => Direction::Down,
+                        Direction::Down => Direction::Left,
+                        Direction::Left => Direction::Up,
+                    }
                 } else if mouse_button.get_button_index() == MouseButton::WHEEL_DOWN {
-                    self.tool_rotation -= FRAC_PI_2;
+                    self.tool_direction = match self.tool_direction {
+                        Direction::Up => Direction::Left,
+                        Direction::Right => Direction::Up,
+                        Direction::Down => Direction::Right,
+                        Direction::Left => Direction::Down,
+                    }
                 }
             }
         }
@@ -44,6 +62,15 @@ impl IButton for Tool {
 
 #[godot_api]
 impl Tool {
+    #[func]
+    pub(crate) fn tool_rotation(&self) -> f32 {
+        match self.tool_direction {
+            Direction::Up => 0.0,
+            Direction::Right => FRAC_PI_2,
+            Direction::Down => PI,
+            Direction::Left => -FRAC_PI_2,
+        }
+    }
     #[func]
     fn on_pressed(&mut self) {
         let base = self.base().clone();

@@ -9,6 +9,8 @@ func _ready() -> void:
 
 func use_tool() -> void:
 	var player:Character= get_tree().get_first_node_in_group("player")
+
+
 	var position := get_global_mouse_position().snapped(tile_size)
 	if player:
 		player.global_position = position
@@ -17,3 +19,6 @@ func use_tool() -> void:
 		var node :Character= scene.instantiate()
 		node.global_position = position
 		objects.add_child(node)
+		var camera:=node.get_node("Camera2D")
+		if camera:
+			camera.set_physics_process(false)
