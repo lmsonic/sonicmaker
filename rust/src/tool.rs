@@ -7,7 +7,7 @@ use godot::{
 };
 #[derive(GodotConvert, Var, Export, Default, Debug, PartialEq, Eq, Clone, Copy)]
 #[godot(via = i32)]
-enum Direction {
+pub enum Direction {
     #[default]
     Up = 0,
     Right = 1,

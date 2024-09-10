@@ -5,7 +5,7 @@ mod grounded;
 mod lifecycle;
 mod utils;
 
-use godot::engine::{AnimatedSprite2D, Area2D, CollisionShape2D, Sprite2D};
+use godot::engine::{AnimatedSprite2D, Area2D, CollisionShape2D};
 use godot::prelude::*;
 use godot_api::{SolidObjectKind, State};
 
@@ -157,7 +157,6 @@ pub struct Character {
     spindash_style: SpindashStyle,
     #[export]
     spindash_dust: Option<Gd<AnimatedSprite2D>>,
-    spindash_charge: f32,
     spindash_cd_state: SpindashCDState,
     spindash_genesis_state: SpindashGenesisState,
     #[export]

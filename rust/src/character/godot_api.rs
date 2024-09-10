@@ -1,7 +1,7 @@
 #![allow(clippy::needless_pass_by_value)]
 use std::{f32::consts::FRAC_PI_2, ops::Rem};
 
-use godot::{builtin::math::ApproxEq, prelude::*};
+use godot::{builtin::math::ApproxEq, engine::Engine, prelude::*};
 use real_consts::{PI, TAU};
 
 #[derive(GodotConvert, Var, Export, Default, Debug, PartialEq, Eq, Clone, Copy)]
@@ -25,6 +25,9 @@ pub enum State {
 
 impl State {
     pub(super) fn is_ball(self) -> bool {
+        self == Self::JumpBall || self == Self::RollingBall || self == Self::Spindash
+    }
+    pub(super) fn is_attacking(self) -> bool {
         self == Self::JumpBall || self == Self::RollingBall
     }
 
@@ -114,8 +117,6 @@ use crate::{
     solid_object::{sloped_solid_object::SlopedSolidObject, SolidObject},
 };
 
-use super::DropDashState;
-
 pub enum SolidObjectKind {
     Simple(Gd<SolidObject>),
     Sloped(Gd<SlopedSolidObject>),
@@ -172,33 +173,19 @@ impl Character {
     #[func]
     pub fn clear_standing_objects(&mut self) {
         self.solid_object_to_stand_on = None;
-        if self.drop_dash_state == DropDashState::Charged {
-            self.drop_dash();
-        }
+
         self.set_grounded(false);
     }
     #[func]
     pub fn set_stand_on_object(&mut self, object: Gd<SolidObject>) {
         self.solid_object_to_stand_on = Some(SolidObjectKind::Simple(object));
-        if self.drop_dash_state == DropDashState::Charged {
-            self.drop_dash();
-        }
-        if self.state.is_jump_ball() {
-            self.set_state(State::Idle);
-            self.update_animation();
-        }
+        self.land();
         self.has_jumped = false;
     }
     #[func]
     pub fn set_stand_on_sloped_object(&mut self, object: Gd<SlopedSolidObject>) {
         self.solid_object_to_stand_on = Some(SolidObjectKind::Sloped(object));
-        if self.drop_dash_state == DropDashState::Charged {
-            self.drop_dash();
-        }
-        if self.state.is_jump_ball() {
-            self.set_state(State::Idle);
-            self.update_animation();
-        }
+        self.land();
         self.has_jumped = false;
     }
     #[func]
@@ -358,7 +345,7 @@ impl Character {
     fn update_y_position(&mut self, delta: f32) {
         let mut position = self.global_position();
         let down = self.current_mode().down();
-        position += down * (delta - 2.0);
+        position += down * delta;
         self.set_global_position(position);
     }
 
@@ -370,12 +357,16 @@ impl Character {
             self.invulnerability_timer = 120;
         }
         self.state = value;
+        let is_editor = Engine::singleton().is_editor_hint();
         if was_ball && !is_ball {
             self.set_width_radius(9.0);
             self.set_height_radius(19.0);
         } else if is_ball && !was_ball {
             self.set_width_radius(7.0);
             self.set_height_radius(14.0);
+            if !is_editor {
+                self.update_y_position(5.0);
+            }
         }
         godot_print!("{:?}", self.state);
         match self.state {
@@ -489,7 +480,7 @@ impl Character {
         let width = self.push_radius * 2.0;
         let height = self.height_radius * 2.0;
         let mode = self.current_mode();
-        self.attacking = self.state.is_ball();
+        self.attacking = self.state.is_attacking();
 
         self.set_sensor_size(if mode.is_sideways() {
             Vector2::new(height, width)

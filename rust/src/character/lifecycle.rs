@@ -5,6 +5,8 @@ use crate::character::{
     Character,
 };
 
+use super::SuperPeeloutState;
+
 // Genesis runs at 60 fps
 const FPS: f32 = 60.0;
 #[godot_api]
@@ -48,7 +50,6 @@ impl INode2D for Character {
 
         self.handle_invulnerability();
         self.stand_on_solid_object();
-        // self.update_animation_speed();
         if self.is_grounded {
             self.grounded(delta);
         } else {
@@ -168,6 +169,14 @@ impl Character {
                     || horizontal_input < 0 && !self.facing_left()
                 {
                     self.set_state(State::Idle);
+                }
+            }
+            State::SuperPeelOut => {
+                if self.super_peel_out_state == SuperPeeloutState::NotCharged
+                    && self.ground_speed.abs() <= 6.0
+                {
+                    self.set_state(State::Idle);
+                    self.update_animation();
                 }
             }
             _ => {}

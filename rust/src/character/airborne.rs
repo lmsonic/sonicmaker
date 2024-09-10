@@ -117,20 +117,24 @@ impl Character {
                         self.set_grounded(true);
                         self.has_jumped = false;
 
-                        if self.state.is_jump_ball() {
-                            self.set_state(State::Idle);
-                            self.update_animation();
-                        }
-
                         self.land_on_floor();
 
-                        if self.drop_dash_state == DropDashState::Charged {
-                            self.drop_dash();
-                        }
+                        self.land();
                     }
                 }
             }
             MotionDirection::Up => {}
+        }
+    }
+
+    pub(super) fn land(&mut self) {
+        if self.state.is_jump_ball() {
+            self.set_state(State::Idle);
+            self.update_animation();
+        }
+
+        if self.drop_dash_state == DropDashState::Charged {
+            self.drop_dash();
         }
     }
 
@@ -216,7 +220,7 @@ impl Character {
 
     fn rotate_to_zero(&mut self) {
         // Rotate ground angle to 0
-        if self.state.is_ball() {
+        if self.state == State::RollingBall || self.state == State::JumpBall {
             self.base_mut().set_rotation(0.0);
         } else {
             let mut rotation = self.base().get_rotation();

@@ -113,6 +113,7 @@ impl Character {
                 }
             }
             SuperPeeloutState::Charged => {
+                self.ground_speed = 0.0;
                 if !is_up_pressed {
                     // Release Super Peelout
                     let direction = if self.get_flip_h() { -1.0 } else { 1.0 };
@@ -173,12 +174,13 @@ impl Character {
                 let direction = if self.get_flip_h() { -1.0 } else { 1.0 };
                 match self.spindash_cd_state {
                     SpindashCDState::NotCharged => {
-                        if jump_pressed {
+                        if self.state.is_crouching() && jump_pressed {
                             self.set_state(State::Spindash);
                             self.spindash_cd_state = SpindashCDState::Charging { timer: 45 }
                         }
                     }
                     SpindashCDState::Charging { ref mut timer } => {
+                        self.ground_speed = 0.0;
                         *timer -= 1;
                         if *timer <= 0 {
                             self.spindash_cd_state = SpindashCDState::Charged;
@@ -198,6 +200,7 @@ impl Character {
                         }
                     }
                     SpindashCDState::Charged => {
+                        self.ground_speed = 0.0;
                         if roll_released {
                             self.ground_speed = 12.0 * direction;
                             self.set_state(State::RollingBall);
@@ -245,7 +248,7 @@ impl Character {
         }
     }
 
-    fn check_floor(&mut self) {
+    pub(super) fn check_floor(&mut self) {
         // Floor checking
         if let Some(result) = self.ground_check(false) {
             if self.should_snap_to_floor(result) {
