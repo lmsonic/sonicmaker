@@ -128,9 +128,12 @@ impl Character {
     }
 
     pub(super) fn land(&mut self) {
-        if self.state.is_jump_ball() {
-            self.set_state(State::Idle);
-            self.update_animation();
+        match self.state {
+            State::JumpBall | State::SpringBounce => {
+                self.set_state(State::Idle);
+                self.update_animation();
+            }
+            _ => {}
         }
 
         if self.drop_dash_state == DropDashState::Charged {

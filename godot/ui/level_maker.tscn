@@ -1,4 +1,4 @@
-[gd_scene load_steps=24 format=4 uid="uid://beqo4qkny54ck"]
+[gd_scene load_steps=26 format=4 uid="uid://beqo4qkny54ck"]
 
 [ext_resource type="Texture2D" uid="uid://1ntodevcw2xm" path="res://assets/green_hill/greenhill.png" id="1_7136s"]
 [ext_resource type="Texture2D" uid="uid://dpigsx74d37wt" path="res://assets/sonic/sonic.png" id="2_3ih3g"]
@@ -15,6 +15,7 @@
 [ext_resource type="PackedScene" uid="uid://bgu25wrgsudlv" path="res://game_objects/red_spring.tscn" id="13_dybqi"]
 [ext_resource type="Texture2D" uid="uid://bcfjqd50hsr8s" path="res://assets/common/monitor.png" id="14_wcjll"]
 [ext_resource type="PackedScene" uid="uid://c5s40o2fdylxv" path="res://game_objects/item_monitor.tscn" id="15_5ceth"]
+[ext_resource type="PackedScene" uid="uid://si23qg5lxn3c" path="res://game_objects/solid_path_2d.tscn" id="16_c5el0"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_axvoy"]
 texture = ExtResource("1_7136s")
@@ -533,6 +534,14 @@ region = Rect2(32, 32, 32, 32)
 atlas = ExtResource("14_wcjll")
 region = Rect2(0, 0, 32, 32)
 
+[sub_resource type="Curve2D" id="Curve2D_lcfgf"]
+resource_local_to_scene = true
+bake_interval = 50.0
+_data = {
+"points": PackedVector2Array(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 64, 0, 0, 0, 0, 0, 216, 0, 0.63496, 92.7042, -0.63496, -92.7042, 384, -88, 0, 0, 0, 0, 384, -208, 0, 0, 0, 0, 496, -208, 0, 0, 0, 0, 496, 64, 0, 0, 0, 0, 216, 64, 0, 0, 0, 0, 64, 64, 0, 0, 0, 0, 0, 64, 0, 0, 0, 0, 0, 0)
+}
+point_count = 11
+
 [node name="LevelMaker" type="LevelMaker" node_paths=PackedStringArray("toolbar", "cursor")]
 toolbar = NodePath("UI/MarginContainer/VBoxContainer/SelectionBar")
 cursor = NodePath("Cursor")
@@ -656,3 +665,7 @@ unique_name_in_owner = true
 modulate = Color(1, 1, 1, 0.392157)
 
 [node name="LevelObjects" type="Node2D" parent="."]
+
+[node name="SolidPath2D" parent="." instance=ExtResource("16_c5el0")]
+position = Vector2(64, 256)
+curve = SubResource("Curve2D_lcfgf")
