@@ -137,39 +137,40 @@ impl Character {
     }
 
     pub(super) fn update_animation(&mut self) {
-        if self.state.is_pushing() {
-            let input = Input::singleton();
-            let horizontal_input = i32::from(input.is_action_pressed(c"right".into()))
-                - i32::from(input.is_action_pressed(c"left".into()));
-            if horizontal_input == 0
-                || horizontal_input > 0 && self.facing_left()
-                || horizontal_input < 0 && !self.facing_left()
-            {
-                self.set_state(State::Idle);
+        match self.state {
+            State::Idle | State::StartMotion | State::FullMotion => {
+                let speed = if self.is_grounded {
+                    self.ground_speed.abs()
+                } else {
+                    self.velocity.x.abs()
+                };
+                if speed >= self.top_speed {
+                    self.set_state(State::FullMotion);
+                } else if speed > 0.1 {
+                    self.set_state(State::StartMotion);
+                } else {
+                    self.set_state(State::Idle);
+                }
             }
-        }
-
-        if self.state.is_rolling() {
-            if self.ground_speed.abs() > 6.0 {
-                self.play_animation(c"rolling_fast");
-            } else {
-                self.play_animation(c"rolling");
+            State::RollingBall => {
+                if self.ground_speed.abs() > 6.0 {
+                    self.play_animation(c"rolling_fast");
+                } else {
+                    self.play_animation(c"rolling");
+                }
             }
-        }
-
-        if !(self.state.is_ball()
-            || self.state.is_skidding()
-            || self.state.is_pushing()
-            || self.state.is_crouching()
-            || self.state.is_super_peel_out())
-        {
-            if self.ground_speed.abs() >= self.top_speed {
-                self.set_state(State::FullMotion);
-            } else if self.ground_speed.abs() > 0.1 {
-                self.set_state(State::StartMotion);
-            } else {
-                self.set_state(State::Idle);
+            State::Pushing => {
+                let input = Input::singleton();
+                let horizontal_input = i32::from(input.is_action_pressed(c"right".into()))
+                    - i32::from(input.is_action_pressed(c"left".into()));
+                if horizontal_input == 0
+                    || horizontal_input > 0 && self.facing_left()
+                    || horizontal_input < 0 && !self.facing_left()
+                {
+                    self.set_state(State::Idle);
+                }
             }
+            _ => {}
         }
     }
 }

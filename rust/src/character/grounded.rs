@@ -2,7 +2,10 @@ use real_consts::PI;
 
 use crate::character::{godot_api::State, utils::Mode};
 
-use super::{utils::inverse_lerp, Character, SpindashStyle};
+use super::{
+    utils::inverse_lerp, Character, SpindashCDState, SpindashGenesisState, SpindashStyle,
+    SuperPeeloutState,
+};
 use godot::prelude::*;
 
 impl Character {
@@ -19,19 +22,20 @@ impl Character {
 
         self.apply_slope_factor(delta);
 
-        let can_move = !(self.state.is_crouching()
-            || self.state.is_spindashing()
-            || self.state.is_super_peel_out());
-        if can_move && self.handle_jump(&input) {
+        let can_input = !(self.state.is_crouching() || self.state.is_spindashing())
+            && self.super_peel_out_state == SuperPeeloutState::NotCharged;
+
+        if can_input && self.handle_jump(&input) {
             self.update_position(delta);
             return;
         }
-        if can_move {
+        if can_input {
             self.ground_accelerate(&input, delta);
             self.apply_friction(&input, delta);
         }
 
         self.handle_crouch(&input);
+        self.handle_look_up(&input);
 
         self.check_walls();
 
@@ -62,87 +66,144 @@ impl Character {
         }
     }
 
+    fn handle_look_up(&mut self, input: &Gd<Input>) {
+        if !self.state.is_super_peel_out()
+            && input.is_action_pressed(c"up".into())
+            && self.ground_speed.abs() <= 1.0
+        {
+            self.ground_speed = 0.0;
+            self.set_state(State::LookUp);
+        } else if self.state.is_looking_up() && !input.is_action_pressed(c"up".into()) {
+            self.set_state(State::Idle);
+        }
+    }
+
     fn handle_super_peel_out(&mut self, input: &Gd<Input>) {
         if !self.has_super_peel_out {
             return;
         }
 
-        let up_pressed = input.is_action_pressed(c"up".into());
-        if self.state.is_super_peel_out() {
-            self.super_peel_out_timer -= 1;
-
-            self.ground_speed = 0.0;
-            if self.variable_super_peelout {
-                if !up_pressed {
-                    let direction = if self.get_flip_h() { -1.0 } else { 1.0 };
-                    let timer = self.super_peel_out_timer.clamp(0, 45);
-                    let t = inverse_lerp(0.0, 30.0, timer as f32);
-                    self.ground_speed = ((1.0 - t) * 12.0).max(1.0) * direction;
-                    self.set_state(State::FullMotion);
-                }
-            } else if !up_pressed {
-                if self.super_peel_out_timer <= 0 {
-                    let direction = if self.get_flip_h() { -1.0 } else { 1.0 };
-                    self.ground_speed = 12.0 * direction;
-                    self.set_state(State::FullMotion);
-                } else {
-                    self.set_state(State::Idle);
+        let is_up_pressed = input.is_action_pressed(c"up".into());
+        let direction = if self.get_flip_h() { -1.0 } else { 1.0 };
+        match self.super_peel_out_state {
+            SuperPeeloutState::NotCharged => {
+                if is_up_pressed && input.is_action_pressed(c"jump".into()) {
+                    self.set_state(State::SuperPeelOut);
+                    self.super_peel_out_state = SuperPeeloutState::Charging { timer: 30 }
                 }
             }
-        } else if up_pressed && input.is_action_pressed(c"jump".into()) {
-            self.set_state(State::SuperPeelOut);
-            self.super_peel_out_timer = 30;
+            SuperPeeloutState::Charging { ref mut timer } => {
+                self.ground_speed = 0.0;
+                *timer -= 1;
+                if *timer <= 0 {
+                    self.super_peel_out_state = SuperPeeloutState::Charged;
+                    return;
+                }
+                if !is_up_pressed {
+                    if self.variable_super_peelout {
+                        // Release Super Peelout with variable velocity
+                        let timer = (*timer).clamp(0, 45);
+                        let t = inverse_lerp(0.0, 30.0, timer as f32);
+                        self.ground_speed = ((1.0 - t) * 12.0).max(1.0) * direction;
+                    } else {
+                        // Do nothing
+                        self.set_state(State::Idle);
+                    }
+                    self.super_peel_out_state = SuperPeeloutState::NotCharged;
+                }
+            }
+            SuperPeeloutState::Charged => {
+                if !is_up_pressed {
+                    // Release Super Peelout
+                    let direction = if self.get_flip_h() { -1.0 } else { 1.0 };
+                    self.ground_speed = 12.0 * direction;
+                    self.super_peel_out_state = SuperPeeloutState::NotCharged;
+                }
+            }
         }
     }
 
     fn handle_spindash(&mut self, input: &Gd<Input>, delta: f32) {
         match self.spindash_style {
             SpindashStyle::Genesis => {
-                if self.state.is_spindashing() {
-                    self.ground_speed = 0.0;
-                    self.spindash_charge -=
-                        (self.spindash_charge.div_euclid(0.125)) / 256.0 * delta;
+                let direction = if self.get_flip_h() { -1.0 } else { 1.0 };
+                let is_jump_just_pressed = input.is_action_just_pressed(c"jump".into());
 
-                    if input.is_action_pressed(c"jump".into()) {
-                        self.spindash_charge += 2.0;
+                match self.spindash_genesis_state {
+                    SpindashGenesisState::NotCharged => {
+                        if self.state.is_crouching() && is_jump_just_pressed {
+                            self.set_state(State::Spindash);
+                            self.spindash_genesis_state =
+                                SpindashGenesisState::Charging { charge: 0.0 };
+                            if let Some(dust) = &mut self.spindash_dust {
+                                dust.show();
+                                dust.play();
+                            }
+                        }
                     }
-                    self.spindash_charge = self.spindash_charge.clamp(0.0, 8.0);
-                    if !input.is_action_pressed(c"roll".into()) {
-                        let direction = if self.get_flip_h() { -1.0 } else { 1.0 };
-                        self.ground_speed = (8.0 + self.spindash_charge.floor() / 2.0) * direction;
-                        self.set_state(State::RollingBall);
+                    SpindashGenesisState::Charging { ref mut charge } => {
+                        self.ground_speed = 0.0;
+                        *charge = (charge.div_euclid(0.125)) / 256.0 * delta;
+                        if is_jump_just_pressed {
+                            *charge += 2.0;
+                            if let Some(sprites) = &mut self.sprites {
+                                sprites.set_frame(0);
+                            }
+                            if let Some(dust) = &mut self.spindash_dust {
+                                dust.set_frame(0);
+                            }
+                        }
+                        *charge = charge.clamp(0.0, 8.0);
+                        if !input.is_action_pressed(c"roll".into()) {
+                            self.ground_speed = (8.0 + charge.floor() / 2.0) * direction;
+                            self.set_state(State::RollingBall);
+                            self.spindash_genesis_state = SpindashGenesisState::NotCharged;
+                            if let Some(dust) = &mut self.spindash_dust {
+                                dust.hide();
+                                dust.stop();
+                            }
+                        }
                     }
-                } else if self.state.is_crouching() && input.is_action_pressed(c"jump".into()) {
-                    self.set_state(State::Spindash);
-                    self.spindash_charge = 0.0;
                 }
             }
             SpindashStyle::CD => {
-                if self.state.is_spindashing() {
-                    self.spindash_timer -= 1;
+                let jump_pressed = input.is_action_pressed(c"jump".into());
+                let roll_released = !input.is_action_pressed(c"roll".into());
 
-                    let roll_released = !input.is_action_pressed(c"roll".into());
-                    self.ground_speed = 0.0;
-                    if self.variable_cd_spindash {
-                        if roll_released {
-                            let direction = if self.get_flip_h() { -1.0 } else { 1.0 };
-                            let timer = self.spindash_timer.clamp(0, 45);
-                            let t = inverse_lerp(0.0, 45.0, timer as f32);
-                            self.ground_speed = ((1.0 - t) * 12.0).max(1.0) * direction;
-                            self.set_state(State::RollingBall);
-                        }
-                    } else if roll_released {
-                        if self.spindash_timer <= 0 {
-                            let direction = if self.get_flip_h() { -1.0 } else { 1.0 };
-                            self.ground_speed = 12.0 * direction;
-                            self.set_state(State::RollingBall);
-                        } else {
-                            self.set_state(State::Idle);
+                let direction = if self.get_flip_h() { -1.0 } else { 1.0 };
+                match self.spindash_cd_state {
+                    SpindashCDState::NotCharged => {
+                        if jump_pressed {
+                            self.set_state(State::Spindash);
+                            self.spindash_cd_state = SpindashCDState::Charging { timer: 45 }
                         }
                     }
-                } else if self.state.is_crouching() && input.is_action_pressed(c"jump".into()) {
-                    self.set_state(State::Spindash);
-                    self.spindash_timer = 45;
+                    SpindashCDState::Charging { ref mut timer } => {
+                        *timer -= 1;
+                        if *timer <= 0 {
+                            self.spindash_cd_state = SpindashCDState::Charged;
+                            return;
+                        }
+                        if roll_released {
+                            // Release Super Peelout with variable velocity
+                            if self.variable_cd_spindash {
+                                let timer = (*timer).clamp(0, 45);
+                                let t = inverse_lerp(0.0, 45.0, timer as f32);
+                                self.ground_speed = ((1.0 - t) * 12.0).max(1.0) * direction;
+                                self.set_state(State::RollingBall);
+                            } else {
+                                self.set_state(State::Idle);
+                            }
+                            self.spindash_cd_state = SpindashCDState::NotCharged;
+                        }
+                    }
+                    SpindashCDState::Charged => {
+                        if roll_released {
+                            self.ground_speed = 12.0 * direction;
+                            self.set_state(State::RollingBall);
+                            self.spindash_cd_state = SpindashCDState::NotCharged;
+                        }
+                    }
                 }
             }
             SpindashStyle::None => {}

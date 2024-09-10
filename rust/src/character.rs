@@ -5,13 +5,13 @@ mod grounded;
 mod lifecycle;
 mod utils;
 
-use godot::engine::{AnimatedSprite2D, Area2D, CollisionShape2D};
+use godot::engine::{AnimatedSprite2D, Area2D, CollisionShape2D, Sprite2D};
 use godot::prelude::*;
 use godot_api::{SolidObjectKind, State};
 
 #[derive(GodotConvert, Var, Export, Default, Debug, PartialEq, Eq, Clone, Copy)]
 #[godot(via = GString)]
-enum SpindashStyle {
+pub enum SpindashStyle {
     #[default]
     None,
     Genesis,
@@ -37,6 +37,35 @@ enum DropDashState {
         timer: i32,
     },
     Charged,
+}
+
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+enum SuperPeeloutState {
+    #[default]
+    NotCharged,
+    Charging {
+        timer: i32,
+    },
+    Charged,
+}
+
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+enum SpindashCDState {
+    #[default]
+    NotCharged,
+    Charging {
+        timer: i32,
+    },
+    Charged,
+}
+
+#[derive(Debug, Clone, Copy, Default, PartialEq)]
+enum SpindashGenesisState {
+    #[default]
+    NotCharged,
+    Charging {
+        charge: f32,
+    },
 }
 
 use crate::sensor::Sensor;
@@ -124,17 +153,19 @@ pub struct Character {
     #[export(flags_2d_physics)]
     #[var(get, set = set_collision_layer)]
     collision_layer: u32,
-
     #[export]
     spindash_style: SpindashStyle,
+    #[export]
+    spindash_dust: Option<Gd<AnimatedSprite2D>>,
     spindash_charge: f32,
-    spindash_timer: i32,
+    spindash_cd_state: SpindashCDState,
+    spindash_genesis_state: SpindashGenesisState,
     #[export]
     variable_cd_spindash: bool,
 
     #[export]
     has_super_peel_out: bool,
-    super_peel_out_timer: i32,
+    super_peel_out_state: SuperPeeloutState,
 
     #[export]
     variable_super_peelout: bool,

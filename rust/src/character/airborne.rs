@@ -12,8 +12,9 @@ impl Character {
 
         self.handle_mid_air_action(&input);
 
-        if !self.state.is_hurt() {
-            // Disable input when hurt
+        // Disable input when hurt
+        let can_input = !self.state.is_hurt();
+        if can_input {
             self.handle_variable_jump(&input);
 
             self.air_accelerate(&input, delta);
@@ -76,8 +77,7 @@ impl Character {
                     let is_jump_pressed = input.is_action_just_pressed(c"jump".into());
                     if is_jump_pressed {
                         self.insta_shield_timer = 14;
-                        // Set attacking hitbox
-
+                        // Set bigger attacking hitbox
                         self.set_hitbox_size(Vector2::new(49.0, 49.0));
                     }
                 }

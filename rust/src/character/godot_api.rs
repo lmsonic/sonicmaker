@@ -20,11 +20,12 @@ pub enum State {
     Crouch,
     Spindash,
     SuperPeelOut,
+    LookUp,
 }
 
 impl State {
     pub(super) fn is_ball(self) -> bool {
-        self == Self::JumpBall || self == Self::RollingBall || self == Self::Spindash
+        self == Self::JumpBall || self == Self::RollingBall
     }
 
     /// Returns `true` if the state is [`RollingBall`].
@@ -98,9 +99,17 @@ impl State {
     pub const fn is_jump_ball(self) -> bool {
         matches!(self, Self::JumpBall)
     }
+
+    /// Returns `true` if the state is [`LookUp`].
+    ///
+    /// [`LookUp`]: State::LookUp
+    #[must_use]
+    pub const fn is_looking_up(self) -> bool {
+        matches!(self, Self::LookUp)
+    }
 }
 use crate::{
-    character::Character,
+    character::{Character, SpindashStyle},
     sensor::DetectionResult,
     solid_object::{sloped_solid_object::SlopedSolidObject, SolidObject},
 };
@@ -131,7 +140,7 @@ impl Character {
                 sprite_frames.set_animation_speed(animation, fps.into());
             }
 
-            State::JumpBall | State::RollingBall => {
+            State::JumpBall | State::RollingBall | State::SuperPeelOut => {
                 let frames = (4.0 - self.ground_speed.abs()).max(1.0).floor();
                 let fps = 60.0 / frames;
                 sprite_frames.set_animation_speed(animation, fps.into());
@@ -373,8 +382,7 @@ impl Character {
             State::Idle => self.play_animation(c"idle"),
             State::StartMotion => self.play_animation(c"start_motion"),
             State::FullMotion => self.play_animation(c"full_motion"),
-            // TODO: get the actual spindash animation
-            State::JumpBall | State::RollingBall | State::Spindash => {
+            State::JumpBall | State::RollingBall => {
                 self.play_animation(c"rolling");
             }
             State::Hurt => self.play_animation(c"hurt"),
@@ -382,15 +390,28 @@ impl Character {
             State::Pushing => self.play_animation(c"pushing"),
             State::SpringBounce => self.play_animation(c"spring_bounce"),
             State::Crouch => self.play_animation(c"crouch"),
-            // TODO: get the actual superpeelout animation
-            State::SuperPeelOut => self.play_animation(c"full_motion"),
+            State::SuperPeelOut => self.play_animation(c"super_peel_out"),
+            State::LookUp => self.play_animation(c"look_up"),
+            State::Spindash => {
+                if self.spindash_style == SpindashStyle::CD {
+                    self.play_animation(c"rolling");
+                } else {
+                    self.play_animation(c"spindash");
+                }
+            }
         }
     }
     #[func]
     pub fn set_flip_h(&mut self, value: bool) {
-        if let Some(sprites) = &mut self.sprites {
-            if !self.state.is_skidding() {
+        if !self.state.is_skidding() {
+            if let Some(sprites) = &mut self.sprites {
                 sprites.set_flip_h(value);
+                if let Some(dust) = &mut self.spindash_dust {
+                    dust.set_flip_h(value);
+                    let mut position = dust.get_position();
+                    position.x = if value { 17.0 } else { -17.0 };
+                    dust.set_position(position);
+                }
             }
         }
     }
@@ -477,9 +498,9 @@ impl Character {
         });
 
         self.set_hitbox_size(if mode.is_sideways() {
-            Vector2::new(15.0, height - 3.0)
-        } else {
             Vector2::new(height - 3.0, 15.0)
+        } else {
+            Vector2::new(15.0, height - 3.0)
         });
 
         if let Some(collision_shape) = self.hitbox_shape.as_deref_mut() {
