@@ -1,0 +1,62 @@
+[gd_scene load_steps=9 format=3 uid="uid://mcmpqi5rdpuy"]
+
+[ext_resource type="Script" path="res://game_objects/bumper.gd" id="1_1mpxt"]
+[ext_resource type="Texture2D" uid="uid://ds2mochce3h8u" path="res://assets/spring_yard/bumper.png" id="2_m0m5v"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_pphgw"]
+resource_local_to_scene = true
+size = Vector2(17, 17)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_um16w"]
+atlas = ExtResource("2_m0m5v")
+region = Rect2(0, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_lj14w"]
+atlas = ExtResource("2_m0m5v")
+region = Rect2(32, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ocr7j"]
+atlas = ExtResource("2_m0m5v")
+region = Rect2(64, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ac2dh"]
+atlas = ExtResource("2_m0m5v")
+region = Rect2(0, 0, 32, 32)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_2f0xj"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_um16w")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_lj14w")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ocr7j")
+}],
+"loop": false,
+"name": &"bump",
+"speed": 30.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ac2dh")
+}],
+"loop": false,
+"name": &"default",
+"speed": 5.0
+}]
+
+[node name="Bumper" type="Area2D"]
+monitorable = false
+script = ExtResource("1_1mpxt")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_pphgw")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("SpriteFrames_2f0xj")
+
+[connection signal="area_entered" from="." to="." method="_on_area_entered"]
+[connection signal="animation_finished" from="AnimatedSprite2D" to="." method="_on_animated_sprite_2d_animation_finished"]
