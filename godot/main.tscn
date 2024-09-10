@@ -106,7 +106,6 @@ position = Vector2(1632, -144)
 [node name="Spike" parent="." instance=ExtResource("13_2dqvm")]
 position = Vector2(880, 216)
 moving = true
-direction = 1
 
 [node name="Spring" parent="." instance=ExtResource("14_gvboi")]
 width_radius = 8.0

@@ -147,6 +147,7 @@ pub struct Character {
     drop_dash_max_speed: f32,
 
     drop_dash_state: DropDashState,
+    insta_shield_timer: i32,
 
     #[var(set, get)]
     pub velocity: Vector2,

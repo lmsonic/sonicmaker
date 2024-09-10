@@ -1,7 +1,7 @@
 use crate::character::utils::MotionDirection;
 
 use super::{godot_api::State, Character, DropDashState, MidAirAction};
-use godot::prelude::*;
+use godot::{engine::RectangleShape2D, prelude::*};
 
 impl Character {
     pub(super) fn airborne(&mut self, delta: f32) {
@@ -64,7 +64,24 @@ impl Character {
                     }
                 }
             }
-            MidAirAction::InstaShield => {}
+            MidAirAction::InstaShield => {
+                if self.insta_shield_timer > 0 {
+                    self.insta_shield_timer -= 1;
+                    if self.insta_shield_timer <= 0 {
+                        // Reset hitbox
+                        self.update_shapes();
+                    }
+                }
+                if self.state == State::JumpBall {
+                    let is_jump_pressed = input.is_action_just_pressed(c"jump".into());
+                    if is_jump_pressed {
+                        self.insta_shield_timer = 14;
+                        // Set attacking hitbox
+
+                        self.set_hitbox_size(Vector2::new(49.0, 49.0));
+                    }
+                }
+            }
             MidAirAction::Flying => {}
             MidAirAction::Gliding => {}
             MidAirAction::None => {}

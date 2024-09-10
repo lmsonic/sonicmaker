@@ -3,7 +3,7 @@ use std::f32::consts::TAU;
 use crate::sensor::{DetectionResult, Direction};
 
 use super::Character;
-use godot::prelude::*;
+use godot::{engine::RectangleShape2D, prelude::*};
 use real_consts::{FRAC_PI_2, PI};
 
 pub fn inverse_lerp(a: f32, b: f32, v: f32) -> f32 {
@@ -162,6 +162,26 @@ impl MotionDirection {
     }
 }
 impl Character {
+    pub(super) fn set_sensor_size(&mut self, size: Vector2) {
+        if let Some(mut shape) = self
+            .sensor_shape
+            .as_deref_mut()
+            .and_then(|cs| cs.get_shape())
+            .and_then(|shape| shape.try_cast::<RectangleShape2D>().ok())
+        {
+            shape.set_size(size);
+        }
+    }
+    pub(super) fn set_hitbox_size(&mut self, size: Vector2) {
+        if let Some(collision_shape) = self.hitbox_shape.as_deref_mut() {
+            if let Some(mut rect) = collision_shape
+                .get_shape()
+                .and_then(|shape| shape.try_cast::<RectangleShape2D>().ok())
+            {
+                rect.set_size(size);
+            }
+        }
+    }
     pub(super) fn play_animation(&mut self, animation: impl Into<StringName>) {
         if let Some(sprites) = &mut self.sprites {
             sprites.play_ex().name(animation.into()).done();

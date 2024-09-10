@@ -451,29 +451,19 @@ impl Character {
         let mode = self.current_mode();
         self.attacking = self.state.is_ball();
 
-        if let Some(mut shape) = self
-            .sensor_shape
-            .as_deref_mut()
-            .and_then(|cs| cs.get_shape())
-            .and_then(|shape| shape.try_cast::<RectangleShape2D>().ok())
-        {
-            let mut size = Vector2::new(width, height);
-            if mode.is_sideways() {
-                size = Vector2::new(size.y, size.x);
-            }
-            shape.set_size(size);
-        }
+        self.set_sensor_size(if mode.is_sideways() {
+            Vector2::new(height, width)
+        } else {
+            Vector2::new(width, height)
+        });
+
+        self.set_hitbox_size(if mode.is_sideways() {
+            Vector2::new(15.0, height - 3.0)
+        } else {
+            Vector2::new(height - 3.0, 15.0)
+        });
+
         if let Some(collision_shape) = self.hitbox_shape.as_deref_mut() {
-            if let Some(mut rect) = collision_shape
-                .get_shape()
-                .and_then(|shape| shape.try_cast::<RectangleShape2D>().ok())
-            {
-                let mut size = Vector2::new(15.0, height - 3.0);
-                if mode.is_sideways() {
-                    size = Vector2::new(size.y, size.x);
-                }
-                rect.set_size(size);
-            }
             collision_shape.set_debug_color(if self.attacking {
                 Color::RED.with_alpha(0.2)
             } else {
