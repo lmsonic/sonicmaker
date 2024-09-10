@@ -207,6 +207,29 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
+"texture": SubResource("AtlasTexture_4781p")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_uehbl")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_bsawa")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_78h4q")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_1hxyf")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_bsawa")
+}],
+"loop": true,
+"name": &"rolling_fast",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
 "texture": SubResource("AtlasTexture_51l2l")
 }, {
 "duration": 1.0,
@@ -279,7 +302,7 @@ position = Vector2(0, -19)
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 position = Vector2(0, -4)
 sprite_frames = SubResource("SpriteFrames_fg2lh")
-animation = &"start_motion"
+animation = &"rolling_fast"
 autoplay = "idle"
 
 [node name="RemoteTransform2D" type="RemoteTransform2D" parent="."]

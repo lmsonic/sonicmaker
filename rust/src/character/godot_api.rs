@@ -1,7 +1,7 @@
 #![allow(clippy::needless_pass_by_value)]
 use std::{f32::consts::FRAC_PI_2, ops::Rem};
 
-use godot::{builtin::math::ApproxEq, engine::RectangleShape2D, prelude::*};
+use godot::{builtin::math::ApproxEq, prelude::*};
 use real_consts::{PI, TAU};
 
 #[derive(GodotConvert, Var, Export, Default, Debug, PartialEq, Eq, Clone, Copy)]
@@ -90,6 +90,14 @@ impl State {
     pub const fn is_super_peel_out(self) -> bool {
         matches!(self, Self::SuperPeelOut)
     }
+
+    /// Returns `true` if the state is [`JumpBall`].
+    ///
+    /// [`JumpBall`]: State::JumpBall
+    #[must_use]
+    pub const fn is_jump_ball(self) -> bool {
+        matches!(self, Self::JumpBall)
+    }
 }
 use crate::{
     character::Character,
@@ -166,11 +174,22 @@ impl Character {
         if self.drop_dash_state == DropDashState::Charged {
             self.drop_dash();
         }
+        if self.state.is_jump_ball() {
+            self.set_state(State::Idle);
+            self.update_animation();
+        }
         self.has_jumped = false;
     }
     #[func]
     pub fn set_stand_on_sloped_object(&mut self, object: Gd<SlopedSolidObject>) {
         self.solid_object_to_stand_on = Some(SolidObjectKind::Sloped(object));
+        if self.drop_dash_state == DropDashState::Charged {
+            self.drop_dash();
+        }
+        if self.state.is_jump_ball() {
+            self.set_state(State::Idle);
+            self.update_animation();
+        }
         self.has_jumped = false;
     }
     #[func]

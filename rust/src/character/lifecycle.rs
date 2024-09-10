@@ -149,11 +149,18 @@ impl Character {
             }
         }
 
-        if !(self.state.is_rolling()
+        if self.state.is_rolling() {
+            if self.ground_speed.abs() > 6.0 {
+                self.play_animation(c"rolling_fast");
+            } else {
+                self.play_animation(c"rolling");
+            }
+        }
+
+        if !(self.state.is_ball()
             || self.state.is_skidding()
             || self.state.is_pushing()
             || self.state.is_crouching()
-            || self.state.is_spindashing()
             || self.state.is_super_peel_out())
         {
             if self.ground_speed.abs() >= self.top_speed {
