@@ -68,7 +68,7 @@ positive_side_z_index = 1
 position = Vector2(1920, 89)
 
 [node name="SetTimeScale" type="Node" parent="."]
-process_mode = 3
+process_mode = 4
 script = SubResource("GDScript_43165")
 
 [node name="UI" type="CanvasLayer" parent="."]

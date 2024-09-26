@@ -116,7 +116,6 @@ impl Character {
                         self.set_ground_angle_from_result(result);
                         self.set_grounded(true);
                         self.has_jumped = false;
-
                         self.land_on_floor();
 
                         self.land();
@@ -129,7 +128,7 @@ impl Character {
 
     pub(super) fn land(&mut self) {
         match self.state {
-            State::JumpBall | State::SpringBounce => {
+            State::JumpBall | State::SpringBounce | State::Hurt => {
                 self.set_state(State::Idle);
                 self.update_animation();
             }
@@ -139,6 +138,7 @@ impl Character {
         if self.drop_dash_state == DropDashState::Charged {
             self.drop_dash();
         }
+        self.drop_dash_state = DropDashState::NotCharged;
     }
 
     pub(super) fn drop_dash(&mut self) {
@@ -159,7 +159,7 @@ impl Character {
         self.ground_speed = self
             .ground_speed
             .clamp(-self.drop_dash_max_speed, self.drop_dash_max_speed);
-        self.drop_dash_state = DropDashState::NotCharged;
+
         self.set_state(State::RollingBall);
     }
 
