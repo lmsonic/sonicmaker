@@ -15,7 +15,7 @@ var turning := false
 @onready var main_sprite: AnimatedSprite2D = $MainSprite
 @onready var exhaust: AnimatedSprite2D = $Exhaust
 
-func _physics_process(delta: float) -> void:
+func _physics_process(_delta: float) -> void:
 	if turning:
 		move(0.0)
 		turning = false

@@ -9,13 +9,18 @@ use godot::{
 use crate::character::Character;
 
 use super::{solid_object_collision, Collision};
+/// From: <https://info.sonicretro.org/SPG:Solid_Objects#Sloped_Objects>
+/// In the original games, sloped objects were represented as an array, here we use a collision polygon
 #[derive(GodotClass)]
 #[class(init, base=Area2D)]
 pub struct SlopedSolidObject {
+    /// Set to true to collide only from the top
     #[export]
     top_solid_only: bool,
+    /// Shape is defined by the collision polygon
     #[export]
     collision_polygon: Option<Gd<CollisionPolygon2D>>,
+    /// Used for moving platforms
     #[var]
     velocity: Vector2,
     position_last_frame: Vector2,
@@ -53,6 +58,7 @@ impl SlopedSolidObject {
         self.velocity = position - self.position_last_frame;
         self.position_last_frame = position;
     }
+    /// Flips collision polygon on the x axis , used when changing spring direction
     #[func]
     fn flip_x(&mut self) {
         let Some(shape) = &mut self.collision_polygon else {
@@ -64,6 +70,7 @@ impl SlopedSolidObject {
         }
         shape.set_polygon(polygon);
     }
+    /// Flips collision polygon on the y axis , used when changing spring direction
     #[func]
     fn flip_y(&mut self) {
         let Some(shape) = &mut self.collision_polygon else {
@@ -78,6 +85,7 @@ impl SlopedSolidObject {
 }
 
 impl SlopedSolidObject {
+    /// Collision code
     pub(super) fn sloped_solid_object_collision(&mut self, mut player: Gd<Character>) {
         let player_position = player.get_global_position();
         let (top, bottom) = self.current_top_bottom(player_position);
@@ -98,6 +106,7 @@ impl SlopedSolidObject {
         }
     }
 
+    /// Center relative to the collision polygon
     pub fn global_center(&self) -> Vector2 {
         if let Some(collision_polygon) = &self.collision_polygon {
             return collision_polygon.get_global_position() + self.polygon_center();
@@ -105,8 +114,8 @@ impl SlopedSolidObject {
         self.base().get_global_position() + self.polygon_center()
     }
 
+    /// Calculates the y position of the collision polygon at player.x for both the bottom and top of the polygon
     pub fn current_top_bottom(&self, player_position: Vector2) -> (f32, f32) {
-        // Is player on the top or bottom
         let Some(collision_polygon) = &self.collision_polygon else {
             let position = self.base().get_global_position();
             return (position.y, position.y);
@@ -203,6 +212,7 @@ impl SlopedSolidObject {
                     min = min.min(y);
                     max = max.max(y);
                 } else {
+                    // Vertical line
                     min = min.min(point.y).min(next_point.y);
                     max = max.max(point.y).max(next_point.y);
                 }

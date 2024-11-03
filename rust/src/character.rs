@@ -5,7 +5,7 @@ mod grounded;
 mod lifecycle;
 mod utils;
 
-use godot::engine::{AnimatedSprite2D, Area2D, CollisionShape2D};
+use godot::engine::{AnimatedSprite2D, CollisionShape2D};
 use godot::prelude::*;
 use godot_api::{SolidObjectKind, State};
 
@@ -69,10 +69,13 @@ enum SpindashGenesisState {
 }
 
 use crate::sensor::Sensor;
+/// Player class, the code is from all over <https://info.sonicretro.org/Sonic_Physics_Guide>
+/// but I will point to specifics when needed
 #[allow(clippy::struct_excessive_bools)]
 #[derive(GodotClass)]
 #[class(init, base=Node2D)]
 pub struct Character {
+    /// Character state, used both for logic and animation
     #[export]
     #[var(get, set = set_state)]
     pub(crate) state: State,
@@ -90,7 +93,6 @@ pub struct Character {
     #[var(get, set = set_push_radius)]
     #[init(default = 10.0)]
     push_radius: f32,
-
     #[init(default = 6.5)]
     jump_force: f32,
     #[init(default = 0.09375)]
@@ -101,29 +103,34 @@ pub struct Character {
     deceleration: f32,
     #[init(default = 0.046875)]
     friction: f32,
+    /// Top speed on the air and grounded (except when rolling)
     #[init(default = 6.0)]
     top_speed: f32,
     #[init(default = 0.21875)]
     gravity: f32,
+    /// Slope multiplier when not rolling
     #[init(default = 0.125)]
     slope_factor_normal: f32,
+    /// Slope multiplier rolling up
     #[init(default = 0.078125)]
     slope_factor_rollup: f32,
+    /// Slope multiplier rolling down
     #[init(default = 0.3125)]
     slope_factor_rolldown: f32,
     #[init(default = 0.0234375)]
     roll_friction: f32,
     #[init(default = 0.125)]
     roll_deceleration: f32,
+    /// Top speed when rolling
     #[init(default = 16.0)]
     roll_top_speed: f32,
+    /// Main speed variable, used for maintaining momentum on different slopes and from/to the air
     #[var(set, get)]
     ground_speed: f32,
-
+    /// Debug sensor shape made from the 6 sensors
     #[export]
     sensor_shape: Option<Gd<CollisionShape2D>>,
-    #[export]
-    hitbox_area: Option<Gd<Area2D>>,
+    /// Hitbox debug shape
     #[export]
     hitbox_shape: Option<Gd<CollisionShape2D>>,
     #[export]
@@ -138,37 +145,44 @@ pub struct Character {
     sensor_push_left: Option<Gd<Sensor>>,
     #[export]
     sensor_push_right: Option<Gd<Sensor>>,
+    /// Used for spawning rings when getting hurt
     #[export]
     scattered_ring_scene: Option<Gd<PackedScene>>,
+
     #[export]
     #[var(get,set= set_grounded)]
     is_grounded: bool,
     #[export(range = (0.0, 360.0, 0.001, radians_as_degrees))]
     #[var(get,set= set_ground_angle)]
     ground_angle: f32,
+    /// Used to stop accepting input for a time
     #[var(set, get)]
     control_lock_timer: i32,
+    /// Set to true to display the sensors and ground angle
     #[export]
     debug_draw: bool,
     #[export(flags_2d_physics)]
     #[var(get, set = set_collision_layer)]
     collision_layer: u32,
+    /// Spindash mode, either Genesis(Sonic 2 and 3&K) or Sonic CD
     #[export]
     spindash_style: SpindashStyle,
     #[export]
     spindash_dust: Option<Gd<AnimatedSprite2D>>,
     spindash_cd_state: SpindashCDState,
     spindash_genesis_state: SpindashGenesisState,
+    /// Set to true to make the spindash boost dependent on how much you charge it
     #[export]
     variable_cd_spindash: bool,
 
+    /// Set to true to give the player the Super Peel Out
     #[export]
     has_super_peel_out: bool,
     super_peel_out_state: SuperPeeloutState,
-
+    /// Set to true to make the super peelout boost dependent on how much you charge it
     #[export]
     variable_super_peelout: bool,
-
+    /// Set the mid air action, either DropDash(Mania), InstaShield(3&K), Flying(Tails) or Gliding(Knuckles)
     #[export]
     mid_air_action: MidAirAction,
     #[init(default = 8.0)]
@@ -201,6 +215,7 @@ pub struct Character {
     #[init(default = 0.1875)]
     hurt_gravity: f32,
 
+    /// Set to true to make the delta used for the player fixed to 60 FPS
     #[export]
     #[init(default = true)]
     fix_delta: bool,

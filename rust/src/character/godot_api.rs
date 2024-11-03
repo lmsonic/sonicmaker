@@ -124,6 +124,7 @@ pub enum SolidObjectKind {
 
 #[godot_api]
 impl Character {
+    /// From <https://info.sonicretro.org/SPG:Animations#Variable_Speed_Animation_Timings>
     #[func]
     fn update_animation_speed(&mut self) {
         let Some(sprite) = &mut self.sprites else {
@@ -188,6 +189,7 @@ impl Character {
         self.land();
         self.has_jumped = false;
     }
+    /// From <https://info.sonicretro.org/SPG:Rebound>
     #[func]
     fn on_attacking(&mut self, badnik: Gd<Node2D>, is_boss: bool) {
         if self.is_grounded {
@@ -205,6 +207,7 @@ impl Character {
             self.velocity.y *= -1.0;
         }
     }
+    /// From <https://info.sonicretro.org/SPG:Getting_Hit>
     #[func]
     fn on_hurt(&mut self, hazard: Gd<Node2D>) {
         if self.is_invulnerable() {
@@ -235,6 +238,7 @@ impl Character {
         (!self.state.is_hurt() || self.invulnerability_timer < 64) && self.regather_rings_timer <= 0
     }
 
+    /// From <https://info.sonicretro.org/SPG:Ring_Loss>
     fn scatter_rings(&mut self) {
         if let Some(scattered_ring_scene) = &self.scattered_ring_scene.clone() {
             let ring_starting_angle = f32::to_radians(101.25);
@@ -312,6 +316,7 @@ impl Character {
             angle += TAU;
         }
         if !self.state.is_rolling() {
+            /// Godot rotation is flipped compared to the one used by Sonic Physics Guide :C
             self.base_mut().set_rotation(TAU - angle);
         }
         self.update_sensors();

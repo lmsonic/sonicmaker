@@ -75,8 +75,6 @@ impl FromGodot for RaycastResult {
     }
 }
 
-/// Sensor logic is based on  <https://info.sonicretro.org/SPG:Solid_Tiles#Sensors>
-/// We don't use Godot default collision detection, but these sensors that are more close to the original games instead
 #[derive(GodotClass, Debug)]
 #[class(tool,init, base=Node2D)]
 pub struct Sensor {

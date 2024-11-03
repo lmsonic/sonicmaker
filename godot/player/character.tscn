@@ -447,10 +447,9 @@ size = Vector2(20, 38)
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_j2lx3"]
 size = Vector2(15, 35)
 
-[node name="Character" type="Character" node_paths=PackedStringArray("sprites", "sensor_shape", "hitbox_area", "hitbox_shape", "sensor_floor_left", "sensor_floor_right", "sensor_ceiling_left", "sensor_ceiling_right", "sensor_push_left", "sensor_push_right", "spindash_dust") groups=["player"]]
+[node name="Character" type="Character" node_paths=PackedStringArray("sprites", "sensor_shape", "hitbox_shape", "sensor_floor_left", "sensor_floor_right", "sensor_ceiling_left", "sensor_ceiling_right", "sensor_push_left", "sensor_push_right", "spindash_dust") groups=["player"]]
 sprites = NodePath("AnimatedSprite2D")
 sensor_shape = NodePath("Sensors/SensorShape/CollisionShape2D")
-hitbox_area = NodePath("Sensors/PlayerHitbox")
 hitbox_shape = NodePath("Sensors/PlayerHitbox/CollisionShape2D")
 sensor_floor_left = NodePath("Sensors/SensorFloorLeft")
 sensor_floor_right = NodePath("Sensors/SensorFloorRight")

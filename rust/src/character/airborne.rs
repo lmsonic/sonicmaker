@@ -39,6 +39,7 @@ impl Character {
 
     fn handle_mid_air_action(&mut self, input: &Gd<Input>) {
         match self.mid_air_action {
+            // From <https://info.sonicretro.org/SPG:Special_Abilities#Drop_Dash_.28Mania.29>
             MidAirAction::DropDash => {
                 if self.state == State::JumpBall {
                     let is_jump_pressed = input.is_action_pressed(c"jump".into());
@@ -65,6 +66,7 @@ impl Character {
                     }
                 }
             }
+            // From <https://info.sonicretro.org/SPG:Special_Abilities#Insta-Shield>
             MidAirAction::InstaShield => {
                 if self.insta_shield_timer > 0 {
                     self.insta_shield_timer -= 1;
@@ -87,7 +89,6 @@ impl Character {
             MidAirAction::None => {}
         }
     }
-
     fn tick_spring_bounce_animation(&mut self) {
         if self.spring_bounce_timer > 0 {
             self.spring_bounce_timer -= 1;
@@ -96,12 +97,13 @@ impl Character {
             }
         }
     }
+    /// From <https://info.sonicretro.org/SPG:Jumping#Variable_Jump_Height>
     fn handle_variable_jump(&mut self, input: &Gd<Input>) {
         if self.has_jumped && !input.is_action_pressed(c"jump".into()) && self.velocity.y < -4.0 {
             self.velocity.y = -4.0;
         }
     }
-
+    /// From <https://info.sonicretro.org/SPG:Slope_Collision#Ground_Sensors_.28Airborne.29>
     fn check_floor_air(&mut self) {
         match self.current_motion_direction() {
             MotionDirection::Right | MotionDirection::Left | MotionDirection::Down => {
@@ -141,6 +143,7 @@ impl Character {
         self.drop_dash_state = DropDashState::NotCharged;
     }
 
+    /// From <https://info.sonicretro.org/SPG:Special_Abilities#Drop_Dash_.28Mania.29>
     pub(super) fn drop_dash(&mut self) {
         let facing_left = self.get_flip_h();
 
@@ -163,6 +166,7 @@ impl Character {
         self.set_state(State::RollingBall);
     }
 
+    /// From <https://info.sonicretro.org/SPG:Slope_Collision#Ceiling_Sensors>
     fn check_ceiling_air(&mut self) {
         match self.current_motion_direction() {
             MotionDirection::Right | MotionDirection::Left | MotionDirection::Up => {
@@ -174,10 +178,11 @@ impl Character {
                         self.set_global_position(position);
                         godot_print!("ceiling collision dy:{}", -result.distance);
 
+                        // From <https://info.sonicretro.org/SPG:Slope_Physics#When_Going_Upward>
                         if self.should_land_on_ceiling() {
                             self.set_ground_angle_from_result(result);
                             self.set_grounded(true);
-                            self.land_on_ceiling();
+                            self.ground_speed = self.velocity.y * -self.ground_angle.sin().signum();
                             godot_print!("land on ceiling");
                         } else {
                             self.velocity.y = 0.0;
@@ -190,6 +195,7 @@ impl Character {
         }
     }
 
+    /// From <https://info.sonicretro.org/SPG:Slope_Collision#Push_Sensors_.28Airborne.29>
     fn check_walls_air(&mut self) {
         match self.current_motion_direction() {
             MotionDirection::Up | MotionDirection::Down => {
@@ -221,6 +227,7 @@ impl Character {
         }
     }
 
+    /// From <https://info.sonicretro.org/SPG:Air_State#Air_Rotation>
     fn rotate_to_zero(&mut self) {
         // Rotate ground angle to 0
         if self.state == State::RollingBall || self.state == State::JumpBall {
@@ -239,6 +246,7 @@ impl Character {
         }
     }
 
+    /// From <https://info.sonicretro.org/SPG:Air_State#Gravity>
     fn apply_gravity(&mut self, delta: f32) {
         godot_print!("Apply gravity");
         if self.state.is_hurt() {
@@ -250,6 +258,7 @@ impl Character {
         self.velocity.y = self.velocity.y.min(16.0);
     }
 
+    /// From <https://info.sonicretro.org/SPG:Air_State>
     fn air_accelerate(&mut self, input: &Gd<Input>, delta: f32) {
         if input.is_action_pressed(c"left".into()) {
             godot_print!("Accelerate left");
@@ -265,15 +274,14 @@ impl Character {
         }
     }
 
+    /// From <https://info.sonicretro.org/SPG:Air_State#Air_Drag>
     fn air_drag(&mut self, delta: f32) {
         if self.velocity.y < 0.0 && self.velocity.y > -4.0 {
             godot_print!("Apply drag");
             self.velocity.x -= (self.velocity.x.div_euclid(0.125)) / 256.0 * delta;
         }
     }
-    fn land_on_ceiling(&mut self) {
-        self.ground_speed = self.velocity.y * -self.ground_angle.sin().signum();
-    }
+    /// From <https://info.sonicretro.org/SPG:Slope_Physics#When_Falling_Downward>
     fn land_on_floor(&mut self) {
         #[derive(Default, Debug, PartialEq, Eq, Clone, Copy)]
         enum FloorKind {

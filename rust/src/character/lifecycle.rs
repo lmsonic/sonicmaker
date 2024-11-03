@@ -42,6 +42,7 @@ impl INode2D for Character {
             self.base_mut().queue_redraw();
         }
 
+        // changes delta to assume 60 FPS  if fix_delta is true
         let delta = if self.fix_delta {
             1.0
         } else {
@@ -58,6 +59,7 @@ impl INode2D for Character {
     }
 }
 impl Character {
+    /// From: <https://info.sonicretro.org/SPG:Solid_Objects#Standing_On_Solid_Objects>
     fn stand_on_solid_object(&mut self) {
         let Some(solid_object) = &self.solid_object_to_stand_on else {
             return;
@@ -112,6 +114,7 @@ impl Character {
             godot_print!("walk off solid object");
         }
     }
+    /// From: <https://info.sonicretro.org/SPG:Ring_Loss#Invulnerability>
     fn handle_invulnerability(&mut self) {
         if self.regather_rings_timer > 0 {
             self.regather_rings_timer -= 1;
@@ -137,6 +140,7 @@ impl Character {
         self.set_global_position(position);
     }
 
+    /// From <https://info.sonicretro.org/SPG:Animations#Animation_Rules>
     pub(super) fn update_animation(&mut self) {
         match self.state {
             State::Idle | State::StartMotion | State::FullMotion => {

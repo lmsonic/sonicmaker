@@ -5,6 +5,7 @@ use crate::{
     sensor::{DetectionResult, Sensor, Solidity},
 };
 
+/// All of these are mostly from <https://info.sonicretro.org/SPG:Slope_Collision>
 impl Character {
     pub(super) fn grounded_right_wall_collision(&mut self, distance: f32) {
         let right = self.current_mode().right();

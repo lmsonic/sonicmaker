@@ -11,27 +11,34 @@ use crate::{
     character::{godot_api::State, Character},
     sensor::TILE_SIZE,
 };
+/// From: <https://info.sonicretro.org/SPG:Solid_Objects>
+/// Solid objects use a specific collision compared to solid tiles and there are different kinds
 #[derive(GodotClass)]
 #[class(init, base=Area2D)]
 pub struct SolidObject {
+    /// Width radius of the solid object
     #[export(range = (0.0,100.0, 1.0))]
     #[var(get, set = set_width_radius)]
     #[init(default = 8.0)]
     width_radius: f32,
+    /// Height radius of the solid object
     #[export(range = (0.0,100.0, 1.0))]
     #[var(get, set = set_height_radius)]
     #[init(default = 8.0)]
     height_radius: f32,
+    /// Set to true to collide only from the top
     #[export]
     top_solid_only: bool,
+    /// Set to true for monitors (they have a weird collision)
     #[export]
     is_monitor: bool,
+    /// Debug collision shape, is only for display
     #[export]
     collision_shape: Option<Gd<CollisionShape2D>>,
+    /// Used for moving platforms
     #[var]
     velocity: Vector2,
     position_last_frame: Vector2,
-
     base: Base<Area2D>,
 }
 
@@ -51,6 +58,7 @@ impl IArea2D for SolidObject {
 impl SolidObject {
     #[signal]
     fn collided(collision: Collision, player: Gd<Character>);
+
     #[func]
     fn on_collided(&self, collision: Collision, mut player: Gd<Character>) {
         if collision == Collision::Up {
@@ -72,6 +80,7 @@ impl SolidObject {
             &[collision.to_variant(), player.to_variant()],
         );
     }
+    /// Collision code, separated into its own function so that it can be called in subclasses of `SolidObject`
     #[func]
     fn physics_process(&mut self, _delta: f64) {
         let Some(mut player) = self
@@ -86,6 +95,7 @@ impl SolidObject {
         let position = self.collision_shape_global_position();
         let radius = Vector2::new(self.width_radius, self.height_radius);
         if self.is_monitor {
+            // Don't collide with the monitor if player is attacking (it will collide with the monitor hitbox)
             if !player.bind().get_attacking() {
                 if let Some(collision) = item_monitor_collision(&mut player, position, radius) {
                     self.emit_collided(collision, &player);
@@ -120,6 +130,7 @@ impl SolidObject {
         }
         self.base().get_global_position()
     }
+    /// Updates debug collision shape
     fn update_shape(&self) {
         if let Some(mut rect) = self
             .collision_shape
@@ -156,7 +167,7 @@ fn solid_object_collision(
         solid_object_collision_fully_solid(player, position, radius)
     }
 }
-
+/// From: <https://info.sonicretro.org/SPG:Solid_Objects#Jump_Through_Platforms>
 fn solid_object_collision_top_solid(
     player: &mut Gd<Character>,
     position: Vector2,
@@ -203,7 +214,7 @@ fn solid_object_collision_top_solid(
     );
     Some(Collision::Up)
 }
-
+/// From: <https://info.sonicretro.org/SPG:Solid_Objects#Solid_Objects>
 fn solid_object_collision_fully_solid(
     player: &mut Gd<Character>,
     position: Vector2,
@@ -323,6 +334,7 @@ fn solid_object_collision_fully_solid(
     }
 }
 
+/// Weird item monitor collision code <https://info.sonicretro.org/SPG:Solid_Objects#Item_Monitor>
 fn item_monitor_collision(
     player: &mut Gd<Character>,
     position: Vector2,

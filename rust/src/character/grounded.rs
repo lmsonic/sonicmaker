@@ -77,7 +77,7 @@ impl Character {
             self.set_state(State::Idle);
         }
     }
-
+    /// From <https://info.sonicretro.org/SPG:Special_Abilities#Dash_.28Super_Peel_Out.29>
     fn handle_super_peel_out(&mut self, input: &Gd<Input>) {
         if !self.has_super_peel_out {
             return;
@@ -124,7 +124,7 @@ impl Character {
             }
         }
     }
-
+    /// From <https://info.sonicretro.org/SPG:Special_Abilities#Spindash_.28Sonic_2.2C_3.2C_.26_K.29>
     fn handle_spindash(&mut self, input: &Gd<Input>, delta: f32) {
         match self.spindash_style {
             SpindashStyle::Genesis => {
@@ -168,6 +168,7 @@ impl Character {
                     }
                 }
             }
+            // From <https://info.sonicretro.org/SPG:Special_Abilities#Spindash_.28Sonic_CD.29>
             SpindashStyle::CD => {
                 let jump_pressed = input.is_action_pressed(c"jump".into());
                 let roll_released = !input.is_action_pressed(c"roll".into());
@@ -221,6 +222,7 @@ impl Character {
             self.set_state(State::RollingBall);
         }
     }
+    /// From <https://info.sonicretro.org/SPG:Rolling#Criteria>
     fn check_unrolling(&mut self) {
         if self.state.is_rolling() && self.ground_speed.abs() < 0.5 {
             godot_print!("Unrolling");
@@ -228,6 +230,7 @@ impl Character {
         }
     }
 
+    /// From <https://info.sonicretro.org/SPG:Slope_Physics#Falling_and_Slipping_Down_Slopes>
     fn handle_slipping(&mut self) {
         if self.control_lock_timer <= 0 {
             // Slipping check
@@ -249,7 +252,7 @@ impl Character {
             self.control_lock_timer -= 1;
         }
     }
-
+    /// From <https://info.sonicretro.org/SPG:Slope_Collision#Ground_Sensors_.28Grounded.29>
     pub(super) fn check_floor(&mut self) {
         // Floor checking
         if let Some(result) = self.ground_check(false) {
@@ -265,7 +268,7 @@ impl Character {
             self.set_grounded(false);
         }
     }
-
+    /// From <https://info.sonicretro.org/SPG:Slope_Physics#Moving_Along_Slopes>
     fn update_velocity(&mut self) {
         // Adjust velocity based on slope
         godot_print!("Update velocity based on slope");
@@ -275,6 +278,7 @@ impl Character {
         self.velocity = Vector2::new(x, y);
     }
 
+    /// From <https://info.sonicretro.org/SPG:Slope_Collision#Push_Sensors_.28Grounded.29>
     fn check_walls(&mut self) {
         // Wall checking
 
@@ -295,6 +299,7 @@ impl Character {
         }
     }
 
+    /// From <https://info.sonicretro.org/SPG:Jumping>
     fn handle_jump(&mut self, input: &Gd<Input>) -> bool {
         // Jump Check
         if input.is_action_just_pressed(c"jump".into()) && self.can_jump() {
@@ -314,6 +319,7 @@ impl Character {
         false
     }
 
+    /// From <https://info.sonicretro.org/SPG:Running#Friction>
     fn apply_friction(&mut self, input: &Gd<Input>, delta: f32) {
         // Optional fix: use friction always when control lock is active
 
@@ -328,6 +334,7 @@ impl Character {
         }
     }
 
+    /// From <https://info.sonicretro.org/SPG:Running>
     fn ground_accelerate(&mut self, input: &Gd<Input>, delta: f32) {
         let top_speed = if self.state.is_rolling() {
             self.roll_top_speed
@@ -392,6 +399,7 @@ impl Character {
         }
     }
 
+    /// From: <https://info.sonicretro.org/SPG:Slope_Physics#Slowing_Down_Uphill_And_Speeding_Up_Downhill>
     fn apply_slope_factor(&mut self, delta: f32) {
         const STEEP_ANGLE: f32 = 0.05078125;
         // Slow down uphill and speeding up downhill

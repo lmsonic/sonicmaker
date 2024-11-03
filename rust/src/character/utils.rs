@@ -1,3 +1,5 @@
+#![allow(clippy::just_underscores_and_digits)]
+
 use std::f32::consts::TAU;
 
 use crate::sensor::{DetectionResult, Direction};
@@ -9,7 +11,7 @@ use real_consts::{FRAC_PI_2, PI};
 pub fn inverse_lerp(a: f32, b: f32, v: f32) -> f32 {
     (v - a) / (b - a)
 }
-
+/// From : <https://info.sonicretro.org/SPG:Slope_Collision#360_Degree_Collision>
 #[derive(Default, Debug, PartialEq, Eq, Clone, Copy)]
 pub(super) enum Mode {
     #[default]
@@ -134,6 +136,7 @@ impl Mode {
         self == Self::RightWall || self == Self::LeftWall
     }
 }
+/// From: <https://info.sonicretro.org/SPG:Slope_Collision#Airborne_Sensor_Activation>
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum MotionDirection {
     Right,
@@ -203,16 +206,19 @@ impl Character {
     pub(super) fn is_uphill(&self) -> bool {
         self.ground_speed.signum() == self.ground_angle.sin().signum()
     }
+    /// From <https://info.sonicretro.org/SPG:Slope_Collision#Jump_Check>
     pub(super) fn can_jump(&self) -> bool {
         if let Some(result) = self.ceiling_check(false) {
             return result.distance >= 6.0;
         }
         true
     }
+    /// From: <https://info.sonicretro.org/SPG:Rolling#Criteria>
     pub(super) fn can_roll(&self) -> bool {
         self.ground_speed.abs() > 1.0
     }
 
+    /// From: <https://info.sonicretro.org/SPG:Slope_Physics#Falling_and_Slipping_Down_Slopes>
     #[allow(clippy::just_underscores_and_digits)]
     pub(super) fn is_slipping(&self) -> bool {
         // let _46 = f32::to_radians(46.0);
@@ -225,13 +231,14 @@ impl Character {
         // Sonic 3
         (_35..=_326).contains(&self.ground_angle)
     }
-    #[allow(clippy::just_underscores_and_digits)]
+    /// From: <https://info.sonicretro.org/SPG:Slope_Physics#Falling_and_Slipping_Down_Slopes>
     pub(super) fn is_falling(&self) -> bool {
         let _69 = f32::to_radians(69.0);
         let _293 = f32::to_radians(293.0);
         // Sonic 3
         (_69..=_293).contains(&self.ground_angle)
     }
+    /// From: <https://info.sonicretro.org/SPG:Slope_Collision#Ground_Sensors_.28Grounded.29>
     pub(super) fn should_snap_to_floor(&self, result: DetectionResult) -> bool {
         // Sonic 1
         // return result.distance > -14.0 && result.distance < 14.0;
@@ -244,6 +251,7 @@ impl Character {
             distance <= (self.velocity.x.abs() + 4.0).min(14.0) && distance >= -14.0
         }
     }
+    /// From: <https://info.sonicretro.org/SPG:Slope_Collision#Process_3>
     pub(super) fn is_landed(&self, result: DetectionResult) -> bool {
         if result.distance >= 0.0 {
             return false;
@@ -258,14 +266,15 @@ impl Character {
             MotionDirection::Up => false,
         }
     }
-    #[allow(clippy::just_underscores_and_digits)]
+    /// From: <https://info.sonicretro.org/SPG:Slope_Collision#Process_4>
     pub(super) fn should_land_on_ceiling(&self) -> bool {
         let _91 = f32::to_radians(91.0);
         let _225 = f32::to_radians(225.0);
         let motion_direction = MotionDirection::from_velocity(self.velocity);
         (_91..=_225).contains(&self.ground_angle) && motion_direction == MotionDirection::Up
     }
-    #[allow(clippy::just_underscores_and_digits)]
+
+    /// From: <https://info.sonicretro.org/SPG:Slope_Collision#Push_Sensors_.28Grounded.29>
     pub(super) fn should_activate_wall_sensors(&self) -> bool {
         let _270 = f32::to_radians(270.0);
         (0.0..=FRAC_PI_2).contains(&self.ground_angle)
