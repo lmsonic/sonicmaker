@@ -1,3 +1,4 @@
+## From https://info.sonicretro.org/SPG:Game_Objects#Springs vertical and horizontal
 @tool
 class_name Spring extends SolidObject
 

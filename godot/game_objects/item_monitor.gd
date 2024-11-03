@@ -1,10 +1,12 @@
+## From https://info.sonicretro.org/SPG:Game_Objects#Item_Monitors
+
 extends SolidObject
 @export var fall_gravity := 0.21875
 @export var rings := 10
 @onready var sprite_2d: Sprite2D = $Sprite2D
 
 @onready var sensor: Sensor = $Sensor
-var destroyed:=false
+var destroyed := false
 var is_falling := false
 var velocity_y := 0.0
 func _physics_process(delta: float) -> void:
@@ -42,8 +44,8 @@ func _on_item_monitor_hitbox_area_entered(area: Area2D) -> void:
 		queue_free()
 
 
-func spawn(scene:PackedScene) -> Node2D:
-	var node :Node2D= scene.instantiate()
+func spawn(scene: PackedScene) -> Node2D:
+	var node: Node2D = scene.instantiate()
 	node.global_position = global_position
 	get_tree().current_scene.add_child(node)
 	return node

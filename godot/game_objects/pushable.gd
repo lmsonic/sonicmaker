@@ -1,3 +1,5 @@
+## From https://info.sonicretro.org/SPG:Solid_Objects#Pushable_Blocks and
+##  https://info.sonicretro.org/SPG:Game_Objects#Pushable_Blocks
 extends SolidObject
 
 @export var fall_gravity := 0.21875

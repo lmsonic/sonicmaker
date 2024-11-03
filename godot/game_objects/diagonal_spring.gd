@@ -1,3 +1,4 @@
+## From https://info.sonicretro.org/SPG:Game_Objects#Diagonal_Springs
 @tool extends SlopedSolidObject
 
 enum Direction {
@@ -6,7 +7,7 @@ enum Direction {
 	BottomRight,
 	BottomLeft
 }
-@export var debug_trajectory:=false:
+@export var debug_trajectory := false:
 	set(value):
 		debug_trajectory = value
 		queue_redraw()
@@ -86,7 +87,7 @@ func update_sprite() -> void:
 		Direction.BottomRight: sprite.rotation = PI / 2.0
 		Direction.BottomLeft: sprite.rotation = PI
 
-@export var spring_force := 16.0 :
+@export var spring_force := 16.0:
 	set(value):
 		spring_force = value
 		queue_redraw()
@@ -106,11 +107,11 @@ func spring(player: Character) -> void:
 	var vector := direction_vector()
 	player.global_position -= vector * 8.0
 	player.velocity = vector * spring_force
-	var animation := sprite.animation.replace("relaxed","spring")
+	var animation := sprite.animation.replace("relaxed", "spring")
 	sprite.play(animation)
 
 
 func _on_animated_sprite_2d_animation_finished() -> void:
 	if sprite.animation.begins_with("spring"):
-		var animation := sprite.animation.replace("spring","relaxed")
+		var animation := sprite.animation.replace("spring", "relaxed")
 		sprite.play(animation)

@@ -1,3 +1,5 @@
+# From https://info.sonicretro.org/SPG:Game_Objects#Scattered_Rings
+
 extends Ring
 @onready var sensor: Sensor = $Sensor
 

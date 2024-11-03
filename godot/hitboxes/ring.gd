@@ -1,3 +1,4 @@
+## From https://info.sonicretro.org/SPG:Game_Objects#Rings
 class_name Ring extends Area2D
 
 @export var amount := 1

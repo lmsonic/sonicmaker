@@ -1,3 +1,4 @@
+## From https://info.sonicretro.org/SPG:Game_Objects#Bumpers
 extends Area2D
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 

@@ -1,3 +1,4 @@
+## From https://info.sonicretro.org/SPG:Game_Enemies#Motobugs
 extends Node2D
 @onready var sensor: Sensor = $Sensor
 @export var height_radius := 14.0

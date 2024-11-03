@@ -1,3 +1,4 @@
+## From https://info.sonicretro.org/SPG:Game_Objects#Spikes
 @tool class_name Spike extends SolidObject
 
 @export var moving := false
