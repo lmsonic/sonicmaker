@@ -39,13 +39,13 @@ Feature completion:
   - [ ] Seesaws
   - [ ] Flippers
   - [ ] Fans
-  - [ ] 21 Spike Traps
+  - [ ] Spike Traps
   - [ ] Conveyor Belts
-  - [ ]  Spring Ramps
-  - [ ]  Spring Caps
-  - [ ]  Spinners
-  - [ ]  Ski Lifts
-  - [ ]  Balloons
+  - [ ] Spring Ramps
+  - [ ] Spring Caps
+  - [ ] Spinners
+  - [ ] Ski Lifts
+  - [ ] Balloons
   - [ ] Cannons
   - [ ] Bouncy Mushrooms
 - Enemies
