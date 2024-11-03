@@ -19,6 +19,8 @@ Feature completion:
 - [x] Camera
   - [ ] Looking up and down movement of the camera
 - [ ] UI
+- [ ] Music
+- [ ] Sound effects
 - [ ] Shields
 - [ ] Special stages
 - Game Objects
