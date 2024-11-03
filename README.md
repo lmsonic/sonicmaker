@@ -1,7 +1,11 @@
 # Sonic Maker
+
+
 A port to Godot 4.3 of the old school 2D Sonic the Hedgehog games (Sonic 1,2,3&K, CD, Mania), following [Sonic Physics Guide](https://info.sonicretro.org/Sonic_Physics_Guide)
 
 Uses [godot-rust](https://godot-rust.github.io/), if you make changes to the rust code remember to rebuild it!
+
+<img src="https://github.com/user-attachments/assets/633509ef-63dd-4029-b83a-35387e0b72de" width="50%" height="50%">
 
 ### Feature completion:
 
