@@ -23,7 +23,7 @@ Feature completion:
 - [ ] Sound effects
 - [ ] Shields
 - [ ] Special stages
-- Game Objects
+#### Game Objects
   - [x] Rings
   - [x] Spikes
   - [x] (Diagonal) Springs
@@ -51,13 +51,13 @@ Feature completion:
   - [ ] Balloons
   - [ ] Cannons
   - [ ] Bouncy Mushrooms
-- Enemies
+#### Enemies
   - [x] Motobug
   - [ ] Choppers
   - [ ] Buzz Bombers
   - [ ] Crabmeats
   - [ ] Caterkillers
-- Stages
+#### Stages
   - [x] Test stage
   - [ ] Green Hill recreation
       
