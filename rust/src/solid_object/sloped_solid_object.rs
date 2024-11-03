@@ -33,7 +33,7 @@ impl IArea2D for SlopedSolidObject {
 impl SlopedSolidObject {
     #[signal]
     fn collided(collision: Collision, player: Gd<Character>);
-    fn emit_collided(&mut self, collision: Collision, player: Gd<Character>) {
+    fn emit_collided(&mut self, collision: Collision, player: &Gd<Character>) {
         self.base_mut().emit_signal(
             "collided".into(),
             &[collision.to_variant(), player.to_variant()],
@@ -94,7 +94,7 @@ impl SlopedSolidObject {
                     .bind_mut()
                     .set_stand_on_sloped_object(self.base().clone().cast::<Self>());
             }
-            self.emit_collided(collision, player);
+            self.emit_collided(collision, &player);
         }
     }
 

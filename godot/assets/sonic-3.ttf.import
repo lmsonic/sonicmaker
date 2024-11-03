@@ -15,6 +15,7 @@ dest_files=["res://.godot/imported/sonic-3.ttf-4548e2590f42c7cf2f3a2585977feb39.
 Rendering=null
 antialiasing=1
 generate_mipmaps=false
+disable_embedded_bitmaps=true
 multichannel_signed_distance_field=false
 msdf_pixel_range=8
 msdf_size=48

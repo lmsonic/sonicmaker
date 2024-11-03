@@ -20,37 +20,52 @@ enum SwitcherTypeChange {
     ZIndex,
     Both,
 }
+
+/// From <https://info.sonicretro.org/SPG:Solid_Terrain#Layers>
+/// It switches either collision layer, Z-index, or both when going from one side to the other
 #[derive(GodotClass)]
 #[class(tool,init, base=Node2D)]
 struct LayerSwitcher {
+    /// Size of the layer switcher, it will not collide outside of it
     #[export(range = (0.0, 100.0,1.0,or_greater))]
     #[var(get,set = set_length)]
     #[init(default = 50.0)]
     length: f32,
 
+    /// Direction of the switcher, either horizontal or vertical
     #[export]
     #[var(get,set = set_direction)]
     direction: Direction,
+    /// Collision shape only for debug purposes, we don't use Godot collision detection
     #[export]
     collision_shape: Option<Gd<CollisionShape2D>>,
     base: Base<Node2D>,
+    /// Set to true for making it switch layers only when the player is grounded (for example, at the top of a loop)
     #[export]
     grounded_only: bool,
+    /// Switcher functionality, either changes physics layer, z-index or both
     #[export]
     change_type: SwitcherTypeChange,
 
-    // Negative: Left or Down
-    // Positive: Right or Up
+    /// Negative: Left or Down
+    /// Physics layer on the negative side
     #[export(flags_3d_physics)]
     negative_side_layer: u32,
+    /// Negative: Left or Down
+    /// Z-index on the negative side
     #[export]
     negative_side_z_index: i32,
+    /// Positive: Right or Up
+    /// Physics layer on the positive side
     #[export(flags_3d_physics)]
     positive_side_layer: u32,
+    /// Positive: Right or Up
+    /// Z-index on the positive side
     #[export]
     positive_side_z_index: i32,
     #[export]
     current_side_of_player: bool,
+    /// Set to true to change layers for the player even when moving it in the editor
     #[export]
     enable_in_editor: bool,
 }
@@ -60,6 +75,7 @@ impl INode2D for LayerSwitcher {
         if Engine::singleton().is_editor_hint() && !self.enable_in_editor {
             return;
         }
+        // Collision check
         if let Some(mut player) = self.get_player() {
             let is_player_on_positive_side = self.is_player_on_positive_side(&player);
             let is_player_grounded = player.bind().get_is_grounded();
@@ -119,6 +135,7 @@ impl LayerSwitcher {
 }
 
 impl LayerSwitcher {
+    /// Boilerplate to fetch the player from node groups
     fn get_player(&self) -> Option<Gd<Character>> {
         self.base()
             .get_tree()?
@@ -126,6 +143,7 @@ impl LayerSwitcher {
             .try_cast::<Character>()
             .ok()
     }
+    /// Returns true if the player has crossed the layer switcher
     fn check_player_entered(&self, player: &Gd<Character>) -> bool {
         let position = self.base().get_global_position();
         let player_position = player.get_global_position();
@@ -138,6 +156,8 @@ impl LayerSwitcher {
             Direction::Vertical => &player_position.y,
         })
     }
+    /// Returns true if the player is on the positive side (Up,Right) and
+    /// false if the player is on the negative side (Down,Left)
     fn is_player_on_positive_side(&self, player: &Gd<Character>) -> bool {
         let player_position = player.get_global_position();
         let position = self.base().get_global_position();
@@ -147,6 +167,7 @@ impl LayerSwitcher {
             Direction::Vertical => player_position.x >= position.x,
         }
     }
+    /// Changes physics layer and/or z-index for the player
     fn switch(&self, player: &mut Gd<Character>, current_player_side: bool) {
         let layer = if current_player_side {
             self.positive_side_layer
@@ -168,6 +189,7 @@ impl LayerSwitcher {
         }
         player.bind_mut().update_sensors();
     }
+    /// Updates debug collision shape
     fn update_segment(&self, mut segment: Gd<SegmentShape2D>) {
         match self.direction {
             Direction::Vertical => {

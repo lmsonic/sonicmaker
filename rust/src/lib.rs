@@ -1,8 +1,9 @@
+/// Most of the code in this project is based on <https://info.sonicretro.org/Sonic_Physics_Guide>
 mod character;
 
-mod layer_switcher;
+pub mod layer_switcher;
 mod level_maker;
-mod sensor;
+pub mod sensor;
 mod solid_object;
 
 mod solid_path_2d;

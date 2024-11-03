@@ -66,7 +66,7 @@ impl SolidObject {
             player.bind_mut().set_state(State::Pushing);
         }
     }
-    fn emit_collided(&mut self, collision: Collision, player: Gd<Character>) {
+    fn emit_collided(&mut self, collision: Collision, player: &Gd<Character>) {
         self.base_mut().emit_signal(
             "collided".into(),
             &[collision.to_variant(), player.to_variant()],
@@ -88,13 +88,13 @@ impl SolidObject {
         if self.is_monitor {
             if !player.bind().get_attacking() {
                 if let Some(collision) = item_monitor_collision(&mut player, position, radius) {
-                    self.emit_collided(collision, player);
+                    self.emit_collided(collision, &player);
                 }
             }
         } else if let Some(collision) =
             solid_object_collision(&mut player, position, radius, self.top_solid_only)
         {
-            self.emit_collided(collision, player);
+            self.emit_collided(collision, &player);
         }
 
         let position = self.base().get_global_position();

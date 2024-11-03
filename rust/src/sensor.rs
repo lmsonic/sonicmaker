@@ -75,24 +75,32 @@ impl FromGodot for RaycastResult {
     }
 }
 
-#[derive(GodotClass)]
+/// Sensor logic is based on  <https://info.sonicretro.org/SPG:Solid_Tiles#Sensors>
+/// We don't use Godot default collision detection, but these sensors that are more close to the original games instead
+#[derive(GodotClass, Debug)]
 #[class(tool,init, base=Node2D)]
 pub struct Sensor {
+    /// Direction where the sensor points
     #[export]
     #[var(get, set = set_direction)]
     direction: Direction,
+    /// Set to true if you want the sensor collision updates to happen in the editor
     #[export]
     update_in_editor: bool,
+    /// Set to true if you want the sensor shape to be shown
     #[export]
     display_debug_shape: bool,
+    /// Set to true if you want the sensor data (angle, distance, and if it collides) shown
     #[export]
     display_debug_label: bool,
     last_collision_point: Option<Vector2>,
     last_result: Option<DetectionResult>,
+    /// What physics layers sensor should collide with
     #[export(flags_2d_physics)]
     #[var(get, set)]
     #[init(default = 1)]
     collision_mask: u32,
+    /// Sensor debug shape color
     #[export]
     #[init(default = Color::from_rgba(0.0, 0.6, 0.7, 0.42))]
     debug_color: Color,
@@ -106,6 +114,7 @@ pub enum Solidity {
     Fully,
     Top,
 }
+
 #[derive(Debug, Clone, Copy)]
 pub struct DetectionResult {
     pub distance: f32,
@@ -186,6 +195,7 @@ impl Sensor {
         self.direction = value;
     }
 
+    /// Converts the sensed DetectionResult to a GodotDictionary for access from GDScript
     #[func]
     pub fn sense_godot(&mut self) -> Variant {
         self.sense()
@@ -207,7 +217,7 @@ impl Sensor {
     fn global_position(&self) -> Vector2 {
         self.base().get_global_position()
     }
-
+    /// Shows debug shape and debug data if activated
     fn draw_ray(&mut self) {
         let debug_color = self.debug_color;
         if let Some(point) = self.last_collision_point {
@@ -252,7 +262,7 @@ impl Sensor {
                 .done();
         }
     }
-
+    /// From: <https://info.sonicretro.org/SPG:Solid_Tiles#Sensor_Regression_.26_Extension>
     pub fn sense(&mut self) -> Option<DetectionResult> {
         let target_direction = self.direction.target_direction();
         let snapped_position = self.snapped_position();
@@ -285,6 +295,7 @@ impl Sensor {
         result
     }
 
+    /// Boilerplate function to cast a raycast
     fn raycast(&self, from: Vector2, to: Vector2) -> Option<RaycastResult> {
         let mut space_state = self.base().get_world_2d()?.get_direct_space_state()?;
         let mask = self.collision_mask;
@@ -302,6 +313,7 @@ impl Sensor {
         }
     }
 
+    /// Uses the `RaycastResult` information to produce a `DetectionResult`
     fn get_detection(&mut self, result: &RaycastResult) -> DetectionResult {
         let collision_point = result.position;
         self.last_collision_point = Some(collision_point);
@@ -314,6 +326,7 @@ impl Sensor {
             } else {
                 false
             };
+            // Checking for flagged tiles: https://info.sonicretro.org/SPG:Solid_Tiles#Flagged_Tiles
             let snapped =
                 polygon_full || tile_data.get_custom_data("snap".into_godot()).booleanize();
             let solidity = if tile_data.get_collision_polygons_count(layer) > 0
@@ -336,7 +349,7 @@ impl Sensor {
             normal == Vector2::ZERO || snapped,
         )
     }
-
+    /// Absolute distance from current global position to the collision point
     fn get_distance(&self, collision_point: Vector2) -> f32 {
         let position = self.global_position();
         match self.direction {
@@ -347,6 +360,7 @@ impl Sensor {
         }
     }
 
+    /// Returns the current global position snapped to `TILE_SIZE`
     fn snapped_position(&self) -> Vector2 {
         let mut position = self.global_position();
         match self.direction {
@@ -360,6 +374,7 @@ impl Sensor {
     }
 }
 
+/// If the `RaycastResult` has collided with a physics body attached to a `TileMap` , it will return the `TileData` for it
 fn get_collided_tile_data(raycast_result: &RaycastResult) -> Option<(i32, Gd<TileData>)> {
     let collider_rid = raycast_result.rid;
     let mut tilemap = raycast_result.collider.clone().try_cast::<TileMap>().ok()?;

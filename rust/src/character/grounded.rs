@@ -103,6 +103,7 @@ impl Character {
                     if self.variable_super_peelout {
                         // Release Super Peelout with variable velocity
                         let timer = (*timer).clamp(0, 45);
+                        #[allow(clippy::cast_precision_loss)]
                         let t = inverse_lerp(0.0, 30.0, timer as f32);
                         self.ground_speed = ((1.0 - t) * 12.0).max(1.0) * direction;
                     } else {
@@ -190,6 +191,7 @@ impl Character {
                             // Release Super Peelout with variable velocity
                             if self.variable_cd_spindash {
                                 let timer = (*timer).clamp(0, 45);
+                                #[allow(clippy::cast_precision_loss)]
                                 let t = inverse_lerp(0.0, 45.0, timer as f32);
                                 self.ground_speed = ((1.0 - t) * 12.0).max(1.0) * direction;
                                 self.set_state(State::RollingBall);
