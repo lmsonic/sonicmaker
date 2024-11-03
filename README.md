@@ -2,7 +2,8 @@
 A port to Godot 4.3 of the old school 2D Sonic the Hedgehog games (Sonic 1,2,3&K, CD, Mania), following [Sonic Physics Guide](https://info.sonicretro.org/Sonic_Physics_Guide)
 
 Uses [godot-rust](https://godot-rust.github.io/), if you make changes to the rust code remember to rebuild it!
-Feature completion:
+
+### Feature completion:
 
 - [x] Accurate player slope collision and physics
   - [x] Running 
