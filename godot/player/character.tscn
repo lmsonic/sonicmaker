@@ -547,6 +547,7 @@ debug_color = Color(0, 0, 1, 0.2)
 process_physics_priority = 1
 offset = Vector2(0, 16)
 process_callback = 0
+limit_bottom = 250
 position_smoothing_speed = 24.0
 drag_horizontal_enabled = true
 drag_left_margin = 0.05
