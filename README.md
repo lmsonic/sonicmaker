@@ -16,17 +16,19 @@ Uses [godot-rust](https://godot-rust.github.io/), if you make changes to the rus
   - [x] Getting hit
   - [x] Attacking + Badnik bounce
   - [ ] Underwater
-  - [ ] Super Fast Shoes
   - [ ] Super Forms
 - [x] Tile collision
 - [x] Hitboxes
 - [x] (Sloped) Solid Objects
 - [x] Camera
   - [ ] Looking up and down movement of the camera
+- [x] Parallax background
 - [ ] UI
 - [ ] Music
 - [ ] Sound effects
 - [ ] Shields
+- [ ] Super Fast Shoes
+- [ ] Invincibility
 - [ ] Special stages
 #### Game Objects
   - [x] Rings
