@@ -1,5 +1,6 @@
-[gd_scene load_steps=17 format=3 uid="uid://b355vujfc1cmg"]
+[gd_scene load_steps=18 format=3 uid="uid://b355vujfc1cmg"]
 
+[ext_resource type="Texture2D" uid="uid://b24533huvjwml" path="res://assets/green_hill/background/TopLayer.png" id="1_dly53"]
 [ext_resource type="Texture2D" uid="uid://dphpj2sjn2xo7" path="res://assets/green_hill/background/Layer 1.png" id="1_x1hha"]
 [ext_resource type="Texture2D" uid="uid://b2o06mujgjdwq" path="res://assets/green_hill/background/Layer 2.png" id="2_3h8fm"]
 [ext_resource type="Texture2D" uid="uid://dwefcwmd4q4h3" path="res://assets/green_hill/background/Layer 3.png" id="3_3oj12"]
@@ -80,37 +81,44 @@ animations = [{
 }]
 
 [node name="Background" type="CanvasLayer"]
+follow_viewport_enabled = true
+
+[node name="TopLayer" type="Parallax2D" parent="."]
+scroll_scale = Vector2(0, 0.05)
+
+[node name="Sprite2D" type="Sprite2D" parent="TopLayer"]
+texture = ExtResource("1_dly53")
 
 [node name="Layer1" type="Parallax2D" parent="."]
-scroll_scale = Vector2(1.1, 1)
+scroll_scale = Vector2(0.1, 0.05)
 
 [node name="Sprite2D" type="Sprite2D" parent="Layer1"]
 position = Vector2(0, 16)
 texture = ExtResource("1_x1hha")
 
 [node name="Layer2" type="Parallax2D" parent="."]
-scroll_scale = Vector2(1.125, 1)
+scroll_scale = Vector2(0.125, 0.05)
 
 [node name="Sprite2D" type="Sprite2D" parent="Layer2"]
 position = Vector2(0, 40)
 texture = ExtResource("2_3h8fm")
 
 [node name="Layer3" type="Parallax2D" parent="."]
-scroll_scale = Vector2(1.15, 1)
+scroll_scale = Vector2(0.15, 0.05)
 
 [node name="Sprite2D" type="Sprite2D" parent="Layer3"]
 position = Vector2(0, 56)
 texture = ExtResource("3_3oj12")
 
 [node name="Layer4" type="Parallax2D" parent="."]
-scroll_scale = Vector2(1.2, 1)
+scroll_scale = Vector2(0.2, 0.05)
 
 [node name="Sprite2D" type="Sprite2D" parent="Layer4"]
 position = Vector2(0, 88)
 texture = ExtResource("4_l1ka5")
 
 [node name="Layer5" type="Parallax2D" parent="."]
-scroll_scale = Vector2(1.25, 1)
+scroll_scale = Vector2(0.25, 0.05)
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="Layer5"]
 position = Vector2(0, 128)
@@ -119,7 +127,7 @@ autoplay = "default"
 frame_progress = 0.864927
 
 [node name="Layer6" type="Parallax2D" parent="."]
-scroll_scale = Vector2(1.3, 1)
+scroll_scale = Vector2(0.3, 0.05)
 repeat_times = 2
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="Layer6"]
