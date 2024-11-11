@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://ccuwd3jj28rjo"
-path="res://.godot/imported/grid.png-e61ebc674aefe8e740cc2fc022a524b8.ctex"
+uid="uid://pef0kmg5brjv"
+path="res://.godot/imported/additions.png-a0d08086d19167fa8e898a41e22222fa.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/green_hill/grid.png"
-dest_files=["res://.godot/imported/grid.png-e61ebc674aefe8e740cc2fc022a524b8.ctex"]
+source_file="res://assets/green_hill/tileset/additions.png"
+dest_files=["res://.godot/imported/additions.png-a0d08086d19167fa8e898a41e22222fa.ctex"]
 
 [params]
 

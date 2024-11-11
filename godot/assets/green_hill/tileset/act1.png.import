@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://1ntodevcw2xm"
-path="res://.godot/imported/greenhill.png-1be6cc1d06c63b7e494f58df89143e11.ctex"
+uid="uid://bfkwu40qgohr2"
+path="res://.godot/imported/act1.png-fdec9501127f28a9c44661cb384c1850.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/green_hill/greenhill.png"
-dest_files=["res://.godot/imported/greenhill.png-1be6cc1d06c63b7e494f58df89143e11.ctex"]
+source_file="res://assets/green_hill/act1.png"
+dest_files=["res://.godot/imported/act1.png-fdec9501127f28a9c44661cb384c1850.ctex"]
 
 [params]
 

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://pd08xeejuvnb"
-path="res://.godot/imported/backgrounds.png-21a97c4363a3f86b91ddc144992e5cbf.ctex"
+uid="uid://bhhphlpno85v3"
+path="res://.godot/imported/Background.png-8b2ab60cb4901c57d071f42afe1bd3b5.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/green_hill/backgrounds.png"
-dest_files=["res://.godot/imported/backgrounds.png-21a97c4363a3f86b91ddc144992e5cbf.ctex"]
+source_file="res://assets/green_hill/background/Background.png"
+dest_files=["res://.godot/imported/Background.png-8b2ab60cb4901c57d071f42afe1bd3b5.ctex"]
 
 [params]
 

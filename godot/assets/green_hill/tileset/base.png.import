@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c8j6ahymdsuhe"
-path="res://.godot/imported/base.png-5476338a29f9e73a832c55f04b413433.ctex"
+path="res://.godot/imported/base.png-2c05fbad8b1da77ce13e04af7f5fa42d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/green_hill/base.png"
-dest_files=["res://.godot/imported/base.png-5476338a29f9e73a832c55f04b413433.ctex"]
+source_file="res://assets/green_hill/tileset/base.png"
+dest_files=["res://.godot/imported/base.png-2c05fbad8b1da77ce13e04af7f5fa42d.ctex"]
 
 [params]
 

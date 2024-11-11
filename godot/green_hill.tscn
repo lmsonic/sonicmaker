@@ -1,0 +1,37 @@
+[gd_scene load_steps=4 format=3 uid="uid://dygbglpabof6s"]
+
+[ext_resource type="Texture2D" uid="uid://c2fsusasj1y0o" path="res://assets/green_hill/tileset/animatedact1.png" id="1_kfeiv"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_c7lrr"]
+texture = ExtResource("1_kfeiv")
+0:0/size_in_atlas = Vector2i(2, 3)
+0:0/animation_columns = 5
+0:0/animation_mode = 1
+0:0/animation_frame_0/duration = 1.0
+0:0/animation_frame_1/duration = 1.0
+0:0/animation_frame_2/duration = 2.0
+0:0/animation_frame_3/duration = 1.0
+0:0/animation_frame_4/duration = 2.0
+0:0/0 = 0
+10:0/size_in_atlas = Vector2i(2, 2)
+10:0/animation_columns = 2
+10:0/animation_speed = 2.0
+10:0/animation_frame_0/duration = 1.0
+10:0/animation_frame_1/duration = 1.0
+10:0/0 = 0
+14:0/size_in_atlas = Vector2i(2, 2)
+14:0/animation_columns = 4
+14:0/animation_speed = 5.0
+14:0/animation_frame_0/duration = 1.0
+14:0/animation_frame_1/duration = 1.0
+14:0/animation_frame_2/duration = 1.0
+14:0/animation_frame_3/duration = 1.0
+14:0/0 = 0
+
+[sub_resource type="TileSet" id="TileSet_u66nf"]
+sources/1 = SubResource("TileSetAtlasSource_c7lrr")
+
+[node name="GreenHill" type="Node2D"]
+
+[node name="TileMap" type="TileMapLayer" parent="."]
+tile_set = SubResource("TileSet_u66nf")

@@ -1,0 +1,32 @@
+[gd_resource type="TileSet" load_steps=3 format=3 uid="uid://cew0eg7i3igs3"]
+
+[ext_resource type="Texture2D" uid="uid://c2fsusasj1y0o" path="res://assets/green_hill/animatedact1.png" id="1_2w2hu"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_c7lrr"]
+texture = ExtResource("1_2w2hu")
+0:0/size_in_atlas = Vector2i(2, 3)
+0:0/animation_columns = 5
+0:0/animation_mode = 1
+0:0/animation_frame_0/duration = 1.0
+0:0/animation_frame_1/duration = 1.0
+0:0/animation_frame_2/duration = 2.0
+0:0/animation_frame_3/duration = 1.0
+0:0/animation_frame_4/duration = 2.0
+0:0/0 = 0
+10:0/size_in_atlas = Vector2i(2, 2)
+10:0/animation_columns = 2
+10:0/animation_speed = 2.0
+10:0/animation_frame_0/duration = 1.0
+10:0/animation_frame_1/duration = 1.0
+10:0/0 = 0
+14:0/size_in_atlas = Vector2i(2, 2)
+14:0/animation_columns = 4
+14:0/animation_speed = 5.0
+14:0/animation_frame_0/duration = 1.0
+14:0/animation_frame_1/duration = 1.0
+14:0/animation_frame_2/duration = 1.0
+14:0/animation_frame_3/duration = 1.0
+14:0/0 = 0
+
+[resource]
+sources/1 = SubResource("TileSetAtlasSource_c7lrr")
