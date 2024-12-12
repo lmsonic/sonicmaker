@@ -83,46 +83,46 @@ pub struct Character {
     sprites: Option<Gd<AnimatedSprite2D>>,
     #[export(range = (0.0,100.0, 1.0))]
     #[var(get, set = set_width_radius)]
-    #[init(default = 9.0)]
+    #[init(val = 9.0)]
     width_radius: f32,
     #[export(range = (0.0,100.0, 1.0))]
     #[var(get, set = set_height_radius)]
-    #[init(default = 19.0)]
+    #[init(val = 19.0)]
     height_radius: f32,
     #[export(range = (0.0,100.0, 1.0))]
     #[var(get, set = set_push_radius)]
-    #[init(default = 10.0)]
+    #[init(val = 10.0)]
     push_radius: f32,
-    #[init(default = 6.5)]
+    #[init(val = 6.5)]
     jump_force: f32,
-    #[init(default = 0.09375)]
+    #[init(val = 0.09375)]
     air_acceleration: f32,
-    #[init(default = 0.046875)]
+    #[init(val = 0.046875)]
     acceleration: f32,
-    #[init(default = 0.5)]
+    #[init(val = 0.5)]
     deceleration: f32,
-    #[init(default = 0.046875)]
+    #[init(val = 0.046875)]
     friction: f32,
     /// Top speed on the air and grounded (except when rolling)
-    #[init(default = 6.0)]
+    #[init(val = 6.0)]
     top_speed: f32,
-    #[init(default = 0.21875)]
+    #[init(val = 0.21875)]
     gravity: f32,
     /// Slope multiplier when not rolling
-    #[init(default = 0.125)]
+    #[init(val = 0.125)]
     slope_factor_normal: f32,
     /// Slope multiplier rolling up
-    #[init(default = 0.078125)]
+    #[init(val = 0.078125)]
     slope_factor_rollup: f32,
     /// Slope multiplier rolling down
-    #[init(default = 0.3125)]
+    #[init(val = 0.3125)]
     slope_factor_rolldown: f32,
-    #[init(default = 0.0234375)]
+    #[init(val = 0.0234375)]
     roll_friction: f32,
-    #[init(default = 0.125)]
+    #[init(val = 0.125)]
     roll_deceleration: f32,
     /// Top speed when rolling
-    #[init(default = 16.0)]
+    #[init(val = 16.0)]
     roll_top_speed: f32,
     /// Main speed variable, used for maintaining momentum on different slopes and from/to the air
     #[var(set, get)]
@@ -185,9 +185,9 @@ pub struct Character {
     /// Set the mid air action, either DropDash(Mania), InstaShield(3&K), Flying(Tails) or Gliding(Knuckles)
     #[export]
     mid_air_action: MidAirAction,
-    #[init(default = 8.0)]
+    #[init(val = 8.0)]
     drop_dash_speed: f32,
-    #[init(default = 12.0)]
+    #[init(val = 12.0)]
     drop_dash_max_speed: f32,
 
     drop_dash_state: DropDashState,
@@ -208,16 +208,16 @@ pub struct Character {
     #[var(set, get)]
     spring_bounce_timer: i32,
 
-    #[init(default = 2.0)]
+    #[init(val = 2.0)]
     hurt_x_force: f32,
-    #[init(default = -4.0)]
+    #[init(val = -4.0)]
     hurt_y_force: f32,
-    #[init(default = 0.1875)]
+    #[init(val = 0.1875)]
     hurt_gravity: f32,
 
     /// Set to true to make the delta used for the player fixed to 60 FPS
     #[export]
-    #[init(default = true)]
+    #[init(val = true)]
     fix_delta: bool,
 
     solid_object_to_stand_on: Option<SolidObjectKind>,

@@ -96,11 +96,11 @@ pub struct Sensor {
     /// What physics layers sensor should collide with
     #[export(flags_2d_physics)]
     #[var(get, set)]
-    #[init(default = 1)]
+    #[init(val = 1)]
     collision_mask: u32,
     /// Sensor debug shape color
     #[export]
-    #[init(default = Color::from_rgba(0.0, 0.6, 0.7, 0.42))]
+    #[init(val = Color::from_rgba(0.0, 0.6, 0.7, 0.42))]
     debug_color: Color,
     base: Base<Node2D>,
 }

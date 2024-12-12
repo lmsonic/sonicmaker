@@ -313,7 +313,7 @@ impl Character {
             angle += TAU;
         }
         if !self.state.is_rolling() {
-            /// Godot rotation is flipped compared to the one used by Sonic Physics Guide :C
+            // Godot rotation is flipped compared to the one used by Sonic Physics Guide :C
             self.base_mut().set_rotation(TAU - angle);
         }
         self.update_sensors();

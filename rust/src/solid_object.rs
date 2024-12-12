@@ -19,12 +19,12 @@ pub struct SolidObject {
     /// Width radius of the solid object
     #[export(range = (0.0,100.0, 1.0))]
     #[var(get, set = set_width_radius)]
-    #[init(default = 8.0)]
+    #[init(val = 8.0)]
     width_radius: f32,
     /// Height radius of the solid object
     #[export(range = (0.0,100.0, 1.0))]
     #[var(get, set = set_height_radius)]
-    #[init(default = 8.0)]
+    #[init(val = 8.0)]
     height_radius: f32,
     /// Set to true to collide only from the top
     #[export]

@@ -29,7 +29,7 @@ struct LayerSwitcher {
     /// Size of the layer switcher, it will not collide outside of it
     #[export(range = (0.0, 100.0,1.0,or_greater))]
     #[var(get,set = set_length)]
-    #[init(default = 50.0)]
+    #[init(val = 50.0)]
     length: f32,
 
     /// Direction of the switcher, either horizontal or vertical
