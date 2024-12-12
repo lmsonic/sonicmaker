@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bfkwu40qgohr2"
-path="res://.godot/imported/act1.png-fdec9501127f28a9c44661cb384c1850.ctex"
+path="res://.godot/imported/act1.png-6801a14a7cd5f4e1ca0f2089adfc31f0.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/green_hill/act1.png"
-dest_files=["res://.godot/imported/act1.png-fdec9501127f28a9c44661cb384c1850.ctex"]
+source_file="res://assets/green_hill/tileset/act1.png"
+dest_files=["res://.godot/imported/act1.png-6801a14a7cd5f4e1ca0f2089adfc31f0.ctex"]
 
 [params]
 

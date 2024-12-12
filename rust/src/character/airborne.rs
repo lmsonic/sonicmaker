@@ -42,7 +42,7 @@ impl Character {
             // From <https://info.sonicretro.org/SPG:Special_Abilities#Drop_Dash_.28Mania.29>
             MidAirAction::DropDash => {
                 if self.state == State::JumpBall {
-                    let is_jump_pressed = input.is_action_pressed(c"jump".into());
+                    let is_jump_pressed = input.is_action_pressed(c"jump");
                     if !is_jump_pressed {
                         self.has_released_jump = true;
                     }
@@ -76,7 +76,7 @@ impl Character {
                     }
                 }
                 if self.state == State::JumpBall {
-                    let is_jump_pressed = input.is_action_just_pressed(c"jump".into());
+                    let is_jump_pressed = input.is_action_just_pressed(c"jump");
                     if is_jump_pressed {
                         self.insta_shield_timer = 14;
                         // Set bigger attacking hitbox
@@ -99,7 +99,7 @@ impl Character {
     }
     /// From <https://info.sonicretro.org/SPG:Jumping#Variable_Jump_Height>
     fn handle_variable_jump(&mut self, input: &Gd<Input>) {
-        if self.has_jumped && !input.is_action_pressed(c"jump".into()) && self.velocity.y < -4.0 {
+        if self.has_jumped && !input.is_action_pressed(c"jump") && self.velocity.y < -4.0 {
             self.velocity.y = -4.0;
         }
     }
@@ -260,13 +260,13 @@ impl Character {
 
     /// From <https://info.sonicretro.org/SPG:Air_State>
     fn air_accelerate(&mut self, input: &Gd<Input>, delta: f32) {
-        if input.is_action_pressed(c"left".into()) {
+        if input.is_action_pressed(c"left") {
             godot_print!("Accelerate left");
             self.velocity.x -= self.air_acceleration * delta;
             self.set_flip_h(true);
             self.velocity.x = self.velocity.x.max(-self.top_speed);
         }
-        if input.is_action_pressed(c"right".into()) {
+        if input.is_action_pressed(c"right") {
             godot_print!("Accelerate right");
             self.velocity.x += self.air_acceleration * delta;
             self.set_flip_h(false);

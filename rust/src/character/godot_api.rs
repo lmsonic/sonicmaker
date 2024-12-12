@@ -1,7 +1,7 @@
 #![allow(clippy::needless_pass_by_value)]
 use std::{f32::consts::FRAC_PI_2, ops::Rem};
 
-use godot::{builtin::math::ApproxEq, engine::Engine, prelude::*};
+use godot::{builtin::math::ApproxEq, classes::Engine, prelude::*};
 use real_consts::{PI, TAU};
 
 #[derive(GodotConvert, Var, Export, Default, Debug, PartialEq, Eq, Clone, Copy)]
@@ -139,20 +139,20 @@ impl Character {
             State::StartMotion | State::FullMotion => {
                 let frames = (8.0 - self.ground_speed.abs()).max(1.0).floor();
                 let fps = 60.0 / frames;
-                sprite_frames.set_animation_speed(animation, fps.into());
+                sprite_frames.set_animation_speed(&animation, fps.into());
             }
 
             State::JumpBall | State::RollingBall | State::SuperPeelOut => {
                 let frames = (4.0 - self.ground_speed.abs()).max(1.0).floor();
                 let fps = 60.0 / frames;
-                sprite_frames.set_animation_speed(animation, fps.into());
+                sprite_frames.set_animation_speed(&animation, fps.into());
             }
 
             State::Pushing => {
                 let frames = (8.0 - self.ground_speed.abs() * 4.0).max(1.0).floor();
                 let fps = 60.0 / frames;
 
-                sprite_frames.set_animation_speed(animation, fps.into());
+                sprite_frames.set_animation_speed(&animation, fps.into());
             }
             _ => {}
         }
@@ -169,7 +169,7 @@ impl Character {
     pub(super) fn set_rings(&mut self, value: i32) {
         self.rings = value;
         self.base_mut()
-            .emit_signal(c"rings_changed".into(), &[Variant::from(value)]);
+            .emit_signal("rings_changed", &[Variant::from(value)]);
     }
     #[func]
     pub fn clear_standing_objects(&mut self) {
@@ -267,11 +267,8 @@ impl Character {
                 let mut scattered_ring = scattered_ring_scene.instantiate_as::<Node2D>();
                 scattered_ring.set_as_top_level(true);
                 scattered_ring.set_global_position(self.global_position());
-                scattered_ring.set(
-                    c"velocity".into(),
-                    Vector2::new(x_speed, y_speed).to_variant(),
-                );
-                self.base_mut().add_child(scattered_ring.upcast());
+                scattered_ring.set("velocity", &Vector2::new(x_speed, y_speed).to_variant());
+                self.base_mut().add_child(&scattered_ring);
             }
         }
         self.set_rings(0);
@@ -279,7 +276,7 @@ impl Character {
 
     pub fn die(&self) {
         if let Some(mut tree) = self.base().get_tree() {
-            tree.call_deferred("reload_current_scene".into(), &[]);
+            tree.call_deferred("reload_current_scene", &[]);
         }
     }
     #[func]
@@ -375,24 +372,24 @@ impl Character {
         }
         godot_print!("{:?}", self.state);
         match self.state {
-            State::Idle => self.play_animation(c"idle"),
-            State::StartMotion => self.play_animation(c"start_motion"),
-            State::FullMotion => self.play_animation(c"full_motion"),
+            State::Idle => self.play_animation("idle"),
+            State::StartMotion => self.play_animation("start_motion"),
+            State::FullMotion => self.play_animation("full_motion"),
             State::JumpBall | State::RollingBall => {
-                self.play_animation(c"rolling");
+                self.play_animation("rolling");
             }
-            State::Hurt => self.play_animation(c"hurt"),
-            State::Skidding => self.play_animation(c"skidding"),
-            State::Pushing => self.play_animation(c"pushing"),
-            State::SpringBounce => self.play_animation(c"spring_bounce"),
-            State::Crouch => self.play_animation(c"crouch"),
-            State::SuperPeelOut => self.play_animation(c"super_peel_out"),
-            State::LookUp => self.play_animation(c"look_up"),
+            State::Hurt => self.play_animation("hurt"),
+            State::Skidding => self.play_animation("skidding"),
+            State::Pushing => self.play_animation("pushing"),
+            State::SpringBounce => self.play_animation("spring_bounce"),
+            State::Crouch => self.play_animation("crouch"),
+            State::SuperPeelOut => self.play_animation("super_peel_out"),
+            State::LookUp => self.play_animation("look_up"),
             State::Spindash => {
                 if self.spindash_style == SpindashStyle::CD {
-                    self.play_animation(c"rolling");
+                    self.play_animation("rolling");
                 } else {
-                    self.play_animation(c"spindash");
+                    self.play_animation("spindash");
                 }
             }
         }

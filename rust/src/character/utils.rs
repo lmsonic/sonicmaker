@@ -5,7 +5,7 @@ use std::f32::consts::TAU;
 use crate::sensor::{DetectionResult, Direction};
 
 use super::Character;
-use godot::{engine::RectangleShape2D, prelude::*};
+use godot::{classes::RectangleShape2D, prelude::*};
 use real_consts::{FRAC_PI_2, PI};
 
 pub fn inverse_lerp(a: f32, b: f32, v: f32) -> f32 {
@@ -185,9 +185,9 @@ impl Character {
             }
         }
     }
-    pub(super) fn play_animation(&mut self, animation: impl Into<StringName>) {
+    pub(super) fn play_animation(&mut self, animation: &str) {
         if let Some(sprites) = &mut self.sprites {
-            sprites.play_ex().name(animation.into()).done();
+            sprites.play_ex().name(animation).done();
         }
     }
     pub(super) fn facing_left(&self) -> bool {

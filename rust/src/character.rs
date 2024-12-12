@@ -5,7 +5,7 @@ mod grounded;
 mod lifecycle;
 mod utils;
 
-use godot::engine::{AnimatedSprite2D, CollisionShape2D};
+use godot::classes::{AnimatedSprite2D, CollisionShape2D};
 use godot::prelude::*;
 use godot_api::{SolidObjectKind, State};
 

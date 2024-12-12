@@ -56,24 +56,24 @@ impl Character {
 
     fn handle_crouch(&mut self, input: &Gd<Input>) {
         if !self.state.is_spindashing()
-            && input.is_action_pressed(c"roll".into())
+            && input.is_action_pressed("roll")
             && self.ground_speed.abs() <= 1.0
         {
             self.ground_speed = 0.0;
             self.set_state(State::Crouch);
-        } else if self.state.is_crouching() && !input.is_action_pressed(c"roll".into()) {
+        } else if self.state.is_crouching() && !input.is_action_pressed("roll") {
             self.set_state(State::Idle);
         }
     }
 
     fn handle_look_up(&mut self, input: &Gd<Input>) {
         if !self.state.is_super_peel_out()
-            && input.is_action_pressed(c"up".into())
+            && input.is_action_pressed("up")
             && self.ground_speed.abs() <= 1.0
         {
             self.ground_speed = 0.0;
             self.set_state(State::LookUp);
-        } else if self.state.is_looking_up() && !input.is_action_pressed(c"up".into()) {
+        } else if self.state.is_looking_up() && !input.is_action_pressed("up") {
             self.set_state(State::Idle);
         }
     }
@@ -83,11 +83,11 @@ impl Character {
             return;
         }
 
-        let is_up_pressed = input.is_action_pressed(c"up".into());
+        let is_up_pressed = input.is_action_pressed("up");
         let direction = if self.get_flip_h() { -1.0 } else { 1.0 };
         match self.super_peel_out_state {
             SuperPeeloutState::NotCharged => {
-                if is_up_pressed && input.is_action_pressed(c"jump".into()) {
+                if is_up_pressed && input.is_action_pressed("jump") {
                     self.set_state(State::SuperPeelOut);
                     self.super_peel_out_state = SuperPeeloutState::Charging { timer: 30 }
                 }
@@ -129,7 +129,7 @@ impl Character {
         match self.spindash_style {
             SpindashStyle::Genesis => {
                 let direction = if self.get_flip_h() { -1.0 } else { 1.0 };
-                let is_jump_just_pressed = input.is_action_just_pressed(c"jump".into());
+                let is_jump_just_pressed = input.is_action_just_pressed("jump");
 
                 match self.spindash_genesis_state {
                     SpindashGenesisState::NotCharged => {
@@ -156,7 +156,7 @@ impl Character {
                             }
                         }
                         *charge = charge.clamp(0.0, 8.0);
-                        if !input.is_action_pressed(c"roll".into()) {
+                        if !input.is_action_pressed("roll") {
                             self.ground_speed = (8.0 + charge.floor() / 2.0) * direction;
                             self.set_state(State::RollingBall);
                             self.spindash_genesis_state = SpindashGenesisState::NotCharged;
@@ -170,8 +170,8 @@ impl Character {
             }
             // From <https://info.sonicretro.org/SPG:Special_Abilities#Spindash_.28Sonic_CD.29>
             SpindashStyle::CD => {
-                let jump_pressed = input.is_action_pressed(c"jump".into());
-                let roll_released = !input.is_action_pressed(c"roll".into());
+                let jump_pressed = input.is_action_pressed("jump");
+                let roll_released = !input.is_action_pressed("roll");
 
                 let direction = if self.get_flip_h() { -1.0 } else { 1.0 };
                 match self.spindash_cd_state {
@@ -217,7 +217,7 @@ impl Character {
     }
 
     fn check_rolling(&mut self, input: &Gd<Input>) {
-        if !self.state.is_rolling() && input.is_action_pressed(c"roll".into()) && self.can_roll() {
+        if !self.state.is_rolling() && input.is_action_pressed("roll") && self.can_roll() {
             godot_print!("Rolling");
             self.set_state(State::RollingBall);
         }
@@ -302,7 +302,7 @@ impl Character {
     /// From <https://info.sonicretro.org/SPG:Jumping>
     fn handle_jump(&mut self, input: &Gd<Input>) -> bool {
         // Jump Check
-        if input.is_action_just_pressed(c"jump".into()) && self.can_jump() {
+        if input.is_action_just_pressed("jump") && self.can_jump() {
             let (sin, cos) = self.ground_angle.sin_cos();
             self.velocity.x -= self.jump_force * sin;
             self.velocity.y -= self.jump_force * cos;
@@ -325,7 +325,7 @@ impl Character {
 
         // Friction
         let horizontal_input_pressed =
-            input.is_action_pressed(c"left".into()) || input.is_action_pressed(c"right".into());
+            input.is_action_pressed("left") || input.is_action_pressed("right");
         if self.state.is_rolling() || !horizontal_input_pressed {
             godot_print!("Apply friction");
 
@@ -344,8 +344,8 @@ impl Character {
         if self.control_lock_timer <= 0 {
             let is_rolling = self.state.is_rolling();
             // Ground Acceleration
-            let horizontal_input = i32::from(input.is_action_pressed(c"right".into()))
-                - i32::from(input.is_action_pressed(c"left".into()));
+            let horizontal_input = i32::from(input.is_action_pressed("right"))
+                - i32::from(input.is_action_pressed("left"));
             if horizontal_input < 0 {
                 if self.ground_speed > 0.0 {
                     // Turn around

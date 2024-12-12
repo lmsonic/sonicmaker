@@ -2,7 +2,7 @@ pub mod sloped_solid_object;
 
 use godot::{
     classes::CollisionShape2D,
-    engine::{Area2D, IArea2D, RectangleShape2D},
+    classes::{Area2D, IArea2D, RectangleShape2D},
     obj::WithBaseField,
     prelude::*,
 };
@@ -50,7 +50,7 @@ impl IArea2D for SolidObject {
     fn ready(&mut self) {
         let base = self.base().clone();
         self.base_mut()
-            .connect("collided".into(), base.callable("on_collided"));
+            .connect("collided", &base.callable("on_collided"));
     }
 }
 
@@ -75,10 +75,8 @@ impl SolidObject {
         }
     }
     fn emit_collided(&mut self, collision: Collision, player: &Gd<Character>) {
-        self.base_mut().emit_signal(
-            "collided".into(),
-            &[collision.to_variant(), player.to_variant()],
-        );
+        self.base_mut()
+            .emit_signal("collided", &[collision.to_variant(), player.to_variant()]);
     }
     /// Collision code, separated into its own function so that it can be called in subclasses of `SolidObject`
     #[func]
@@ -86,7 +84,7 @@ impl SolidObject {
         let Some(mut player) = self
             .base()
             .get_tree()
-            .and_then(|mut tree| tree.get_first_node_in_group(c"player".into()))
+            .and_then(|mut tree| tree.get_first_node_in_group(c"player"))
             .and_then(|player| player.try_cast::<Character>().ok())
         else {
             return;

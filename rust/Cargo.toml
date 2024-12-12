@@ -42,4 +42,4 @@ use_debug = "warn"
 crate-type = ["cdylib"] # Compile this crate to a dynamic C library.
 
 [dependencies]
-godot = { version = "0.1.3" }
+godot = { version = "0.2.1" }

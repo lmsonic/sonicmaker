@@ -1,7 +1,7 @@
 use std::f32::consts::{FRAC_PI_2, PI};
 
 use godot::{
-    engine::{Button, IButton, InputEvent, InputEventMouseButton, Texture2D},
+    classes::{Button, IButton, InputEvent, InputEventMouseButton, Texture2D},
     global::MouseButton,
     prelude::*,
 };
@@ -75,20 +75,20 @@ impl Tool {
     fn on_pressed(&mut self) {
         let base = self.base().clone();
         self.base_mut()
-            .emit_signal("tool_selected".into(), &[base.to_variant()]);
+            .emit_signal("tool_selected", &[base.to_variant()]);
     }
 
     pub fn on_tool_used(&mut self) {
-        self.base_mut().emit_signal("tool_used".into(), &[]);
+        self.base_mut().emit_signal("tool_used", &[]);
     }
     pub fn on_tool_rotated(&mut self) {
-        self.base_mut().emit_signal("tool_rotated".into(), &[]);
+        self.base_mut().emit_signal("tool_rotated", &[]);
     }
     #[func]
     fn setup(&mut self) {
         let base = self.base().clone();
         self.base_mut()
-            .connect(c"pressed".into(), base.callable(c"on_pressed"));
+            .connect(c"pressed", &base.callable(c"on_pressed"));
     }
     #[signal]
     fn tool_rotated();

@@ -1,4 +1,4 @@
-use godot::{engine::ThemeDb, prelude::*};
+use godot::{classes::ThemeDb, prelude::*};
 
 use crate::character::{
     godot_api::{SolidObjectKind, State},
@@ -30,9 +30,9 @@ impl INode2D for Character {
                 .and_then(|theme| theme.get_default_font())
             {
                 self.base_mut().draw_string(
-                    font,
+                    &font,
                     Vector2::new(10.0, -30.0),
-                    format!("{angle:.0}°").into_godot(),
+                    &format!("{angle:.0}°"),
                 );
             }
         }
@@ -159,15 +159,15 @@ impl Character {
             }
             State::RollingBall => {
                 if self.ground_speed.abs() > 6.0 {
-                    self.play_animation(c"rolling_fast");
+                    self.play_animation("rolling_fast");
                 } else {
-                    self.play_animation(c"rolling");
+                    self.play_animation("rolling");
                 }
             }
             State::Pushing => {
                 let input = Input::singleton();
-                let horizontal_input = i32::from(input.is_action_pressed(c"right".into()))
-                    - i32::from(input.is_action_pressed(c"left".into()));
+                let horizontal_input = i32::from(input.is_action_pressed("right"))
+                    - i32::from(input.is_action_pressed("left"));
                 if horizontal_input == 0
                     || horizontal_input > 0 && self.facing_left()
                     || horizontal_input < 0 && !self.facing_left()

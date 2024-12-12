@@ -1,5 +1,5 @@
 use godot::{
-    engine::{CollisionPolygon2D, IPath2D, Path2D},
+    classes::{CollisionPolygon2D, IPath2D, Path2D},
     prelude::*,
 };
 
@@ -21,7 +21,7 @@ impl IPath2D for SolidPath2D {
                 let points = curve.get_baked_points();
                 if points != self.old_points {
                     self.old_points = points.clone();
-                    shape.set_polygon(points);
+                    shape.set_polygon(&points);
                 }
             };
         };

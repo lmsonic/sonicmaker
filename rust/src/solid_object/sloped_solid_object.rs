@@ -1,7 +1,7 @@
 use core::f32;
 
 use godot::{
-    engine::{Area2D, CollisionPolygon2D, IArea2D},
+    classes::{Area2D, CollisionPolygon2D, IArea2D},
     obj::WithBaseField,
     prelude::*,
 };
@@ -39,17 +39,15 @@ impl SlopedSolidObject {
     #[signal]
     fn collided(collision: Collision, player: Gd<Character>);
     fn emit_collided(&mut self, collision: Collision, player: &Gd<Character>) {
-        self.base_mut().emit_signal(
-            "collided".into(),
-            &[collision.to_variant(), player.to_variant()],
-        );
+        self.base_mut()
+            .emit_signal("collided", &[collision.to_variant(), player.to_variant()]);
     }
     #[func]
     fn physics_process(&mut self, _delta: f64) {
         if let Some(player) = self
             .base()
             .get_tree()
-            .and_then(|mut tree| tree.get_first_node_in_group(c"player".into()))
+            .and_then(|mut tree| tree.get_first_node_in_group("player"))
             .and_then(|player| player.try_cast::<Character>().ok())
         {
             self.sloped_solid_object_collision(player);
@@ -68,7 +66,7 @@ impl SlopedSolidObject {
         for i in 0..polygon.len() {
             polygon[i].x = -polygon[i].x;
         }
-        shape.set_polygon(polygon);
+        shape.set_polygon(&polygon);
     }
     /// Flips collision polygon on the y axis , used when changing spring direction
     #[func]
@@ -80,7 +78,7 @@ impl SlopedSolidObject {
         for i in 0..polygon.len() {
             polygon[i].y = -polygon[i].y;
         }
-        shape.set_polygon(polygon);
+        shape.set_polygon(&polygon);
     }
 }
 

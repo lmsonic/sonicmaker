@@ -1,5 +1,5 @@
 use godot::{
-    engine::{Control, InputEvent, Sprite2D},
+    classes::{Control, InputEvent, Sprite2D},
     prelude::*,
 };
 
@@ -22,7 +22,7 @@ impl INode2D for LevelMaker {
         let base = self.base_mut().clone();
         if let Some(toolbar) = &mut self.toolbar {
             for mut tool in toolbar.get_children().iter_shared() {
-                tool.connect("tool_selected".into(), base.callable(c"on_tool_selected"));
+                tool.connect("tool_selected", &base.callable("on_tool_selected"));
             }
         }
     }
@@ -38,9 +38,8 @@ impl INode2D for LevelMaker {
     }
     fn unhandled_input(&mut self, _event: Gd<InputEvent>) {
         if let Some(tool) = &mut self.selected_tool {
-            if Input::singleton().is_action_just_pressed(c"click".into())
-                || !tool.bind().only_just_pressed
-                    && Input::singleton().is_action_pressed(c"click".into())
+            if Input::singleton().is_action_just_pressed("click")
+                || !tool.bind().only_just_pressed && Input::singleton().is_action_pressed("click")
             {
                 tool.bind_mut().on_tool_used();
             }
@@ -53,7 +52,7 @@ impl LevelMaker {
     fn on_tool_selected(&mut self, tool: Gd<Tool>) {
         if let Some(cursor) = &mut self.cursor {
             if let Some(cursor_placeholder) = &tool.bind().cursor_placeholder {
-                cursor.set_texture(cursor_placeholder.clone());
+                cursor.set_texture(cursor_placeholder);
             }
         }
         self.selected_tool = Some(tool);

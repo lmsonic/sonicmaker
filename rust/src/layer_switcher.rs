@@ -1,5 +1,5 @@
 use godot::{
-    engine::{CollisionShape2D, Engine, SegmentShape2D, ThemeDb},
+    classes::{CollisionShape2D, Engine, SegmentShape2D, ThemeDb},
     prelude::*,
 };
 
@@ -99,15 +99,15 @@ impl INode2D for LayerSwitcher {
             match self.direction {
                 Direction::Vertical => {
                     self.base_mut()
-                        .draw_string(font.clone(), Vector2::new(-10.0, 0.0), "A".into());
+                        .draw_string(&font, Vector2::new(-10.0, 0.0), "A");
                     self.base_mut()
-                        .draw_string(font, Vector2::new(5.0, 0.0), "B".into());
+                        .draw_string(&font, Vector2::new(5.0, 0.0), "B");
                 }
                 Direction::Horizontal => {
                     self.base_mut()
-                        .draw_string(font.clone(), Vector2::new(0.0, 15.0), "A".into());
+                        .draw_string(&font, Vector2::new(0.0, 15.0), "A");
                     self.base_mut()
-                        .draw_string(font, Vector2::new(0.0, -5.0), "B".into());
+                        .draw_string(&font, Vector2::new(0.0, -5.0), "B");
                 }
             }
         }
@@ -139,7 +139,7 @@ impl LayerSwitcher {
     fn get_player(&self) -> Option<Gd<Character>> {
         self.base()
             .get_tree()?
-            .get_first_node_in_group(c"player".into())?
+            .get_first_node_in_group("player")?
             .try_cast::<Character>()
             .ok()
     }

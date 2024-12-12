@@ -1,7 +1,7 @@
 use std::f32::consts::FRAC_PI_2;
 
 use godot::{
-    engine::{Engine, PhysicsRayQueryParameters2D, ThemeDb, TileData, TileMap},
+    classes::{Engine, PhysicsRayQueryParameters2D, ThemeDb, TileData, TileMap},
     prelude::*,
 };
 
@@ -125,6 +125,10 @@ impl GodotConvert for DetectionResult {
     type Via = Dictionary;
 }
 impl ToGodot for DetectionResult {
+    type ToVia<'v> = Dictionary
+    where
+        Self: 'v;
+
     fn to_godot(&self) -> Self::Via {
         dict! {"distance":self.distance,"angle":self.angle,"solidity":self.solidity,"snap":self.snap}
     }
@@ -197,7 +201,7 @@ impl Sensor {
     #[func]
     pub fn sense_godot(&mut self) -> Variant {
         self.sense()
-            .map_or_else(Variant::nil, |result| result.into_godot().to_variant())
+            .map_or_else(Variant::nil, |result| result.to_variant())
     }
 }
 
@@ -248,8 +252,7 @@ impl Sensor {
                 .get_project_theme()
                 .and_then(|theme| theme.get_default_font())
             {
-                self.base_mut()
-                    .draw_string(font, Vector2::ZERO, text.into_godot());
+                self.base_mut().draw_string(&font, Vector2::ZERO, &text);
             }
         } else {
             let target_direction = self.direction.target_direction();
@@ -303,7 +306,7 @@ impl Sensor {
             .done()?;
         query.set_collide_with_areas(false);
         query.set_hit_from_inside(true);
-        let result = space_state.intersect_ray(query);
+        let result = space_state.intersect_ray(&query);
         if result.is_empty() {
             None
         } else {
@@ -325,8 +328,7 @@ impl Sensor {
                 false
             };
             // Checking for flagged tiles: https://info.sonicretro.org/SPG:Solid_Tiles#Flagged_Tiles
-            let snapped =
-                polygon_full || tile_data.get_custom_data("snap".into_godot()).booleanize();
+            let snapped = polygon_full || tile_data.get_custom_data("snap").booleanize();
             let solidity = if tile_data.get_collision_polygons_count(layer) > 0
                 && tile_data.is_collision_polygon_one_way(layer, 0)
             {
